@@ -32,9 +32,9 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # Check credentials
-        if username == USER_CREDENTIALS['username'] and password == USER_CREDENTIALS['password']:
-            session['user'] = username  # Store user in session
+        # ✅ Kolla om användaren finns och om lösenordet matchar
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            session['user'] = username  # Spara inloggad användare i session
             return redirect(url_for('selection_page'))
         else:
             return render_template('login.html', error="Ogiltigt användarnamn eller lösenord")
