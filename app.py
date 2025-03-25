@@ -16,12 +16,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Dummy user credentials for login
 USER_CREDENTIALS = {
-    "username": "erik",
-    "password": "77994466",
-    "username": "linda@sention.health",
-    "password": "Lsention!",
-    "username": "per@sention.health",
-    "password": "Psention!"
+    "erik": "77994466",
+    "linda@sention.health": "Lsention!",
+    "per@sention.health": "Psention!"
 }
 
 # Route for the login page
