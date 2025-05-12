@@ -294,6 +294,7 @@ input[type="number"]:focus {
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
@@ -420,6 +421,7 @@ input[type="number"]:focus {
     </div>
     <button class="btn" onclick="exportAsJPEG()">Spara JPEG</button>
     <button class="btn" onclick="exportAsExcel()">Spara Excel</button>
+    <button class="btn" onclick="exportAsPDF()">Spara PDF</button>
     </div>
     <img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" alt="Logo" class="bottom-logo">
     <script>
@@ -812,6 +814,7 @@ function exportAsJPEG() {
     const elementsToHide = [
         document.querySelector('button[onclick="exportAsJPEG()"]'), // Button for "Spara JPEG"
         document.querySelector('button[onclick="exportAsExcel()"]'), // Button for "Spara Excel"
+        document.querySelector('button[onclick="exportAsPDF()"]'), // Button for "Spara PDF"
         document.querySelector('button[onclick="toggleVerticalLines()"]'), // Button for "På/Av Vertikala Linjer"
         document.querySelector('button[onclick="updateChart()"]'), // Button for "Uppdatera Graf"
         document.querySelector('button[onclick="addRow()"]'), // Button for "Lägg till rad"
@@ -869,8 +872,8 @@ function exportAsJPEG() {
         link.click();
 
         // Restore the original textarea and remove the temporary div
-        textarea.style.display = 'block'; // Show the original textarea
-        textareaDiv.remove(); // Remove the temporary textarea div
+        textarea.style.display = 'block';
+        textareaDiv.remove();
 
         // Show the hidden elements again
         elementsToHide.forEach(el => {
@@ -881,8 +884,8 @@ function exportAsJPEG() {
         alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
 
         // Restore the original textarea and remove the temporary div in case of an error
-        textarea.style.display = 'block'; // Show the original textarea
-        textareaDiv.remove(); // Remove the temporary textarea div
+        textarea.style.display = 'block';
+        textareaDiv.remove();
 
         // Show the hidden elements again
         elementsToHide.forEach(el => {
@@ -945,6 +948,229 @@ function exportAsExcel() {
 
     // Spara Excel-filen
     XLSX.writeFile(workbook, filename);
+}
+
+function exportAsPDF() {
+    // Hämta jsPDF från window
+    const { jsPDF } = window.jspdf;
+    
+    // Get patient data
+    const dateInput = document.getElementById('dateInput');
+    const nameInput = document.getElementById('nameInput');
+    const personnummerInput = document.getElementById('personnummerInput');
+    const textarea = document.getElementById('commentInput');
+    
+    const date = dateInput.value;
+    const name = nameInput.value.trim();
+    const personnummer = personnummerInput.value.trim();
+    
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+    
+    // Create overlay div to block UI interactions during processing
+    const overlayDiv = document.createElement('div');
+    overlayDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        z-index: 9998;
+    `;
+    
+    // Skapa en laddningsindikator som visas under processen
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    
+    // Add the overlay and loading indicator to the DOM
+    document.body.appendChild(overlayDiv);
+    document.body.appendChild(loadingIndicator);
+    
+    // Generate filename
+    const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+    const filename = `OBLA-Test_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+    
+    // Elements to hide during export
+    const elementsToHide = [
+        document.querySelector('button[onclick="exportAsJPEG()"]'),
+        document.querySelector('button[onclick="exportAsExcel()"]'),
+        document.querySelector('button[onclick="exportAsPDF()"]'),
+        document.querySelector('button[onclick="toggleVerticalLines()"]'),
+        document.querySelector('button[onclick="updateChart()"]'),
+        document.querySelector('button[onclick="addRow()"]'),
+        document.querySelector('button[onclick="removeLastRow()"]'),
+        document.querySelector('label[for="horizontalLine1"]'),
+        document.querySelector('label[for="horizontalLine2"]'),
+        document.querySelector('label[for="verticalLine1"]'),
+        document.querySelector('label[for="verticalLine2"]'),
+        document.getElementById('horizontalLine1'),
+        document.getElementById('horizontalLine2'),
+        document.getElementById('verticalLine1'),
+        document.getElementById('verticalLine2')
+    ];
+    
+    // Hide the specified elements
+    elementsToHide.forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+    
+    // Replace the textarea with a styled div for proper rendering
+    const textareaDiv = document.createElement('div');
+    textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>'); // Preserve line breaks
+    textareaDiv.style.cssText = `
+        display: block;
+        white-space: pre-wrap; /* Preserve spaces and line breaks */
+        word-wrap: break-word; /* Ensure long words break properly */
+        font-family: ${window.getComputedStyle(textarea).fontFamily};
+        font-size: ${window.getComputedStyle(textarea).fontSize};
+        line-height: ${window.getComputedStyle(textarea).lineHeight};
+        padding: ${window.getComputedStyle(textarea).padding};
+        border: ${window.getComputedStyle(textarea).border};
+        border-radius: ${window.getComputedStyle(textarea).borderRadius};
+        width: ${textarea.offsetWidth}px;
+        height: ${textarea.offsetHeight}px;
+        background: ${window.getComputedStyle(textarea).backgroundColor};
+        color: ${window.getComputedStyle(textarea).color};
+        margin-top: ${window.getComputedStyle(textarea).marginTop};
+        margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+    `;
+    textarea.style.display = 'none'; // Hide the original textarea
+    textarea.parentNode.insertBefore(textareaDiv, textarea); // Insert the div before the textarea
+    
+    // Use setTimeout to ensure loading indicator is visible before heavy processing begins
+    setTimeout(() => {
+        // Initialize PDF object
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        // Set background color for PDF
+        pdf.setFillColor(240, 238, 236); // #F0EEEC
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Use html2canvas to render the page to an image
+        html2canvas(document.documentElement, {
+            scale: 2, // Increase resolution for better quality
+            useCORS: true, // Allow cross-origin images
+            scrollX: 0, // Ensure no horizontal scrolling
+            scrollY: 0, // Start rendering from the top of the page
+            windowWidth: document.documentElement.scrollWidth, // Full page width
+            windowHeight: document.documentElement.scrollHeight, // Full page height
+            backgroundColor: '#F0EEEC', // Set background color
+            // Exclude loading elements from capture
+            ignoreElements: (element) => {
+                return element === loadingIndicator || element === overlayDiv;
+            }
+        }).then(canvas => {
+            // Convert canvas to image data
+            const imgData = canvas.toDataURL('image/jpeg', 0.95); // 95% quality JPEG
+            const imgWidth = pageWidth - 40; // 20px margin on each side
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // If the image is taller than the page, split it across multiple pages
+            if (imgHeight > pageHeight - 40) {
+                // Calculate number of pages needed
+                const pageCount = Math.ceil(imgHeight / (pageHeight - 40));
+                
+                for (let i = 0; i < pageCount; i++) {
+                    // Add a new page for pages after the first one
+                    if (i > 0) {
+                        pdf.addPage();
+                        pdf.setFillColor(240, 238, 236); // #F0EEEC
+                        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                    }
+                    
+                    // Calculate which portion of the image to use for this page
+                    const sourceY = i * (canvas.height / pageCount);
+                    const sourceHeight = canvas.height / pageCount;
+                    
+                    // Add image to PDF
+                    pdf.addImage(
+                        imgData,
+                        'JPEG',
+                        20, // Left margin
+                        20, // Top margin
+                        imgWidth,
+                        imgHeight / pageCount,
+                        null,
+                        'FAST',
+                        0,
+                        {
+                            srcX: 0,
+                            srcY: sourceY,
+                            srcWidth: canvas.width,
+                            srcHeight: sourceHeight
+                        }
+                    );
+                }
+            } else {
+                // Image fits on a single page
+                pdf.addImage(
+                    imgData,
+                    'JPEG',
+                    20, // Left margin
+                    20, // Top margin
+                    imgWidth,
+                    imgHeight
+                );
+            }
+            
+            // Save the PDF
+            pdf.save(filename);
+            
+            // Clean up - remove the loading indicator and overlay
+            document.body.removeChild(loadingIndicator);
+            document.body.removeChild(overlayDiv);
+            
+            // Restore the textarea and remove temporary div
+            textarea.style.display = 'block';
+            textareaDiv.remove();
+            
+            // Show the hidden elements again
+            elementsToHide.forEach(el => {
+                if (el) el.style.display = 'block';
+            });
+        }).catch(error => {
+            console.error("Ett fel inträffade vid PDF-exporten:", error);
+            alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");
+            
+            // Clean up in case of error
+            if (document.body.contains(loadingIndicator)) {
+                document.body.removeChild(loadingIndicator);
+            }
+            if (document.body.contains(overlayDiv)) {
+                document.body.removeChild(overlayDiv);
+            }
+            
+            // Restore the textarea and remove temporary div
+            textarea.style.display = 'block';
+            if (textareaDiv.parentNode) {
+                textareaDiv.remove();
+            }
+            
+            // Show the hidden elements again
+            elementsToHide.forEach(el => {
+                if (el) el.style.display = 'block';
+            });
+        });
+    }, 100); // Short delay to ensure UI updates before heavy processing
 }
 
     </script>

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"> 
     <!-- Add SheetJS library for Excel export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -470,6 +470,7 @@
     
         <button class="export-button" onclick="exportToExcel()">Exportera till Excel</button>
         <button class="export-button" onclick="exportAsJPEG()">Exportera som JPEG</button>
+        <button class="export-button" onclick="exportAsPDF()">Exportera som PDF</button>
         <div class="footer-logo">
             <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
         </div>
@@ -1464,6 +1465,301 @@ function exportAsJPEG() {
         personnummerDiv.remove();
         // NEW CODE ENDS HERE
 
+        // Show the buttons again
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+    });
+}
+
+function exportAsPDF() {
+    // Get the window object from jsPDF
+    const { jsPDF } = window.jspdf;
+    
+    // Get patient data
+    const date = document.getElementById('analysis-date').value;
+    const name = document.getElementById('patient-name').value.trim();
+    const personnummer = document.getElementById('patient-id').value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.background = 'rgba(255, 255, 255, 0.9)';
+    loadingIndicator.style.padding = '20px';
+    loadingIndicator.style.borderRadius = '8px';
+    loadingIndicator.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    loadingIndicator.style.zIndex = '9999';
+    document.body.appendChild(loadingIndicator);
+    
+    // Generate filename
+    const formattedDate = date.replace(/-/g, '');
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+    const filename = `Blodprover_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+
+    // Select elements to hide during export
+    const buttons = document.querySelectorAll('.export-button');
+    const textarea = document.querySelector('.comments-box textarea');
+    const dropdown = document.getElementById('tolkat-av');
+    const nameInput = document.getElementById('patient-name');
+    const personnummerInput = document.getElementById('patient-id');
+
+    // Store original styles
+    const originalStyles = {
+        bodyMargin: document.body.style.margin,
+        bodyPadding: document.body.style.padding,
+        htmlMargin: document.documentElement.style.margin,
+        htmlPadding: document.documentElement.style.padding
+    };
+
+    // Hide buttons during export
+    buttons.forEach(button => button.classList.add('hide-on-export'));
+    
+    // Create and insert div for name
+    const nameDiv = document.createElement('div');
+    nameDiv.textContent = name;
+    nameDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(nameInput).padding};
+        border: ${window.getComputedStyle(nameInput).border};
+        border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+        width: auto;
+        min-width: ${nameInput.offsetWidth}px;
+        background: ${window.getComputedStyle(nameInput).backgroundColor};
+        color: ${window.getComputedStyle(nameInput).color};
+        text-align: left;
+    `;
+    nameInput.style.display = 'none';
+    nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+    // Create and insert div for personnummer
+    const personnummerDiv = document.createElement('div');
+    personnummerDiv.textContent = personnummer;
+    personnummerDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(personnummerInput).padding};
+        border: ${window.getComputedStyle(personnummerInput).border};
+        border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+        width: auto;
+        min-width: ${personnummerInput.offsetWidth}px;
+        background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+        color: ${window.getComputedStyle(personnummerInput).color};
+        text-align: left;
+    `;
+    personnummerInput.style.display = 'none';
+    personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+    // Fix dropdown rendering issues by replacing it with a styled div
+    const dropdownValue = dropdown.options[dropdown.selectedIndex].text;
+    const dropdownDiv = document.createElement('div');
+    dropdownDiv.textContent = dropdownValue;
+    dropdownDiv.style.cssText = `
+        display: block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(dropdown).padding};
+        border: ${window.getComputedStyle(dropdown).border};
+        border-radius: ${window.getComputedStyle(dropdown).borderRadius};
+        width: ${dropdown.offsetWidth}px;
+        background: ${window.getComputedStyle(dropdown).backgroundColor};
+        color: ${window.getComputedStyle(dropdown).color};
+        text-align: left;
+        height: auto;
+    `;
+    dropdown.style.display = 'none';
+    dropdown.parentNode.insertBefore(dropdownDiv, dropdown);
+
+    // Fix textarea rendering issues by replacing it with a styled div
+    const textareaDiv = document.createElement('div');
+    textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+    textareaDiv.style.cssText = `
+        display: block;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(textarea).padding};
+        border: ${window.getComputedStyle(textarea).border};
+        border-radius: ${window.getComputedStyle(textarea).borderRadius};
+        width: ${textarea.offsetWidth}px;
+        background: ${window.getComputedStyle(textarea).backgroundColor};
+        color: ${window.getComputedStyle(textarea).color};
+        margin-top: ${window.getComputedStyle(textarea).marginTop};
+        margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+    `;
+    textarea.style.display = 'none';
+    textarea.parentNode.insertBefore(textareaDiv, textarea);
+
+    // Initialize PDF document (A4 format)
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Set background color for PDF
+    pdf.setFillColor(240, 238, 236); // #F0EEEC
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    // Get all the content sections we want to include in the PDF
+    const header = document.querySelector('.header');
+    const inputFields = document.querySelector('.input-fields');
+    const biomarkers = document.querySelectorAll('.biomarker');
+    const commentsBox = document.querySelector('.comments-box');
+    
+    // Convert header to image
+    html2canvas(header, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(headerCanvas => {
+        // Add header to PDF
+        const headerImgData = headerCanvas.toDataURL('image/jpeg', 0.95);
+        const headerImgWidth = pageWidth - 40; // 20px margin on both sides
+        const headerImgHeight = headerCanvas.height * headerImgWidth / headerCanvas.width;
+        
+        pdf.addImage(
+            headerImgData,
+            'JPEG',
+            20, // Left margin
+            20, // Top margin
+            headerImgWidth,
+            headerImgHeight
+        );
+        
+        // Convert input fields to image
+        return html2canvas(inputFields, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    }).then(inputFieldsCanvas => {
+        // Add input fields to PDF
+        const inputImgData = inputFieldsCanvas.toDataURL('image/jpeg', 0.95);
+        const inputImgWidth = pageWidth - 40;
+        const inputImgHeight = inputFieldsCanvas.height * inputImgWidth / inputFieldsCanvas.width;
+        
+        let yPos = 120; // Position after header
+        
+        pdf.addImage(
+            inputImgData,
+            'JPEG',
+            20,
+            yPos,
+            inputImgWidth,
+            inputImgHeight
+        );
+        
+        yPos += inputImgHeight + 20;
+        
+        // Process each biomarker section
+        let biomarkerPromises = Array.from(biomarkers).map(biomarker => 
+            html2canvas(biomarker, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+        );
+        
+        return Promise.all([Promise.all(biomarkerPromises), yPos]);
+    }).then(([biomarkerCanvases, yPos]) => {
+        // Add each biomarker to PDF
+        let currentYPos = yPos;
+        
+        for (let i = 0; i < biomarkerCanvases.length; i++) {
+            const canvas = biomarkerCanvases[i];
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            // Check if we need a new page
+            if (currentYPos + imgHeight > pageHeight - 20) {
+                pdf.addPage();
+                // Reset background color for new page
+                pdf.setFillColor(240, 238, 236);
+                pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                currentYPos = 20; // Reset position for new page
+            }
+            
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                20,
+                currentYPos,
+                imgWidth,
+                imgHeight
+            );
+            
+            currentYPos += imgHeight + 20;
+        }
+        
+        // Convert comments box to image
+        return Promise.all([html2canvas(commentsBox, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }), currentYPos]);
+    }).then(([commentsCanvas, yPos]) => {
+        // Add comments to PDF
+        const commentsImgData = commentsCanvas.toDataURL('image/jpeg', 0.95);
+        const commentsImgWidth = pageWidth - 40;
+        const commentsImgHeight = commentsCanvas.height * commentsImgWidth / commentsCanvas.width;
+        
+        let currentYPos = yPos;
+        
+        // Check if we need a new page for comments
+        if (currentYPos + commentsImgHeight > pageHeight - 20) {
+            pdf.addPage();
+            // Reset background color for new page
+            pdf.setFillColor(240, 238, 236);
+            pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+            currentYPos = 20;
+        }
+        
+        pdf.addImage(
+            commentsImgData,
+            'JPEG',
+            20,
+            currentYPos,
+            commentsImgWidth,
+            commentsImgHeight
+        );
+        
+        // Save the PDF
+        pdf.save(filename);
+        
+        // Cleanup and restore original elements
+        document.body.removeChild(loadingIndicator);
+        
+        // Restore the original elements
+        nameInput.style.display = 'block';
+        nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        personnummerDiv.remove();
+        dropdown.style.display = 'block';
+        dropdownDiv.remove();
+        textarea.style.display = 'block';
+        textareaDiv.remove();
+        
+        // Show the buttons again
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+    }).catch(error => {
+        console.error("Ett fel inträffade vid PDF-exporten:", error);
+        alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");
+        
+        // Cleanup and restore original elements in case of error
+        if (document.body.contains(loadingIndicator)) {
+            document.body.removeChild(loadingIndicator);
+        }
+        
+        // Restore the original elements
+        nameInput.style.display = 'block';
+        if (nameDiv) nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        if (personnummerDiv) personnummerDiv.remove();
+        dropdown.style.display = 'block';
+        if (dropdownDiv) dropdownDiv.remove();
+        textarea.style.display = 'block';
+        if (textareaDiv) textareaDiv.remove();
+        
         // Show the buttons again
         buttons.forEach(button => button.classList.remove('hide-on-export'));
     });

@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
 
 .header {
@@ -407,6 +410,7 @@ font-weight: 500; /* Ändra tjocklek om det behövs */
     <div class="export-container" style="margin-top: 20px;">
         <button id="export-button">Exportera CSV</button>
         <button id="export-jpeg-button">Exportera JPEG</button>
+        <button id="export-pdf-button">Exportera PDF</button>
     </div>
     <div class="footer-logo">
         <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
@@ -566,6 +570,399 @@ document.getElementById('export-jpeg-button').addEventListener('click', () => {
         kommentarTextarea.style.display = '';
         exportButtons.style.visibility = 'visible';
     });
+});
+
+// PDF Export functionality
+document.getElementById('export-pdf-button').addEventListener('click', () => {
+    // Get the window object from jsPDF
+    const { jsPDF } = window.jspdf;
+    
+    // Get content and form data
+    const contentToCapture = document.body;
+    const nameInput = document.getElementById('nameInput');
+    const personnummerInput = document.getElementById('personnummerInput');
+    const dateInput = document.getElementById('dateInput');
+    const kommentarTextarea = document.getElementById('kommentar-input');
+    const exportButtons = document.querySelector('.export-container');
+    
+    // Get data values
+    const name = nameInput.value || 'Unnamed';
+    const personnummer = personnummerInput.value || '';
+    const date = dateInput.value || new Date().toISOString().split('T')[0];
+    
+    // Validate inputs
+    if (!name || !personnummer || !date) {
+        alert("Vänligen fyll i alla fält (Namn, Personnummer, Datum) innan export.");
+        return;
+    }
+    
+    // Create overlay div to block UI interactions during processing
+    const overlayDiv = document.createElement('div');
+    overlayDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        z-index: 9998;
+    `;
+    
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    
+    // Add overlay and loading indicator to DOM - OUTSIDE the main page content
+    document.body.appendChild(overlayDiv);
+    document.body.appendChild(loadingIndicator);
+    
+    // Generate filename
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+    const formattedDate = date.replace(/-/g, '');
+    const filename = `InBody_${sanitizedName}_${sanitizedPersonnummer}_${formattedDate}.pdf`;
+    
+    // Prepare elements for export (similar to JPEG export)
+    // Spara original-element och skapa temporära ersättningar
+    const nameValue = nameInput.value;
+    const personnummerValue = personnummerInput.value;
+    
+    // Skapa temporära div-element
+    const nameDiv = document.createElement('div');
+    const personnummerDiv = document.createElement('div');
+    
+    // Kopiera input-värden till div-elementen
+    nameDiv.textContent = nameValue;
+    personnummerDiv.textContent = personnummerValue;
+    
+    // Hämta computed styles från original input-fälten
+    const nameInputStyle = window.getComputedStyle(nameInput);
+    const personnummerInputStyle = window.getComputedStyle(personnummerInput);
+    
+    // Applicera stilar som matchar HTML
+    const divStyle = `
+        height: 45px;
+        line-height: 45px;
+        padding: 0 12px;
+        border: ${nameInputStyle.border};
+        border-radius: ${nameInputStyle.borderRadius};
+        background-color: ${nameInputStyle.backgroundColor};
+        font-family: ${nameInputStyle.fontFamily};
+        font-size: ${nameInputStyle.fontSize};
+        width: ${nameInput.offsetWidth}px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        box-shadow: ${nameInputStyle.boxShadow};
+        color: ${nameInputStyle.color};
+    `;
+    
+    nameDiv.style.cssText = divStyle;
+    personnummerDiv.style.cssText = divStyle;
+    
+    // Dölj original-inputs och lägg till div-elementen
+    nameInput.style.display = 'none';
+    personnummerInput.style.display = 'none';
+    nameInput.parentNode.insertBefore(nameDiv, nameInput);
+    personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+    // Temporarily hide the export buttons
+    exportButtons.style.visibility = 'hidden';
+
+    // Replace the "Tolkning och resultat" textarea with a div to preserve multi-line text
+    const kommentarValue = kommentarTextarea.value || kommentarTextarea.placeholder;
+    const kommentarDiv = document.createElement('div');
+    kommentarDiv.textContent = kommentarValue;
+    kommentarDiv.style.cssText = `
+        display: block;
+        width: ${kommentarTextarea.offsetWidth}px;
+        height: ${kommentarTextarea.offsetHeight}px;
+        font-size: ${window.getComputedStyle(kommentarTextarea).fontSize};
+        font-family: ${window.getComputedStyle(kommentarTextarea).fontFamily};
+        text-align: ${window.getComputedStyle(kommentarTextarea).textAlign};
+        line-height: ${window.getComputedStyle(kommentarTextarea).lineHeight};
+        padding: ${window.getComputedStyle(kommentarTextarea).padding};
+        border: ${window.getComputedStyle(kommentarTextarea).border};
+        background: ${window.getComputedStyle(kommentarTextarea).background};
+        color: ${window.getComputedStyle(kommentarTextarea).color};
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        border-radius: ${window.getComputedStyle(kommentarTextarea).borderRadius};
+        box-shadow: ${window.getComputedStyle(kommentarTextarea).boxShadow};
+        box-sizing: border-box;
+        overflow: hidden;
+    `;
+    kommentarTextarea.style.display = 'none';
+    kommentarTextarea.parentNode.insertBefore(kommentarDiv, kommentarTextarea);
+    
+    // Create a container for optimized PDF layout
+    const pdfContainer = document.createElement('div');
+    pdfContainer.style.cssText = `
+        position: absolute;
+        left: -9999px;
+        width: 794px; /* A4 width in pixels at 96 DPI */
+        background-color: #F0EEEC;
+        padding: 0;
+        margin: 0;
+    `;
+    document.body.appendChild(pdfContainer);
+    
+    // Clone the relevant content
+    const header = document.querySelector('.header').cloneNode(true);
+    const inputRow = document.querySelector('.input-container').cloneNode(true);
+    const contentContainer = document.querySelector('.content-container').cloneNode(true);
+    
+    // Adjust the layout for PDF
+    header.style.width = '100%';
+    header.style.boxShadow = 'none';
+    header.style.marginBottom = '10px';
+    
+    // Adjust content container to fill the page better
+    contentContainer.style.width = '100%';
+    contentContainer.style.maxWidth = 'none';
+    contentContainer.style.gap = '10px';
+    contentContainer.style.marginTop = '10px';
+    contentContainer.style.justifyContent = 'space-between';
+    
+    // Find and adjust the model container (left side)
+    const modelContainer = contentContainer.querySelector('.model-container');
+    if (modelContainer) {
+        modelContainer.style.flex = '1';
+        modelContainer.style.margin = '0';
+        modelContainer.style.position = 'relative';
+        modelContainer.style.padding = '0 20px'; // Lägg till padding på sidorna
+        modelContainer.style.boxSizing = 'border-box';
+        modelContainer.style.maxWidth = '450px';
+        
+        // Make the image slightly larger
+        const modelImage = modelContainer.querySelector('img');
+        if (modelImage) {
+            modelImage.style.maxWidth = '400px';
+            modelImage.style.display = 'block';
+            modelImage.style.margin = '0 auto';
+        }
+        
+        // Justera cirklarna så att de inte kapas
+        const circles = modelContainer.querySelectorAll('.circle');
+        circles.forEach(circle => {
+            // Justera storlek på cirklarna
+            circle.style.width = '110px';
+            circle.style.height = '110px';
+            circle.style.fontSize = '0.9rem';
+            
+            // Specifika justeringar för vänster-cirklarna
+            if (circle.classList.contains('muskelmassa')) {
+                circle.style.left = '15%'; // Flytta in från vänsterkanten
+            }
+            if (circle.classList.contains('ecw-ratio')) {
+                circle.style.left = '15%'; // Flytta in från vänsterkanten
+            }
+            
+            // Specifika justeringar för höger-cirklarna
+            if (circle.classList.contains('fettprocent')) {
+                circle.style.right = '15%'; // Flytta in från högerkanten
+            }
+            if (circle.classList.contains('bmi')) {
+                circle.style.right = '15%'; // Flytta in från högerkanten
+            }
+            
+            // Justera textens utseende
+            const parameterDiv = circle.querySelector('.parameter');
+            const valueDiv = circle.querySelector('.value');
+            
+            if (parameterDiv) {
+                parameterDiv.style.fontSize = '0.85rem';
+                parameterDiv.style.margin = '0 auto';
+                parameterDiv.style.width = '100%';
+                parameterDiv.style.textAlign = 'center';
+            }
+            
+            if (valueDiv) {
+                valueDiv.style.fontSize = '1.1rem';
+            }
+        });
+    }
+    
+    // Find and adjust the info container (right side)
+    const infoContainer = contentContainer.querySelector('.info-container');
+    if (infoContainer) {
+        infoContainer.style.flex = '1';
+        infoContainer.style.display = 'flex';
+        infoContainer.style.flexDirection = 'column';
+        infoContainer.style.justifyContent = 'space-between';
+        infoContainer.style.maxWidth = '320px'; // Begränsa bredden på höger sida
+        
+        // Justera textfälten i höger sida
+        const textBoxes = infoContainer.querySelectorAll('.text-box');
+        textBoxes.forEach(box => {
+            box.style.maxWidth = '300px'; // Gör textboxarna lite smalare
+            box.style.width = '100%';
+            box.style.boxSizing = 'border-box';
+            box.style.marginBottom = '10px';
+            box.style.fontSize = '0.85rem'; // Mindre text för att få plats med mer innehåll
+        });
+        
+        // Justera kommentarfältet
+        const commentContainer = infoContainer.querySelector('.comment-container');
+        if (commentContainer) {
+            commentContainer.style.width = '100%';
+            commentContainer.style.maxWidth = '300px';
+            
+            // Justera textarean/div
+            const kommentarDiv = commentContainer.querySelector('div');
+            if (kommentarDiv && kommentarDiv.textContent.includes(kommentarValue)) {
+                kommentarDiv.style.width = '100%';
+                kommentarDiv.style.maxWidth = '300px';
+                kommentarDiv.style.height = 'auto'; // Anpassa höjden automatiskt
+                kommentarDiv.style.minHeight = '150px'; // Minsta höjd för att säkerställa synlighet
+                kommentarDiv.style.fontSize = '0.85rem';
+            }
+            
+            // Justera tolkat-av-container
+            const tolkatAvContainer = commentContainer.querySelector('.tolkat-av-container');
+            if (tolkatAvContainer) {
+                tolkatAvContainer.style.width = '100%';
+                tolkatAvContainer.style.maxWidth = '300px';
+                tolkatAvContainer.style.marginTop = '5px';
+            }
+        }
+        
+        // Hide the export container in the cloned content
+        const exportContainer = infoContainer.querySelector('.export-container');
+        if (exportContainer) {
+            exportContainer.style.display = 'none';
+        }
+        
+        // Justera footer logo
+        const footerLogo = infoContainer.querySelector('.footer-logo');
+        if (footerLogo) {
+            footerLogo.style.bottom = '-30px';
+            footerLogo.style.position = 'relative';
+            footerLogo.style.marginTop = 'auto'; // Flytta loggan längst ner
+        }
+    }
+    
+    // Add the cloned elements to the PDF container
+    pdfContainer.appendChild(header);
+    pdfContainer.appendChild(inputRow);
+    pdfContainer.appendChild(contentContainer);
+    
+    // Skapa en separat logocontainer för SENTION-logotypen i nedre högra hörnet
+    const logoContainer = document.createElement('div');
+    logoContainer.style.cssText = `
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 100px;
+        text-align: right;
+    `;
+    
+    const logoImage = document.createElement('img');
+    logoImage.src = 'https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png';
+    logoImage.alt = 'SENTION Logo';
+    logoImage.style.cssText = `
+        max-width: 100%;
+        height: auto;
+        opacity: 0.8;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+    `;
+    
+    logoContainer.appendChild(logoImage);
+    pdfContainer.appendChild(logoContainer);
+    
+    // Use setTimeout to ensure the loading indicator is shown before heavy processing begins
+    setTimeout(() => {
+        // Initialize PDF
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        // Set background color for PDF
+        pdf.setFillColor(240, 238, 236); // #F0EEEC
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Create PDF using html2canvas, now using the optimized container
+        html2canvas(pdfContainer, { 
+            scale: 2, 
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+            width: pdfContainer.offsetWidth,
+            height: pdfContainer.offsetHeight,
+            backgroundColor: '#F0EEEC',
+            ignoreElements: (element) => {
+                return element === loadingIndicator || element === overlayDiv;
+            }
+        }).then(canvas => {
+            // Calculate image dimensions to fit the page
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = pageWidth - 40; // 20px margin on both sides
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Add image to PDF
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                20, // Left margin
+                20, // Top margin
+                imgWidth,
+                imgHeight
+            );
+            
+            // Save PDF
+            pdf.save(filename);
+            
+            // Cleanup and restore original elements
+            document.body.removeChild(loadingIndicator);
+            document.body.removeChild(overlayDiv);
+            document.body.removeChild(pdfContainer);
+            
+            // Restore the original elements
+            nameDiv.remove();
+            personnummerDiv.remove();
+            nameInput.style.display = '';
+            personnummerInput.style.display = '';
+            kommentarDiv.remove();
+            kommentarTextarea.style.display = '';
+            exportButtons.style.visibility = 'visible';
+        }).catch(error => {
+            console.error("Ett fel inträffade vid PDF-exporten:", error);
+            alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");
+            
+            // Cleanup and restore original elements in case of error
+            if (document.body.contains(loadingIndicator)) {
+                document.body.removeChild(loadingIndicator);
+            }
+            if (document.body.contains(overlayDiv)) {
+                document.body.removeChild(overlayDiv);
+            }
+            if (document.body.contains(pdfContainer)) {
+                document.body.removeChild(pdfContainer);
+            }
+            
+            // Restore the original elements
+            if (nameDiv) nameDiv.remove();
+            if (personnummerDiv) personnummerDiv.remove();
+            nameInput.style.display = '';
+            personnummerInput.style.display = '';
+            if (kommentarDiv) kommentarDiv.remove();
+            kommentarTextarea.style.display = '';
+            exportButtons.style.visibility = 'visible';
+        });
+    }, 100); // Short delay to ensure UI updates before heavy processing
 });
 
 const parameterRanges = {
