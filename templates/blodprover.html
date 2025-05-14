@@ -1723,24 +1723,47 @@ function exportAsPDF() {
             commentsImgHeight
         );
         
-        // Save the PDF
-        pdf.save(filename);
-        
-        // Cleanup and restore original elements
-        document.body.removeChild(loadingIndicator);
-        
-        // Restore the original elements
-        nameInput.style.display = 'block';
-        nameDiv.remove();
-        personnummerInput.style.display = 'block';
-        personnummerDiv.remove();
-        dropdown.style.display = 'block';
-        dropdownDiv.remove();
-        textarea.style.display = 'block';
-        textareaDiv.remove();
-        
-        // Show the buttons again
-        buttons.forEach(button => button.classList.remove('hide-on-export'));
+        // Lägg till SENTION-logotypen längst ned i PDF-rapporten
+        const logoImg = new Image();
+        logoImg.src = 'https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png';
+        logoImg.onload = function() {
+            // Beräkna storleken för logotypen (bredd 100px, höjd proportionellt)
+            const logoWidth = 100;
+            const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+            
+            // Positionen för logotypen (längst ned till höger)
+            const logoX = pageWidth - logoWidth - 20; // 20px från höger kant
+            const logoY = pageHeight - logoHeight - 20; // 20px från botten
+            
+            // Lägg till logotypen i PDF
+            pdf.addImage(
+                logoImg,
+                'PNG',
+                logoX,
+                logoY,
+                logoWidth,
+                logoHeight
+            );
+            
+            // Spara PDF-filen
+            pdf.save(filename);
+            
+            // Cleanup och återställ original-elementen efter att PDF:en har sparats
+            document.body.removeChild(loadingIndicator);
+            
+            // Återställ alla originalelement
+            nameInput.style.display = 'block';
+            nameDiv.remove();
+            personnummerInput.style.display = 'block';
+            personnummerDiv.remove();
+            dropdown.style.display = 'block';
+            dropdownDiv.remove();
+            textarea.style.display = 'block';
+            textareaDiv.remove();
+            
+            // Visa knapparna igen
+            buttons.forEach(button => button.classList.remove('hide-on-export'));
+        };
     }).catch(error => {
         console.error("Ett fel inträffade vid PDF-exporten:", error);
         alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");

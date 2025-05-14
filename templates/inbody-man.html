@@ -859,31 +859,6 @@ document.getElementById('export-pdf-button').addEventListener('click', () => {
     pdfContainer.appendChild(inputRow);
     pdfContainer.appendChild(contentContainer);
     
-    // Skapa en separat logocontainer för SENTION-logotypen i nedre högra hörnet
-    const logoContainer = document.createElement('div');
-    logoContainer.style.cssText = `
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        width: 100px;
-        text-align: right;
-    `;
-    
-    const logoImage = document.createElement('img');
-    logoImage.src = 'https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png';
-    logoImage.alt = 'SENTION Logo';
-    logoImage.style.cssText = `
-        max-width: 100%;
-        height: auto;
-        opacity: 0.8;
-        border: none;
-        box-shadow: none;
-        border-radius: 0;
-    `;
-    
-    logoContainer.appendChild(logoImage);
-    pdfContainer.appendChild(logoContainer);
-    
     // Use setTimeout to ensure the loading indicator is shown before heavy processing begins
     setTimeout(() => {
         // Initialize PDF
