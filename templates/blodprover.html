@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTION Tolkning av Blodvärden</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"> 
+    <!-- Add SheetJS library for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #a6c5b0;
+            --secondary: #def1e4;
+            --accent: #8BC34A;
+            --danger: #FF6F61;
+            --warning: #FFC107;
+            --light: #F8F9FA;
+            --dark: #1A2E28;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #F0EEEC;
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #ffffff;
+            height: 100px; /* Increased from 90px */
+            color: #444444;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: static;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px; /* Increased border radius */
+            font-family: 'Verdana', sans-serif;
+            font-size: 1.3rem; /* Increased from 1.2rem */
+            font-weight: medium;
+        }
+
+        h1 {
+            font-family: 'Rajdhani';
+            font-size: 3rem; /* Increased from 2.5rem */
+            font-weight: 500; 
+            }
+
+        .logo {
+            height: 30px;
+            margin-right: 1rem;
+            border-radius: 3px 3px 2px 2px;
+            margin-top: 3px;
+        }
+
+        .input-fields {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 15px; /* Increased border radius */
+    box-shadow: none;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: none;
+    color: #000000;
+}
+
+.input-fields input[type="date"] {
+    width: 180px;
+}
+
+.input-fields input[type="text"][placeholder="Namn"] {
+    min-width: 150px;
+    width: auto;
+    flex: 0 1 auto;
+    max-width: 400px;
+}
+
+.input-fields input[type="text"][placeholder="Personnummer"] {
+    width: 160px;
+}
+        .input-group {
+            position: relative;
+        }
+
+        .input-group input {
+    font-size: 0.9rem;
+    line-height: 1.2rem; /* Match or slightly exceed the font size */
+    padding: 0.8rem; /* Adjust padding to ensure enough space */
+    border-radius: 10px; /* Added rounded corners to inputs */
+}
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #d3d0cc;
+            box-shadow: 0 0 0 3px #F0EEEC;
+        }
+
+        .input-group label {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label {
+            top: -8px;
+            left: 0.4rem;
+            font-size: 0.75rem;
+            color: #000000;
+            background: white;
+            padding: 0 0.2rem;
+        }
+
+        .input-fields input {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.input-fields input:focus {
+    outline: none;
+    border-color: #d3d0cc;
+    box-shadow: 0 0 0 3px #F0EEEC;
+}
+
+        .biomarker, .comments-box {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px; /* Increased border radius */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            page-break-inside: avoid; /* Prevent splitting across pages */
+        }
+
+        .biomarker:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .range-bar {
+            height: 20px;
+            background: linear-gradient(to right,
+                var(--danger) 0%,
+                var(--warning) 50%,
+                var(--accent) 100%);
+            border-radius: 15px; /* Increased border radius */
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .indicator {
+            width: 34px;
+            height: 34px;
+            background: #F0EEEC;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .value-input {
+            width: 100px;
+            padding: 0.6rem;
+            border: 2px solid #F0EEEC;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .comments-box {
+            margin-top: 2rem;
+        }
+
+        .comments-box textarea {
+            width: 50%;
+            min-height: 50px;
+            border: 2px solid #F0EEEC;
+            border-radius: 15px; /* Increased border radius */
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .comments-box textarea:focus {
+            border-color: #F0EEEC;
+            outline: none;
+        }
+
+        .comments-box select {
+            width: 25%;
+            padding: 0.6rem;
+            border: 2px solid #F0EEEC;
+            border-radius: 10px; /* Added rounded corners to select */
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+
+        /* Add export button styling */
+        .export-button {
+            margin: 20px auto;
+            display: block;
+            padding: 12px 24px;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-button:hover {
+            background-color: #d3d0cc;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hide-on-export {
+            display: none !important; /* Completely hide the element */
+        }
+
+        .selection-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #F0EEEC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.selection-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.selection-box select, .selection-box button {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 2px solid #F0EEEC;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.selection-box button {
+    background-color: #F0EEEC;
+    color: rgb(0, 0, 0);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.selection-box button:hover {
+    background-color: #d3d0cc;
+}
+
+.selection-box .input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+    margin-top: -33px; /* This also moves the label up by 10px */
+}
+
+.selection-box label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.footer-logo {
+    position: relative;
+    bottom: 0px;
+    margin-left: auto; /* Detta flyttar elementet till höger */
+    margin-right: 20px; /* Ger lite marginal från högerkanten */
+    z-index: 999;
+    display: flex; /* Hjälper till med positioneringen */
+    justify-content: flex-end; /* Flyttar innehållet till höger */
+}
+
+.footer-logo img {
+    height: 100px;
+    width: auto;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.explanation {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    margin: 15px 0;
+    font-size: 14px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--dark);
+    max-width: 100%;
+    padding: 10px;
+}
+
+        /* Print-specific styles */
+@media print {
+    body {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: var(--dark);
+        margin: 0; /* Remove default browser margins */
+    }
+
+    .header {
+        position: static;
+        box-shadow: none; /* Remove shadow for print */
+        text-align: center;
+        margin-bottom: 1rem; /* Add spacing below the header */
+    }
+
+    .biomarker, .comments-box, .input-fields {
+        page-break-inside: avoid; /* Prevent splitting across pages */
+        margin: auto; /* Center the containers horizontally and vertically */
+        max-width: 1200px; /* Limit the width for better readability */
+        padding: 1.5rem; /* Keep the same padding as on the screen */
+        background: rgba(255, 255, 255, 0.95); /* Keep the same background */
+        border-radius: 12px; /* Keep the same rounded corners */
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* Keep the same shadow */
+        height: auto; /* Ensure the height adjusts dynamically */
+    }
+
+    .biomarker, .comments-box {
+        margin: auto; /* Center vertically and horizontally */
+        margin-top: 3rem; /* Add extra margin to ensure space at the top of a new page */
+        margin-bottom: 3rem; /* Add extra margin to ensure space at the bottom */
+    }
+
+    .input-fields {
+        margin: auto; /* Center vertically and horizontally */
+        margin-top: 3rem; /* Same margin for input fields */
+        margin-bottom: 3rem; /* Add bottom margin for balance */
+    }
+
+    /* Add a top margin to force space at the top of new pages */
+    .biomarker, .comments-box, .input-fields {
+        break-before: always; /* Force containers to start on a new page */
+    }
+
+    /* Ensure the first container on a new page has extra space */
+    .biomarker:first-of-type, 
+    .comments-box:first-of-type, 
+    .input-fields:first-of-type {
+        margin-top: 4rem; /* Ensure the first container on a new page has a top margin */
+    }
+
+   
+    .export-button {
+         display: none !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>SENTION - Tolkning av Blodvärden</h1>
+    </header>
+    
+    <div id="selectionPage" class="selection-container">
+        <div class="selection-box">
+            <h1>Välj Kön och Ålder</h1>
+            <div class="input-group">
+                <label for="gender">Kön:</label>
+                <select id="gender">
+                    <option value="male">Man</option>
+                    <option value="female">Kvinna</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="age-group">Åldersgrupp:</label>
+                <select id="age-group">
+                    <option value="adult">31-50 år</option>
+                    <option value="child">18-30 år</option>
+                    <option value="senior">Över 50 år</option>
+                </select>
+            </div>
+            <button onclick="showBiomarkerPage()">Gå Vidare</button>
+        </div>
+    </div>
+
+    <div id="biomarkerPage" style="display: none;">
+        <div class="input-fields">
+            <div class="input-group">
+                <input type="text" id="patient-name" placeholder="" required>
+                <label for="patient-name">Namn</label>
+            </div>
+            <div class="input-group">
+                <input type="text" id="patient-id" placeholder="" required>
+                <label for="patient-id">Personnummer</label>
+            </div>
+            <div class="input-group">
+                <input type="date" id="analysis-date" required>
+                <label for="analysis-date">Datum</label>
+            </div>
+</div>
+        </div>
+    
+        <main class="container"></main>
+    
+        <div class="comments-box">
+            <h3>Tolkning av resultat</h3>
+            <textarea placeholder="Skriv din tolkning här"></textarea>
+            <div style="margin-top: 1rem;">
+                <h4 style="font-size: 1.2rem;">Tolkat av</h4>
+                <div class="input-group" style="margin-top: 0.5rem;">
+                    <select id="tolkat-av" style="width: 25%; border-radius: 6px;">
+                        <option value="Per 'Pliggen' Andersson">Överläkare Per "Pliggen" Andersson</option>
+                        <option value="Other">Läkare</option>
+                    </select>
+                </div>
+                <div class="input-group" id="other-input-container" style="display: none; margin-top: 0.5rem;">
+                    <input type="text" id="other-input" placeholder="Ange namn">
+                </div>
+            </div>
+        </div>
+    
+        <button class="export-button" onclick="exportToExcel()">Exportera till Excel</button>
+        <button class="export-button" onclick="exportAsJPEG()">Exportera som JPEG</button>
+        <button class="export-button" onclick="exportAsPDF()">Exportera som PDF</button>
+        <div class="footer-logo">
+            <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
+        </div>
+    </div>
+    <script>
+
+const biomarkerReferences = [
+    {
+        name: "B-Hemoglobin (Hb) (g/L)",
+        value: 130,
+        ranges: { 
+            red: { min: 0, max: 133.9 }, 
+            yellow: { min: 134, max: 140.9 }, // Nära nedre gränsen
+            green: { min: 141, max: 165.9 },
+            yellowUpper: { min: 166, max: 170.9 }, // Nära övre gränsen
+            maxLimit: 170
+        },
+        unit: "g/L",
+        explanation: "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.",
+        labels: { red: "Röd: Under 134 eller över 170 g/L", yellow: "Gul: Mellan 134-140 eller 166-170 g/L", green: "Grön: Mellan 141-165 g/L" },
+        reverse: false
+    },
+    {
+        name: "P-Ferritin",
+        value: 31,
+        ranges: { 
+            red: { min: 0, max: 19.9 }, 
+            yellow: { min: 20, max: 30.9 }, 
+            green: { min: 31, max: 350 },
+            yellowUpper: { min: 351, max: 375 },
+            maxLimit: 375
+        },
+        unit: "µg/L", // Ändrat till µg/L enligt UNILABS
+        explanation: 'Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin.',
+        labels: { red: "Röd: Under 20 eller över 375 µg/L", yellow: "Gul: Mellan 20-30 eller 351-375 µg/L", green: "Grön: Mellan 31-350 µg/L" },
+        reverse: false
+    },
+    {
+        name: "fP-Triglycerider (TG)",
+        value: 2.0,
+        ranges: { 
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+    },
+        unit: "mmol/L",
+        explanation: 'Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.',
+        labels: { red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" },
+        reverse: true
+    },
+    {
+        name: "P-Kolesterol",
+        value: 5.8,
+        ranges: { 
+        red: { min: 7.0, max: Infinity }, 
+        yellow: { min: 6.1, max: 6.9 }, 
+        green: { min: 3.3, max: 6.0 },
+        yellowUpper: { min: 5.5, max: 6.0 },
+        maxLimit: 7.0
+    },
+        unit: "mmol/L",
+        explanation: 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.',
+        labels: { red: "Röd: Över 6.9 mmol/L", yellow: "Gul: Mellan 6.1-6.9 mmol/L", green: "Grön: Under 6.1 mmol/L" },
+        reverse: true
+    },
+    {
+        name: "P- HDL-kolesterol",
+        value: 1.2,
+        ranges: { 
+            red: { min: 0, max: 0.7 }, 
+            yellow: { min: 0.8, max: 1.0 }, 
+            green: { min: 1.11, max: Infinity },
+        },
+        unit: "mmol/L",
+        explanation: 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.',
+        labels: { red: "Röd: Under 0.8 mmol/L", yellow: "Gul: Mellan 0.8-1.0 mmol/L", green: "Grön: Över 1.0 mmol/L" },
+        reverse: false
+    },
+    {
+        name: "P- LDL-kolesterol",
+        value: 3.5,
+        ranges: { 
+        red: { min: 4.8, max: Infinity }, 
+        yellow: { min: 4.3, max: 4.7 }, 
+        green: { min: 1.7, max: 4.2 },
+    },
+        unit: "mmol/L",
+        explanation: 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.',
+        labels: { red: "Röd: Över 4.7 mmol/L", yellow: "Gul: Mellan 4.3-4.7 mmol/L", green: "Grön: Under 4.3 mmol/L"    },
+        reverse: true
+    },
+    {
+        name: "B - HbA1c",
+        value: 50,
+        ranges: { 
+        red: { min: 43, max: Infinity }, 
+        yellow: { min: 38, max: 42.9 }, 
+        green: { min: 27, max: 37 },
+        minLimit: 27,
+        maxLimit: 42
+    },
+        unit: "mmol/mol",
+        explanation: 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.',
+        labels: { red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" },
+        reverse: true
+    }
+];
+
+let biomarkers = [...biomarkerReferences]; // Initialize biomarkers
+
+function showBiomarkerPage() {
+    const gender = document.getElementById('gender').value;
+    const ageGroup = document.getElementById('age-group').value;
+
+    // Update biomarker values based on selection
+    if (gender === "male") {
+    if (ageGroup === "adult") {
+        // Values are already set for adult men in biomarkerReferences
+    } 
+    else if (ageGroup === "child" && gender === "male") {  // Male child
+    biomarkers[0].ranges = { // Hemoglobin
+        red: { min: 0, max: 133.9 }, 
+            yellow: { min: 134, max: 140.9 }, // Nära nedre gränsen
+            green: { min: 141, max: 165.9 },
+            yellowUpper: { min: 166, max: 170.9 }, // Nära övre gränsen
+            maxLimit: 170
+
+    };
+    biomarkers[0].explanation = "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.";
+    biomarkers[0].labels = {
+        red: "Röd: Under 134 eller över 170 g/L", yellow: "Gul: Mellan 134-140 eller 166-170 g/L", green: "Grön: Mellan 141-165 g/L" 
+    };          
+
+    biomarkers[1].ranges = { // Ferritin
+        red: { min: 0, max: 19.9 }, 
+            yellow: { min: 20, max: 30.9 }, 
+            green: { min: 31, max: 350 },
+            yellowUpper: { min: 351, max: 375 },
+            maxLimit: 375
+
+    };
+    biomarkers[1].explanation = "Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin.";
+    biomarkers[1].labels = {
+        red: "Röd: Under 20 eller över 375 µg/L", yellow: "Gul: Mellan 20-30 eller 351-375 µg/L", green: "Grön: Mellan 31-350 µg/L" 
+    };
+
+    biomarkers[2].ranges = { // Triglycerides
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+
+    };
+    biomarkers[2].explanation = "Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.";
+    biomarkers[2].labels = {
+        red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" 
+    };
+
+    biomarkers[3].ranges = { // Cholesterol (18-30 years)
+        red: { min: 6.2, max: Infinity }, 
+        yellow: { min: 5.3, max: 6.1 }, 
+        green: { min: 0, max: 5.2 },
+
+    };
+    biomarkers[3].explanation = 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.';
+    biomarkers[3].labels = {
+        red: "Röd: Över 6.1 mmol/L",
+        yellow: "Gul: Mellan 5.3-6.1 mmol/L",
+        green: "Grön: Under 5.3 mmol/L"
+    };
+
+    biomarkers[4].ranges = { // HDL
+        red: { min: 0, max: 0.7 }, 
+            yellow: { min: 0.8, max: 1.0 }, 
+            green: { min: 1.11, max: Infinity },
+
+    };
+    biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
+    biomarkers[4].labels = {
+         red: "Röd: Under 0.8 mmol/L", yellow: "Gul: Mellan 0.8-1.0 mmol/L", green: "Grön: Över 1.0 mmol/L" 
+    };
+
+    biomarkers[5].ranges = { // LDL (18-30 years)
+        red: { min: 4.4, max: Infinity }, 
+        yellow: { min: 4.1, max: 4.3 }, 
+        green: { min: 0, max: 4.0 },
+
+    };
+    biomarkers[5].explanation = 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.';
+    biomarkers[5].labels = {
+        red: "Röd: Över 4.3 mmol/L",
+        yellow: "Gul: Mellan 4.1-4.3 mmol/L",
+        green: "Grön: Under 4.1 mmol/L"
+    };
+
+    biomarkers[6].ranges = { // HbA1c (< 50 years)
+        red: { min: 43, max: Infinity }, 
+        yellow: { min: 38, max: 42.9 }, 
+        green: { min: 27, max: 37 },
+        minLimit: 27,
+        maxLimit: 42
+
+    };
+    biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
+    biomarkers[6].labels = {
+        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" 
+    };
+
+    }
+    else if (ageGroup === "senior" && gender === "male") {
+    biomarkers[0].ranges = { // Hemoglobin
+            red: { min: 0, max: 133.9 }, 
+            yellow: { min: 134, max: 140.9 }, // Nära nedre gränsen
+            green: { min: 141, max: 165.9 },
+            yellowUpper: { min: 166, max: 170.9 }, // Nära övre gränsen
+            maxLimit: 170
+
+    };
+    biomarkers[0].explanation = "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.";
+    biomarkers[0].labels = {
+        red: "Röd: Under 134 eller över 170 g/L", yellow: "Gul: Mellan 134-140 eller 166-170 g/L", green: "Grön: Mellan 141-165 g/L" 
+    }; 
+
+    biomarkers[1].ranges = { // Ferritin
+            red: { min: 0, max: 19.9 }, 
+            yellow: { min: 20, max: 30.9 }, 
+            green: { min: 31, max: 350 },
+            yellowUpper: { min: 351, max: 375 },
+            maxLimit: 375
+
+    };
+    biomarkers[1].explanation = "Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin.";
+    biomarkers[1].labels = {
+        red: "Röd: Under 20 eller över 375 µg/L", yellow: "Gul: Mellan 20-30 eller 351-375 µg/L", green: "Grön: Mellan 31-350 µg/L" 
+    };
+
+    biomarkers[2].ranges = { // Triglycerides
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+
+    };
+    biomarkers[2].explanation = "Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.";
+    biomarkers[2].labels = {
+        red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" 
+    };
+
+    biomarkers[3].ranges = { // Cholesterol (> 50 years)
+        red: { min: 7.9, max: Infinity }, 
+        yellow: { min: 7.4, max: 7.8 }, 
+        green: { min: 3.9, max: 7.3 },
+
+    };
+    biomarkers[3].explanation = 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.';
+    biomarkers[3].labels = {
+        red: "Röd: Över 7.8 mmol/L",
+        yellow: "Gul: Mellan 7.4-7.8 mmol/L",
+        green: "Grön: Under 7.4 mmol/L"
+    };
+
+    biomarkers[4].ranges = { // HDL
+            red: { min: 0, max: 0.7 }, 
+            yellow: { min: 0.8, max: 1.0 }, 
+            green: { min: 1.11, max: Infinity },
+
+    };
+    biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
+    biomarkers[4].labels = {
+        red: "Röd: Under 0.8 mmol/L", yellow: "Gul: Mellan 0.8-1.0 mmol/L", green: "Grön: Över 1.0 mmol/L" 
+    };
+
+    biomarkers[5].ranges = { // LDL (> 50 years)
+        red: { min: 5.4, max: Infinity }, 
+        yellow: { min: 5.0, max: 5.3 }, 
+        green: { min: 0, max: 4.9 },
+
+    };
+    biomarkers[5].explanation = 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.';
+    biomarkers[5].labels = {
+        red: "Röd: Över 5.3 mmol/L",
+        yellow: "Gul: Mellan 5.0-5.3 mmol/L",
+        green: "Grön: Under 5 mmol/L"
+    };
+
+    biomarkers[6].ranges = { // HbA1c (≥ 50 years)
+        red: { min: 47, max: Infinity }, 
+        yellow: { min: 43, max: 46.9 }, 
+        green: { min: 31, max: 41 },
+        minLimit: 31,
+
+    };
+    biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
+    biomarkers[6].labels = {
+        red: "Röd: Under 31 eller över 46 mmol/mol",
+        yellow: "Gul: Mellan 43-46 mmol/mol",
+        green: "Grön: Mellan 31-42 mmol/mol"
+    };
+
+    }
+} 
+else if (gender === "female" && ageGroup === "adult") { //31-50 år
+    biomarkers[0].ranges = { // Hemoglobin
+        red: { min: 0, max: 116.9 }, 
+        yellow: { min: 117, max: 120.9 }, // Nära nedre gränsen
+        green: { min: 121, max: 152.9 },
+        yellowUpper: { min: 145, max: 153 }, // Nära övre gränsen
+        maxLimit: 153
+
+    };
+    biomarkers[0].explanation = "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.";
+    biomarkers[0].labels = {
+        red: "Röd: Under 117 g/L eller över 153",
+        yellow: "Gul: Mellan 117-120 g/L och 145-153 g/L",
+        green: "Grön: Mellan 121-144 g/L"
+    };
+
+    biomarkers[1].ranges = { // Ferritin
+        red: { min: 0, max: 6.9 }, 
+        yellow: { min: 7, max: 15.9 }, // Nära nedre gränsen
+        green: { min: 16, max: 110.9 },
+        yellowUpper: { min: 111, max: 120 }, // Nära övre gränsen
+        maxLimit: 120
+    };
+    biomarkers[1].explanation = "Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin.";
+    biomarkers[1].labels = {
+        red: "Röd: Under 7 eller över 120 µg/L",
+        yellow: "Gul: Mellan 7-15 eller 111-120 µg/L",
+        green: "Grön: Mellan 16-110 µg/L"
+    };
+
+    biomarkers[2].ranges = { // Triglycerides
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+
+    };
+    biomarkers[2].explanation = "Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.";
+    biomarkers[2].labels = {
+        red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" 
+    };
+
+    biomarkers[3].ranges = { // Cholesterol (31-50 years)
+        red: { min: 7.0, max: Infinity }, 
+        yellow: { min: 6.1, max: 6.9 }, 
+        green: { min: 3.3, max: 6.0 },
+        yellowUpper: { min: 5.5, max: 6.0 },
+        maxLimit: 7.0
+
+    };
+    biomarkers[3].explanation = 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.';
+    biomarkers[3].labels = {
+        red: "Röd: Över 6.9 mmol/L", yellow: "Gul: Mellan 6.1-6.9 mmol/L", green: "Grön: Under 6.1 mmol/L" 
+    };
+
+    biomarkers[4].ranges = { // HDL
+        red: { min: 0, max: 0.9 }, 
+            yellow: { min: 1.0, max: 1.1 }, 
+            green: { min: 1.11, max: Infinity },
+
+    };
+    biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
+    biomarkers[4].labels = {
+        red: "Röd: Under 1.0 mmol/L",
+        yellow: "Gul: Mellan 1.0-1.1 mmol/L",
+        green: "Grön: Över 1.1 mmol/L"
+    };
+
+    biomarkers[5].ranges = { // LDL (31-50 years)
+        red: { min: 4.8, max: Infinity },
+        yellow: { min: 4.3, max: 4.7 },
+        green: { min: 1.7, max: 4.2 },
+        
+    };
+    biomarkers[5].explanation = 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.';
+    biomarkers[5].labels = {
+        red: "Röd: Över 4.7 mmol/L", yellow: "Gul: Mellan 4.3-4.7 mmol/L", green: "Grön: Under 4.3 mmol/L"    
+    };
+
+    biomarkers[6].ranges = { // HbA1c (< 50 years)
+        red: { min: 43, max: Infinity }, 
+        yellow: { min: 38, max: 42.9 }, 
+        green: { min: 27, max: 37 },
+        minLimit: 27,
+        maxLimit: 42
+
+    };
+    biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
+    biomarkers[6].labels = {
+        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" 
+    };
+
+    }
+    else if (gender === "female" && ageGroup === "child") { //18-30 år
+        biomarkers[0].ranges = { // Hemoglobin
+            red: { min: 0, max: 116.9 }, 
+        yellow: { min: 117, max: 120.9 }, // Nära nedre gränsen
+        green: { min: 121, max: 152.9 },
+        yellowUpper: { min: 145, max: 153 }, // Nära övre gränsen
+        maxLimit: 153
+
+    };
+    biomarkers[0].explanation = "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.";
+    biomarkers[0].labels = {
+        red: "Röd: Under 117 g/L eller över 153",
+        yellow: "Gul: Mellan 117-120 g/L och 145-153 g/L",
+        green: "Grön: Mellan 121-144 g/L"
+    };
+
+    biomarkers[1].ranges = { // Ferritin
+        red: { min: 0, max: 6.9 }, 
+        yellow: { min: 7, max: 15.9 }, // Nära nedre gränsen
+        green: { min: 16, max: 110.9 },
+        yellowUpper: { min: 111, max: 120 }, // Nära övre gränsen
+        maxLimit: 120
+    };
+    biomarkers[1].explanation = "Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin.";
+    biomarkers[1].labels = {
+        red: "Röd: Under 7 eller över 120 µg/L",
+        yellow: "Gul: Mellan 7-15 eller 111-120 µg/L",
+        green: "Grön: Mellan 16-110 µg/L"
+    };
+
+    biomarkers[2].ranges = { // Triglycerides
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+
+    };
+    biomarkers[2].explanation = "Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.";
+    biomarkers[2].labels = {
+        red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" 
+    };
+
+    biomarkers[3].ranges = { // Cholesterol 18-30
+        red: { min: 6.2, max: Infinity }, 
+        yellow: { min: 5.3, max: 6.1 }, 
+        green: { min: 0, max: 5.2 },
+
+    };
+    biomarkers[3].explanation = 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.';
+    biomarkers[3].labels = {
+        red: "Röd: Över 6.1 mmol/L",
+        yellow: "Gul: Mellan 5.3-6.1 mmol/L",
+        green: "Grön: Under 5.3 mmol/L"
+    };
+
+    biomarkers[4].ranges = { // HDL
+        red: { min: 0, max: 0.9 }, 
+            yellow: { min: 1.0, max: 1.1 }, 
+            green: { min: 1.11, max: Infinity },
+
+    };
+    biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
+    biomarkers[4].labels = {
+        red: "Röd: Under 1.0 mmol/L",
+        yellow: "Gul: Mellan 1.0-1.1 mmol/L",
+        green: "Grön: Över 1.1 mmol/L"
+    };
+
+    biomarkers[5].ranges = { // LDL (child)
+        red: { min: 4.4, max: Infinity }, 
+        yellow: { min: 4.1, max: 4.3 }, 
+        green: { min: 0, max: 4.0 },
+
+    };
+    biomarkers[5].explanation = 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.';
+    biomarkers[5].labels = {
+        red: "Röd: Över 4.3 mmol/L",
+        yellow: "Gul: Mellan 4.1-4.3 mmol/L",
+        green: "Grön: Under 4.1 mmol/L"
+    };
+
+    biomarkers[6].ranges = { // HbA1c <50 år>
+        red: { min: 43, max: Infinity }, 
+        yellow: { min: 38, max: 42.9 }, 
+        green: { min: 27, max: 37 },
+        minLimit: 27,
+        maxLimit: 42
+
+    };
+    biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
+    biomarkers[6].labels = {
+        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" 
+
+    };
+
+    }
+    else if (gender === "female" && ageGroup === "senior") {
+        biomarkers[0].ranges = { // Hemoglobin
+        red: { min: 0, max: 116.9 }, 
+        yellow: { min: 117, max: 120.9 }, // Nära nedre gränsen
+        green: { min: 121, max: 152.9 },
+        yellowUpper: { min: 145, max: 153 }, // Nära övre gränsen
+        maxLimit: 153
+
+    };
+    biomarkers[0].explanation = "Hemoglobin finns i de röda blodkropparna och är ett protein som bland annat har järn kopplat till sig. Dess huvuduppgift är att transportera syre från lungorna ut till kroppens vävnader och koldioxid tillbaka till lungorna. Hemoglobin är ett koncentrationsmått och är således beroende av hur stor blodvolym man har. Det innebär att om man exempelvis är undervätskad stiger Hb. En vanlig orsak till lågt hemoglobin är järnbrist. Om man har för lågt hemoglobin är ett vanligt symtom trötthet.";
+    biomarkers[0].labels = {
+        red: "Röd: Under 117 g/L eller över 153",
+        yellow: "Gul: Mellan 117-120 g/L och 145-153 g/L",
+        green: "Grön: Mellan 121-144 g/L"
+
+    };
+
+    biomarkers[1].ranges = { // Ferritin
+        red: { min: 0, max: 6.9 },
+        yellow: { min: 7, max: 15.9 },
+        green: { min: 16, max: 110 },
+        yellowUpper: { min: 111, max: 120 },
+        maxLimit: 120
+    };
+    biomarkers[1].explanation = "Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Förutom att det lagrar järn är Ferritin ett så kallat akutfasprotein som innebär att det stiger vid olika inflammatoriska tillstånd. Låga ferritinnivåer kan representera en järnbrist och är därför ett viktigt prov om man utreder blodbrist. Förhöjda nivåer över tid kan vara skadligt för bland annat levern. Den vanligaste orsaken till att man mäter ferritin är för att säkerställa optimala järnnivåer som bland annat är viktigt för att bilda hemoglobin. Postmenopausala kvinnor har ferritinkoncentrationer som närmar sig männens värden.";
+    biomarkers[1].labels = {
+        red: "Röd: Under 7 eller över 120 µg/L",
+        yellow: "Gul: Mellan 7-15 eller 111-120 µg/L",
+        green: "Grön: Mellan 16-110 µg/L"
+    };
+
+    biomarkers[2].ranges = { // Triglycerides
+        red: { min: 2.7, max: Infinity }, 
+        yellow: { min: 2.4, max: 2.69 }, 
+        green: { min: 0, max: 2.3 },
+
+    };
+    biomarkers[2].explanation = "Triglycerider är en typ av fett som cirkulerar i blodet och används som energikälla i kroppen. Förhöjda nivåer av triglycerider kan vara en riskfaktor för hjärt-kärlsjukdom och åderförkalkning, särskilt i kombination med andra förhöjda blodfetter. Låga nivåer av triglycerider är oftast ofarliga och kan bero på en hälsosam livsstil eller kost. Triglyceridnivåerna påverkas tydligt av kost och träning, och en balanserad livsstil kan bidra till att hålla nivåerna inom det normala intervallet.";
+    biomarkers[2].labels = {
+        red: "Röd: Över 2.6 mmol/L", yellow: "Gul: Mellan 2.4-2.6 mmol/L", green: "Grön: Under 2.4 mmol/L" 
+
+    };
+
+    biomarkers[3].ranges = { // Cholesterol (> 50 years)
+        red: { min: 7.9, max: Infinity }, 
+        yellow: { min: 7.4, max: 7.8 }, 
+        green: { min: 3.9, max: 7.3 },
+
+    };
+    biomarkers[3].explanation = 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Det delas ofta upp i "gott" och "ont" kolesterol, där HDL är det skyddande kolesterolet och LDL är det som kan bidra till åderförkalkning. Förhöjda nivåer av kolesterol, särskilt LDL, kan öka risken för hjärt-kärlsjukdom. Samtidigt är kolesterol nödvändigt för kroppen, och låga nivåer kan också vara skadliga. Kost och motion har en stor påverkan på kolesterolnivåerna och kan bidra till att minska risken för sjukdom.';
+    biomarkers[3].labels = {
+        red: "Röd: Över 7.8 mmol/L",
+        yellow: "Gul: Mellan 7.4-7.8 mmol/L",
+        green: "Grön: Under 7.4 mmol/L"
+    };
+
+    biomarkers[4].ranges = { // HDL
+        red: { min: 0, max: 0.9 }, 
+            yellow: { min: 1.0, max: 1.1 }, 
+            green: { min: 1.11, max: Infinity },
+
+    };
+    biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
+    biomarkers[4].labels = {
+        red: "Röd: Under 1.0 mmol/L",
+        yellow: "Gul: Mellan 1.0-1.1 mmol/L",
+        green: "Grön: Över 1.1 mmol/L"
+
+    };
+
+    biomarkers[5].ranges = { // LDL (> 50 years)
+        red: { min: 5.4, max: Infinity }, 
+        yellow: { min: 5.0, max: 5.3 }, 
+        green: { min: 0, max: 4.9 },
+
+    };
+    biomarkers[5].explanation = 'LDL, eller "det onda kolesterolet", är en typ av kolesterol som kan bidra till att fett lagras i blodkärlens väggar, vilket ökar risken för åderförkalkning och hjärt-kärlsjukdom. Höga nivåer av LDL är en av de viktigaste riskfaktorerna för hjärtinfarkt och stroke. Att sänka LDL-nivåerna genom kost, motion och vid behov medicinering är en viktig del av att minska risken för hjärt-kärlsjukdom. Låga nivåer av LDL är generellt sett fördelaktiga och innebär en minskad risk för sjukdom.';
+    biomarkers[5].labels = {
+        red: "Röd: Över 5.3 mmol/L",
+        yellow: "Gul: Mellan 5.0-5.3 mmol/L",
+        green: "Grön: Under 5 mmol/L"
+    };
+
+    biomarkers[6].ranges = { // HbA1c (≥ 50 years)
+        red: { min: 47, max: Infinity }, 
+        yellow: { min: 43, max: 46.9 }, 
+        green: { min: 31, max: 41 },
+        minLimit: 31,
+
+    };
+    biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
+    biomarkers[6].labels = {
+        red: "Röd: Under 31 eller över 46 mmol/mol",
+        yellow: "Gul: Mellan 43-46 mmol/mol",
+        green: "Grön: Mellan 31-42 mmol/mol"
+    };
+
+}
+    // Hide selection page and show biomarker page
+    document.getElementById('selectionPage').style.display = 'none';
+    document.getElementById('biomarkerPage').style.display = 'block';
+
+    // Initialize biomarkers display
+    const container = document.querySelector('#biomarkerPage .container');
+    container.innerHTML = ''; // Clear existing biomarkers
+    biomarkers.forEach((bio, index) => {
+        container.appendChild(createBiomarkerElement(bio, index));
+    });
+}
+
+function calculatePosition(value, ranges, reverse) {
+    if (reverse) {
+        if (value < ranges.minLimit || value >= ranges.red.min) return 16;
+        if (value >= ranges.yellow.min && value <= ranges.yellow.max) return 50;
+        return 84;
+    } else {
+        if (value <= ranges.red.max || value > ranges.maxLimit) return 16;
+        if ((value > ranges.red.max && value <= ranges.yellow.max) || 
+            (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) return 50;
+        return 84;
+    }
+
+    
+    // Original logic for other biomarkers
+    if (reverse) {
+        if (value >= ranges.red.min) return 16;
+        if (value >= ranges.yellow.min) return 50;
+        return 84;
+    } else {
+        if (value <= ranges.red.max) return 16;
+        if (value <= ranges.yellow.max) return 50;
+        return 84;
+    }
+}
+
+function calculateColor(value, ranges) {
+    if (ranges.reverse) {
+        // För biomarkörer där högre värden är sämre
+        if (value < ranges.minLimit || value >= ranges.red.min) {
+            return 'red';
+        } else if (value >= ranges.yellow.min && value <= ranges.yellow.max) {
+            return 'yellow';
+        } else {
+            return 'green';
+        }
+    } else {
+        // För biomarkörer där både för höga och för låga värden är dåliga
+        if (value <= ranges.red.max || value > ranges.maxLimit) {
+            return 'red';
+        } else if ((value > ranges.red.max && value <= ranges.yellow.max) || 
+                   (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) {
+            return 'yellow';
+        } else {
+            return 'green';
+        }
+    }
+}
+
+function calculateColor(value, ranges) {
+    if (ranges.reverse) {
+        // För biomarkörer där högre värden är sämre
+        if (value < ranges.minLimit || value >= ranges.red.min) {
+            return 'red';
+        } else if (value >= ranges.yellow.min && value <= ranges.yellow.max) {
+            return 'yellow';
+        } else {
+            return 'green';
+        }
+    } else {
+        // För biomarkörer där både för höga och för låga värden är dåliga
+        if (value <= ranges.red.max || value > ranges.maxLimit) {
+            return 'red';
+        } else if ((value > ranges.red.max && value <= ranges.yellow.max) || 
+                   (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) {
+            return 'yellow';
+        } else {
+            return 'green';
+        }
+    }
+}
+
+function getIndicatorColor(value, ranges, reverse) {
+    if (reverse) {
+        if (value < ranges.minLimit || value >= ranges.red.min) return 'var(--danger)';
+        if (value >= ranges.yellow.min && value <= ranges.yellow.max) return 'var(--warning)';
+        return 'var(--accent)';
+    } else {
+        if (value <= ranges.red.max || value > ranges.maxLimit) return 'var(--danger)';
+        if ((value > ranges.red.max && value <= ranges.yellow.max) || 
+            (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) return 'var(--warning)';
+        return 'var(--accent)';
+    }
+}
+
+function createBiomarkerElement(biomarker, index) {
+    const element = document.createElement('div');
+    element.className = 'biomarker';
+    const position = calculatePosition(biomarker.value, biomarker.ranges, biomarker.reverse);
+    const indicatorColor = getIndicatorColor(biomarker.value, biomarker.ranges, biomarker.reverse);
+    
+    // Format the value based on the biomarker index
+    let formattedValue;
+    if (index === 0 || index === 1 || index === 6) { // Hemoglobin, Ferritin, HbA1c
+        formattedValue = Math.round(biomarker.value);
+    } else if (index === 2) { // Triglycerides
+        formattedValue = biomarker.value.toFixed(2);
+    } else { // All other biomarkers
+        formattedValue = biomarker.value.toFixed(1);
+    }
+
+    element.innerHTML = `
+        <h3>${biomarker.name}</h3>
+        <input type="number" 
+               class="value-input" 
+               value="${biomarker.value}"
+               step="${index === 0 || index === 1 || index === 6 ? '1' : index === 2 ? '0.01' : '0.1'}"
+               data-index="${index}">
+        <span class="unit">${biomarker.unit}</span>
+        <div class="range-bar">
+            <div class="indicator" style="left: ${position}%; background: ${indicatorColor}">
+                ${formattedValue}
+            </div>
+        </div>
+        <div class="range-labels">
+            <span>${biomarker.labels.red}</span>
+            <span>${biomarker.labels.yellow}</span>
+            <span>${biomarker.labels.green}</span>
+        </div>
+        <p class="explanation">${biomarker.explanation}</p>
+    `;
+    return element;
+}
+
+        // Initialize biomarkers
+        const container = document.querySelector('.container');
+        biomarkers.forEach((bio, index) => {
+            container.appendChild(createBiomarkerElement(bio, index));
+        });
+
+       // Update the input event listener
+container.addEventListener('input', e => {
+    if (!e.target.matches('.value-input')) return;
+    
+    const index = parseInt(e.target.dataset.index);
+    const biomarker = biomarkers[index];
+    const newValue = parseFloat(e.target.value);
+    const indicator = e.target.closest('.biomarker').querySelector('.indicator');
+    
+    const position = calculatePosition(newValue, biomarker.ranges, biomarker.reverse);
+    const indicatorColor = getIndicatorColor(newValue, biomarker.ranges, biomarker.reverse);
+    indicator.style.left = `${position}%`;
+    indicator.style.background = indicatorColor;
+    
+    // Format the indicator value based on the biomarker index
+    if (index === 0 || index === 1 || index === 6) { // Hemoglobin, Ferritin, HbA1c
+        indicator.textContent = Math.round(newValue);
+    } else if (index === 2) { // Triglycerides
+        indicator.textContent = newValue.toFixed(2);
+    } else { // All other biomarkers
+        indicator.textContent = newValue.toFixed(1);
+    }
+});
+
+        // Date input initialization
+        document.getElementById('analysis-date').valueAsDate = new Date();
+
+        // Comments box functionality
+        const tolkatAvDropdown = document.getElementById("tolkat-av");
+        const otherInputContainer = document.getElementById("other-input-container");
+
+        tolkatAvDropdown.addEventListener("change", (event) => {
+            otherInputContainer.style.display = event.target.value === "Other" ? "block" : "none";
+        });
+
+        // Auto-expand textarea
+        const textarea = document.querySelector('.comments-box textarea');
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        });
+
+        function exportToExcel() {
+    try {
+        // Get patient data
+        const date = document.getElementById('analysis-date').value;
+        const name = document.getElementById('patient-name').value.trim();
+        const personnummer = document.getElementById('patient-id').value.trim();
+
+        // Validate inputs
+        if (!date || !name || !personnummer) {
+            alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+            return;
+        }
+
+        // Sanitize filename components
+        const sanitizedDate = date.replace(/-/g, '');
+        const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+        const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+
+        // Generate filename
+        const filename = `Blodprover_${sanitizedDate}_${sanitizedName}_${sanitizedPersonnummer}.xlsx`;
+
+        // Get the comment and interpreter
+        const comment = document.querySelector('.comments-box textarea').value || "Ingen kommentar";
+        const dropdown = document.getElementById("tolkat-av");
+        let interpretedBy = dropdown.value;
+        if (interpretedBy === "Other") {
+            const otherInput = document.getElementById("other-input").value.trim();
+            interpretedBy = otherInput || "Okänt namn";
+        }
+
+        // Collect current biomarker values from input fields
+        const biomarkerInputs = document.querySelectorAll('.value-input');
+        const biomarkerNames = biomarkers.map(b => b.name);
+        const biomarkerValues = Array.from(biomarkerInputs).map(input => parseFloat(input.value));
+
+        // Create headers and values for the Excel file
+        const headers = [
+            'Datum',
+            'Namn',
+            'Personnummer',
+            ...biomarkerNames,
+            'Tolkning av resultat',
+            'Tolkat av'
+        ];
+        const values = [
+            date,
+            name,
+            personnummer,
+            ...biomarkerValues,
+            comment,
+            interpretedBy
+        ];
+
+        // Create worksheet data and set it up
+        const wsData = [headers, values];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = headers.map(() => ({ wch: 20 }));
+
+        // Create and setup workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Resultat");
+        wb.Props = {
+            Title: "Resultat Blodprover",
+            Subject: "Blodprovsanalys",
+            Author: "Advanced Blood Analysis Suite",
+            CreatedDate: new Date()
+        };
+
+        // Save file
+        XLSX.writeFile(wb, filename);
+    } catch (error) {
+        console.error("An error occurred during the export process:", error);
+        alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
+    }
+}
+
+function exportAsJPEG() {
+    const element = document.body; // The element to export
+    const buttons = document.querySelectorAll('.export-button'); // Select buttons to hide
+    const textarea = document.querySelector('.comments-box textarea'); // The "Tolkning av resultat" textarea
+    const dropdown = document.getElementById('tolkat-av'); // The dropdown element
+
+    // Get patient data
+    const date = document.getElementById('analysis-date').value;
+    const name = document.getElementById('patient-name').value.trim();
+    const personnummer = document.getElementById('patient-id').value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // NEW CODE STARTS HERE
+    const nameInput = document.getElementById('patient-name');
+    const personnummerInput = document.getElementById('patient-id');
+
+    // Create and insert div for name
+    const nameDiv = document.createElement('div');
+    nameDiv.textContent = name;
+    nameDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(nameInput).padding};
+        border: ${window.getComputedStyle(nameInput).border};
+        border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+        width: auto;
+        min-width: ${nameInput.offsetWidth}px;
+        background: ${window.getComputedStyle(nameInput).backgroundColor};
+        color: ${window.getComputedStyle(nameInput).color};
+        text-align: left;
+    `;
+    nameInput.style.display = 'none';
+    nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+    // Create and insert div for personnummer
+    const personnummerDiv = document.createElement('div');
+    personnummerDiv.textContent = personnummer;
+    personnummerDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(personnummerInput).padding};
+        border: ${window.getComputedStyle(personnummerInput).border};
+        border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+        width: auto;
+        min-width: ${personnummerInput.offsetWidth}px;
+        background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+        color: ${window.getComputedStyle(personnummerInput).color};
+        text-align: left;
+    `;
+    personnummerInput.style.display = 'none';
+    personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+    // NEW CODE ENDS HERE
+
+    // Generate filename
+    const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
+    const filename = `Blodprover_${formattedDate}_${name}_${personnummer}.jpeg`;
+
+    // Hide the buttons during export
+    buttons.forEach(button => button.classList.add('hide-on-export'));
+
+    // Fix dropdown rendering issues by replacing it with a styled div
+    const dropdownValue = dropdown.options[dropdown.selectedIndex].text; // Get the selected text
+    const dropdownDiv = document.createElement('div');
+    dropdownDiv.textContent = dropdownValue;
+    dropdownDiv.style.cssText = `
+        display: block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(dropdown).padding};
+        border: ${window.getComputedStyle(dropdown).border};
+        border-radius: ${window.getComputedStyle(dropdown).borderRadius};
+        width: ${dropdown.offsetWidth}px;
+        background: ${window.getComputedStyle(dropdown).backgroundColor};
+        color: ${window.getComputedStyle(dropdown).color};
+        text-align: left;
+        height: auto; /* Ensure the height adjusts to fit the text */
+    `;
+    dropdown.style.display = 'none'; // Hide the original dropdown
+    dropdown.parentNode.insertBefore(dropdownDiv, dropdown); // Insert the div before the dropdown
+
+    // Fix textarea rendering issues by replacing it with a styled div
+    const textareaDiv = document.createElement('div');
+    textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>'); // Preserve line breaks
+    textareaDiv.style.cssText = `
+        display: block;
+        white-space: pre-wrap; /* Preserve spaces and line breaks */
+        word-wrap: break-word; /* Ensure long words break properly */
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(textarea).padding};
+        border: ${window.getComputedStyle(textarea).border};
+        border-radius: ${window.getComputedStyle(textarea).borderRadius};
+        width: ${textarea.offsetWidth}px;
+        background: ${window.getComputedStyle(textarea).backgroundColor};
+        color: ${window.getComputedStyle(textarea).color};
+        margin-top: ${window.getComputedStyle(textarea).marginTop};
+        margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+    `;
+    textarea.style.display = 'none'; // Hide the original textarea
+    textarea.parentNode.insertBefore(textareaDiv, textarea); // Insert the div before the textarea
+
+    // Use html2canvas to export the page
+    html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = filename; // Use the dynamically generated filename
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
+        link.click();
+
+        // Restore the original dropdown and textarea, and remove the temporary divs
+        dropdown.style.display = 'block'; // Show the original dropdown
+        dropdownDiv.remove(); // Remove the temporary dropdown div
+        textarea.style.display = 'block'; // Show the original textarea
+        textareaDiv.remove(); // Remove the temporary textarea div
+        
+        // NEW CODE STARTS HERE
+        nameInput.style.display = 'block';
+        nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        personnummerDiv.remove();
+        // NEW CODE ENDS HERE
+
+        // Show the buttons again
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+    }).catch(error => {
+        console.error("An error occurred while exporting the page as JPEG:", error);
+        alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
+
+        // Restore the original dropdown and textarea, and remove the temporary divs in case of an error
+        dropdown.style.display = 'block'; // Show the original dropdown
+        dropdownDiv.remove(); // Remove the temporary dropdown div
+        textarea.style.display = 'block'; // Show the original textarea
+        textareaDiv.remove(); // Remove the temporary textarea div
+
+        // NEW CODE STARTS HERE
+        nameInput.style.display = 'block';
+        nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        personnummerDiv.remove();
+        // NEW CODE ENDS HERE
+
+        // Show the buttons again
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+    });
+}
+
+function exportAsPDF() {
+    // Get the window object from jsPDF
+    const { jsPDF } = window.jspdf;
+    
+    // Get patient data
+    const date = document.getElementById('analysis-date').value;
+    const name = document.getElementById('patient-name').value.trim();
+    const personnummer = document.getElementById('patient-id').value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.background = 'rgba(255, 255, 255, 0.9)';
+    loadingIndicator.style.padding = '20px';
+    loadingIndicator.style.borderRadius = '8px';
+    loadingIndicator.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    loadingIndicator.style.zIndex = '9999';
+    document.body.appendChild(loadingIndicator);
+    
+    // Generate filename
+    const formattedDate = date.replace(/-/g, '');
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+    const filename = `Blodprover_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+
+    // Select elements to hide during export
+    const buttons = document.querySelectorAll('.export-button');
+    const textarea = document.querySelector('.comments-box textarea');
+    const dropdown = document.getElementById('tolkat-av');
+    const nameInput = document.getElementById('patient-name');
+    const personnummerInput = document.getElementById('patient-id');
+
+    // Store original styles
+    const originalStyles = {
+        bodyMargin: document.body.style.margin,
+        bodyPadding: document.body.style.padding,
+        htmlMargin: document.documentElement.style.margin,
+        htmlPadding: document.documentElement.style.padding
+    };
+
+    // Hide buttons during export
+    buttons.forEach(button => button.classList.add('hide-on-export'));
+    
+    // Create and insert div for name
+    const nameDiv = document.createElement('div');
+    nameDiv.textContent = name;
+    nameDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(nameInput).padding};
+        border: ${window.getComputedStyle(nameInput).border};
+        border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+        width: auto;
+        min-width: ${nameInput.offsetWidth}px;
+        background: ${window.getComputedStyle(nameInput).backgroundColor};
+        color: ${window.getComputedStyle(nameInput).color};
+        text-align: left;
+    `;
+    nameInput.style.display = 'none';
+    nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+    // Create and insert div for personnummer
+    const personnummerDiv = document.createElement('div');
+    personnummerDiv.textContent = personnummer;
+    personnummerDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(personnummerInput).padding};
+        border: ${window.getComputedStyle(personnummerInput).border};
+        border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+        width: auto;
+        min-width: ${personnummerInput.offsetWidth}px;
+        background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+        color: ${window.getComputedStyle(personnummerInput).color};
+        text-align: left;
+    `;
+    personnummerInput.style.display = 'none';
+    personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+    // Fix dropdown rendering issues by replacing it with a styled div
+    const dropdownValue = dropdown.options[dropdown.selectedIndex].text;
+    const dropdownDiv = document.createElement('div');
+    dropdownDiv.textContent = dropdownValue;
+    dropdownDiv.style.cssText = `
+        display: block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(dropdown).padding};
+        border: ${window.getComputedStyle(dropdown).border};
+        border-radius: ${window.getComputedStyle(dropdown).borderRadius};
+        width: ${dropdown.offsetWidth}px;
+        background: ${window.getComputedStyle(dropdown).backgroundColor};
+        color: ${window.getComputedStyle(dropdown).color};
+        text-align: left;
+        height: auto;
+    `;
+    dropdown.style.display = 'none';
+    dropdown.parentNode.insertBefore(dropdownDiv, dropdown);
+
+    // Fix textarea rendering issues by replacing it with a styled div
+    const textareaDiv = document.createElement('div');
+    textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+    textareaDiv.style.cssText = `
+        display: block;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(textarea).padding};
+        border: ${window.getComputedStyle(textarea).border};
+        border-radius: ${window.getComputedStyle(textarea).borderRadius};
+        width: ${textarea.offsetWidth}px;
+        background: ${window.getComputedStyle(textarea).backgroundColor};
+        color: ${window.getComputedStyle(textarea).color};
+        margin-top: ${window.getComputedStyle(textarea).marginTop};
+        margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+    `;
+    textarea.style.display = 'none';
+    textarea.parentNode.insertBefore(textareaDiv, textarea);
+
+    // Initialize PDF document (A4 format)
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Set background color for PDF
+    pdf.setFillColor(240, 238, 236); // #F0EEEC
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    // Get all the content sections we want to include in the PDF
+    const header = document.querySelector('.header');
+    const inputFields = document.querySelector('.input-fields');
+    const biomarkers = document.querySelectorAll('.biomarker');
+    const commentsBox = document.querySelector('.comments-box');
+    
+    // Convert header to image
+    html2canvas(header, { 
+        scale: 3, // Increased from 2 for better quality
+        useCORS: true, 
+        backgroundColor: '#ffffff' 
+    }).then(headerCanvas => {
+        // Add header to PDF
+        const headerImgData = headerCanvas.toDataURL('image/jpeg', 0.95);
+        const headerImgWidth = pageWidth - 40; // 20px margin on both sides
+        const headerImgHeight = headerCanvas.height * headerImgWidth / headerCanvas.width;
+        
+        pdf.addImage(
+            headerImgData,
+            'JPEG',
+            20, // Left margin
+            20, // Top margin
+            headerImgWidth,
+            headerImgHeight
+        );
+        
+        // Convert input fields to image
+        return html2canvas(inputFields, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    }).then(inputFieldsCanvas => {
+        // Add input fields to PDF
+        const inputImgData = inputFieldsCanvas.toDataURL('image/jpeg', 0.95);
+        const inputImgWidth = pageWidth - 40;
+        const inputImgHeight = inputFieldsCanvas.height * inputImgWidth / inputFieldsCanvas.width;
+        
+        let yPos = 50; // Reduced from 120 to 80 to tighten the space
+        
+        pdf.addImage(
+            inputImgData,
+            'JPEG',
+            20,
+            yPos,
+            inputImgWidth,
+            inputImgHeight
+        );
+        
+        yPos += inputImgHeight + 20;
+        
+        // Process each biomarker section
+        let biomarkerPromises = Array.from(biomarkers).map(biomarker => 
+            html2canvas(biomarker, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+        );
+        
+        return Promise.all([Promise.all(biomarkerPromises), yPos]);
+    }).then(([biomarkerCanvases, yPos]) => {
+        // Add each biomarker to PDF
+        let currentYPos = yPos;
+        
+        for (let i = 0; i < biomarkerCanvases.length; i++) {
+            const canvas = biomarkerCanvases[i];
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = pageWidth - 40;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            // Check if we need a new page
+            if (currentYPos + imgHeight > pageHeight - 20) {
+                pdf.addPage();
+                // Reset background color for new page
+                pdf.setFillColor(240, 238, 236);
+                pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                currentYPos = 20; // Reset position for new page
+            }
+            
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                20,
+                currentYPos,
+                imgWidth,
+                imgHeight
+            );
+            
+            currentYPos += imgHeight + 20;
+        }
+        
+        // Convert comments box to image
+        return Promise.all([html2canvas(commentsBox, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }), currentYPos]);
+    }).then(([commentsCanvas, yPos]) => {
+        // Add comments to PDF
+        const commentsImgData = commentsCanvas.toDataURL('image/jpeg', 0.95);
+        const commentsImgWidth = pageWidth - 40;
+        const commentsImgHeight = commentsCanvas.height * commentsImgWidth / commentsCanvas.width;
+        
+        let currentYPos = yPos;
+        
+        // Check if we need a new page for comments
+        if (currentYPos + commentsImgHeight > pageHeight - 20) {
+            pdf.addPage();
+            // Reset background color for new page
+            pdf.setFillColor(240, 238, 236);
+            pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+            currentYPos = 20;
+        }
+        
+        pdf.addImage(
+            commentsImgData,
+            'JPEG',
+            20,
+            currentYPos,
+            commentsImgWidth,
+            commentsImgHeight
+        );
+        
+        // Lägg till SENTION-logotypen längst ned i PDF-rapporten
+        const logoImg = new Image();
+        logoImg.src = 'https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png';
+        logoImg.onload = function() {
+            // Beräkna storleken för logotypen (bredd 60px, höjd proportionellt)
+            const logoWidth = 60;
+            const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+            
+            // Positionen för logotypen (längst ned till höger)
+            const logoX = pageWidth - logoWidth - 20; // 20px från höger kant
+            const logoY = pageHeight - logoHeight - 20; // 20px från botten
+            
+            // Lägg till logotypen i PDF
+            pdf.addImage(
+                logoImg,
+                'PNG',
+                logoX,
+                logoY,
+                logoWidth,
+                logoHeight
+            );
+            
+            // Spara PDF-filen
+            pdf.save(filename);
+            
+            // Cleanup och återställ original-elementen efter att PDF:en har sparats
+            document.body.removeChild(loadingIndicator);
+            
+            // Återställ alla originalelement
+            nameInput.style.display = 'block';
+            nameDiv.remove();
+            personnummerInput.style.display = 'block';
+            personnummerDiv.remove();
+            dropdown.style.display = 'block';
+            dropdownDiv.remove();
+            textarea.style.display = 'block';
+            textareaDiv.remove();
+            
+            // Visa knapparna igen
+            buttons.forEach(button => button.classList.remove('hide-on-export'));
+        };
+    }).catch(error => {
+        console.error("Ett fel inträffade vid PDF-exporten:", error);
+        alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");
+        
+        // Cleanup and restore original elements in case of error
+        if (document.body.contains(loadingIndicator)) {
+            document.body.removeChild(loadingIndicator);
+        }
+        
+        // Restore the original elements
+        nameInput.style.display = 'block';
+        if (nameDiv) nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        if (personnummerDiv) personnummerDiv.remove();
+        dropdown.style.display = 'block';
+        if (dropdownDiv) dropdownDiv.remove();
+        textarea.style.display = 'block';
+        if (textareaDiv) textareaDiv.remove();
+        
+        // Show the buttons again
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+    });
+}
+
+const nameInput = document.getElementById('patient-name');
+
+    nameInput.addEventListener('input', function () {
+        // Create a temporary span element to measure the text width
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.whiteSpace = 'nowrap';
+        tempSpan.style.fontSize = window.getComputedStyle(this).fontSize;
+        tempSpan.style.fontFamily = window.getComputedStyle(this).fontFamily;
+        tempSpan.textContent = this.value || this.placeholder;
+
+        document.body.appendChild(tempSpan);
+        const newWidth = tempSpan.offsetWidth + 20; // Add some padding
+        this.style.width = `${newWidth}px`;
+        document.body.removeChild(tempSpan);
+    });
+    </script>
+</body>
+</html>

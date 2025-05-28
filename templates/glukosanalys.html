@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glukosanalys</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #F0EEEC;
+        }
+    
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+    
+        h1 {
+            color: #4A4845;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+    
+        h2 {
+            color: #4A4845;
+            margin-bottom: 15px;
+        }
+    
+        .upload-section {
+            border: 2px dashed #D8D6D4;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+    
+        .file-input {
+            margin: 20px 0;
+        }
+    
+        input[type="submit"], .button {
+            background-color: #6B6764;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+    
+        input[type="submit"]:hover, .button:hover {
+            background-color: #4A4845;
+            transform: translateY(-1px);
+        }
+    
+        .results-section {
+            margin-top: 30px;
+        }
+    
+        .results-container {
+            background-color: #F8F7F6;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid #E5E3E1;
+        }
+    
+        .error-message {
+            color: #D64045;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #FFE5E5;
+            display: none;
+        }
+    
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 25px 0;
+        }
+    
+        .loading:after {
+            content: '';
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            border: 3px solid #E5E3E1;
+            border-top: 3px solid #6B6764;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+    
+        .back-button {
+            background-color: #847F7A;
+        }
+    
+        .back-button:hover {
+            background-color: #6B6764;
+        }
+    
+        input[type="file"] {
+            padding: 10px;
+            margin: 10px 0;
+        }
+    
+        p {
+            color: #4A4845;
+            line-height: 1.6;
+        }
+
+        .file-upload-btn {
+    background-color: #6B6764;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-block;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    margin: 15px 0;
+}
+
+.file-upload-btn:hover {
+    background-color: #4A4845;
+    transform: translateY(-1px);
+}
+
+#file-chosen {
+    margin: 10px 0;
+    color: #6B6764;
+    font-style: italic;
+}
+
+.analyze-btn {
+    background-color: #6B6764;
+    color: white;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+}
+
+.analyze-btn:hover {
+    background-color: #4A4845;
+    transform: translateY(-1px);
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.results-table th, .results-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #E5E3E1;
+}
+
+.results-table th {
+    background-color: #6B6764;
+    color: white;
+}
+
+.results-table tr:nth-child(even) {
+    background-color: #F0EEEC;
+}
+
+.results-table tr:hover {
+    background-color: #E5E3E1;
+}
+
+.value-cell {
+    font-weight: bold;
+}
+
+.section-header {
+    background-color: #847F7A !important;
+    color: white;
+    font-weight: bold;
+}
+
+.download-btn {
+    background-color: #4CAF50;
+    margin-top: 20px;
+}
+
+.download-btn:hover {
+    background-color: #3e8e41;
+}
+
+.episode-details {
+    margin-top: 10px;
+    border-left: 3px solid #6B6764;
+    padding-left: 10px;
+    margin-bottom: 15px;
+}
+
+.episode-row {
+    padding: 5px 0;
+    display: flex;
+    font-size: 0.9em;
+}
+
+.episode-time {
+    min-width: 220px;
+}
+
+.episode-duration {
+    font-weight: bold;
+    margin-left: 15px;
+}
+
+.collapsible {
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #F0EEEC;
+    border: none;
+    outline: none;
+    margin-top: 5px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.active, .collapsible:hover {
+    background-color: #E5E3E1;
+}
+
+.episode-content {
+    padding: 0 10px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #FFFFFF;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Glukosanalys</h1>
+
+        <div class="upload-section">
+            <h2>Ladda upp CSV-fil</h2>
+            <p>Välj en CSV-fil med glukosdata för analys</p>
+
+            <form id="uploadForm" action="/analyze-file" method="post" enctype="multipart/form-data">
+                <input type="file" id="actual-file" name="file" accept=".csv" hidden>
+                <label for="actual-file" class="file-upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Välj CSV-fil
+                </label>
+                <div id="file-chosen">Ingen fil vald</div>
+                <input type="submit" value="Analysera" class="analyze-btn">
+            </form>
+        </div>
+
+        <div class="loading" id="loadingIndicator"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="results-section" id="resultsSection">
+            <h2>Analysresultat</h2>
+            <div class="results-container" id="resultsContainer">
+                <!-- Resultaten kommer att visas här -->
+            </div>
+            <button id="downloadExcel" class="button download-btn" style="display: none;">Ladda ner Excel</button>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/selection" class="button back-button">Tillbaka till Meny</a>
+            <a href="/logout" class="button">Logga ut</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('actual-file');
+    const fileChosen = document.getElementById('file-chosen');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const downloadBtn = document.getElementById('downloadExcel');
+    
+    let excelFileName = '';
+    let excelBlob = null;
+
+    // Update filename when file is selected
+    fileInput.addEventListener('change', function() {
+        fileChosen.textContent = this.files[0] ? this.files[0].name : 'Ingen fil vald';
+    });
+
+    // Handle download button click
+    downloadBtn.addEventListener('click', function() {
+        if (excelBlob) {
+            const url = window.URL.createObjectURL(excelBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = excelFileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!fileInput.files[0]) {
+            showError('Välj en fil först');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        
+        try {
+            loadingIndicator.style.display = 'block';
+            errorMessage.style.display = 'none';
+            resultsSection.style.display = 'none';
+            
+            // First request to get the Excel file
+            const excelResponse = await fetch('/analyze-file', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!excelResponse.ok) {
+                throw new Error(`HTTP error! status: ${excelResponse.status}`);
+            }
+            
+            // Store the Excel blob and filename for download button
+            excelBlob = await excelResponse.blob();
+            const contentDisposition = excelResponse.headers.get('content-disposition');
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]*)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    excelFileName = filenameMatch[1];
+                }
+            }
+            
+            // Second request to get JSON data for display
+            const jsonResponse = await fetch('/analyze-json', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!jsonResponse.ok) {
+                throw new Error(`HTTP error! status: ${jsonResponse.status}`);
+            }
+            
+            const data = await jsonResponse.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Ett fel uppstod vid analysen');
+            }
+            
+            // Display results in the HTML page
+            displayResults(data.results);
+            downloadBtn.style.display = 'inline-block';
+            
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+        } finally {
+            loadingIndicator.style.display = 'none';
+        }
+    });
+});
+
+function showError(message) {
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+}
+
+function displayResults(results) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+    
+    // Create a table to display all results
+    let tableHTML = `
+        <table class="results-table">
+            <tr class="section-header">
+                <th colspan="2">Patient Information</th>
+            </tr>
+            <tr>
+                <td>Namn</td>
+                <td class="value-cell">${results.patient_info.namn}</td>
+            </tr>
+            <tr>
+                <td>Mätperiod</td>
+                <td class="value-cell">${results.patient_info.mätperiod}</td>
+            </tr>
+            <tr>
+                <td>Datumintervall</td>
+                <td class="value-cell">${results.patient_info.datumintervall || '-'}</td>
+            </tr>
+            <tr>
+                <td>Täckning</td>
+                <td class="value-cell">${results.patient_info.täckning}</td>
+            </tr>
+            
+            <tr class="section-header">
+                <th colspan="2">Generell Statistik</th>
+            </tr>
+            <tr>
+                <td>Genomsnittligt glukos</td>
+                <td class="value-cell">${results.statistik.genomsnitt.toFixed(1)} mmol/L</td>
+            </tr>
+            <tr>
+                <td>eHbA1C</td>
+                <td class="value-cell">${results.statistik.eHbA1C}</td>
+            </tr>
+            <tr>
+                <td>Glukosvariabilitet (%CV)</td>
+                <td class="value-cell">${results.statistik.cv_procent}</td>
+            </tr>
+            <tr>
+                <td>Fasteglukos (06:00 ± 10 min)</td>
+                <td class="value-cell">${results.statistik.fasteglukos || '-'} mmol/L</td>
+            </tr>
+            
+            <tr>
+                <td colspan="2">
+                    <div style="background: #f8f8f8; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                        <h3 style="margin-top: 0; color: #4A4845;">Så här beräknas värdena</h3>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #4A4845;">Genomsnittligt glukos</div>
+                            <p>Beräknas genom att ta summan av alla glukosvärden delat på antalet mätvärden. Ett medelvärde av <i>alla</i> dina glukosavläsningar under mätperioden.</p>
+                            <div style="background: #EFEFEF; padding: 8px; border-radius: 3px; font-family: monospace; margin-top: 5px;">
+                                Genomsnitt = summan av alla glukosvärden ÷ antal mätvärden
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #4A4845;">eHbA1C</div>
+                            <p>Beräknat HbA1C-värde baserat på ditt genomsnittliga glukosvärde. Denna ekvation används internationellt för att uppskatta ett långtids-blodsockervärde.</p>
+                            <div style="background: #EFEFEF; padding: 8px; border-radius: 3px; font-family: monospace; margin-top: 5px;">
+                                eHbA1C = (Genomsnittligt glukos + 2.59) ÷ 1.59
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #4A4845;">Glukosvariabilitet (%CV)</div>
+                            <p>Ett mått på hur mycket ditt blodsocker svänger. Visar variationskoefficienten (standardavvikelsen delat med medelvärdet). Lägre värden indikerar stabilare blodsocker.</p>
+                            <div style="background: #EFEFEF; padding: 8px; border-radius: 3px; font-family: monospace; margin-top: 5px;">
+                                %CV = (standardavvikelse ÷ genomsnittligt glukos) × 100
+                            </div>
+                            <p style="margin-top: 5px; font-style: italic; font-size: 0.9em;">För personer med diabetes rekommenderas ett %CV under 36%. Över 36% indikerar instabilt blodsocker.</p>
+                        </div>
+                        
+                        <div>
+                            <div style="font-weight: bold; color: #4A4845;">Fasteglukos (06:00 ± 10 min)</div>
+                            <p>Ditt genomsnittliga blodsockervärde kring klockan 06:00 på morgonen (mellan 05:50-06:10) när du vanligtvis är fastande. Beräknas som medelvärdet av alla mätningar inom detta tidsintervall.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            
+            <tr class="section-header">
+                <th colspan="2">Tidsfördelning</th>
+            </tr>`;
+    
+    // Tidsintervall data
+    const intervalMapping = {
+        'inom': 'I målområdet (3.9-8.0 mmol/L)',
+        'under': 'Under målområdet (<3.9 mmol/L)',
+        '8_10': 'Över målområdet (8.1-10.0 mmol/L)',
+        '10_11': 'Högt (10.1-11.0 mmol/L)',
+        'över': 'Mycket högt (>11.1 mmol/L)'
+    };
+    
+    // Beräkna total procent för att visa saknad data
+    let totalPercent = 0;
+    for (const key of Object.keys(intervalMapping)) {
+        if (results.tidsintervall && results.tidsintervall[key]) {
+            totalPercent += parseFloat(results.tidsintervall[key].procent);
+        }
+    }
+
+    // Lägg till information om total procent och saknad data med tydligare förklaring och visualisering
+    tableHTML += `
+        <tr>
+            <td colspan="2">
+                <div style="background: #f8f8f8; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                    <h3 style="margin-top: 0; color: #4A4845;">Förklaring till summering (${totalPercent.toFixed(1)}%)</h3>
+                    
+                    <p>Dina värden summeras till <b>${totalPercent.toFixed(1)}%</b> istället för 100%. 
+                    De saknade <b>${(100-totalPercent).toFixed(1)}%</b> försvinner vid övergångar mellan olika glukosnivåer.</p>
+                    
+                    <div style="border: 1px solid #ddd; padding: 10px; margin: 15px 0; background: white;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">Exempel på hur tid "försvinner":</div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 90px; text-align: center; font-weight: bold;">kl 10:00</div>
+                            <div style="width: 70px; text-align: center; background: #90EE90; padding: 5px; border-radius: 3px;">7.5 mmol/L</div>
+                            <div style="flex-grow: 1; text-align: center; font-style: italic; color: #777;">???</div>
+                            <div style="width: 70px; text-align: center; background: #FFD700; padding: 5px; border-radius: 3px;">10.5 mmol/L</div>
+                            <div style="width: 90px; text-align: center; font-weight: bold;">kl 10:15</div>
+                        </div>
+                        
+                        <div style="margin-top: 8px; margin-bottom: 20px; position: relative; height: 40px;">
+                            <div style="position: absolute; left: 0; width: 100%; top: 20px; height: 2px; background: #ddd;"></div>
+                            <div style="position: absolute; left: 90px; top: 12px; width: 2px; height: 20px; background: #333;"></div>
+                            <div style="position: absolute; right: 90px; top: 12px; width: 2px; height: 20px; background: #333;"></div>
+                            
+                            <div style="position: absolute; left: 50%; transform: translateX(-50%); background: #FF6B6B; color: white; padding: 2px 8px; border-radius: 3px; top: 0;">
+                                Okänd tid (15 minuter)
+                            </div>
+                        </div>
+                        
+                        <p>När blodsockret går från <span style="background: #90EE90; padding: 2px 5px; border-radius: 3px;">normalt</span> till 
+                        <span style="background: #FFD700; padding: 2px 5px; border-radius: 3px;">högt</span> mellan två mätningar, 
+                        vet vi inte exakt när ändringen skedde. <b>Dessa 15 minuter räknas inte till något intervall</b>, 
+                        vilket förklarar de saknade ${(100-totalPercent).toFixed(1)}%.</p>
+                    </div>
+                    
+                    <p>Ju fler övergångar mellan olika glukosnivåer, desto mer tid "försvinner" i beräkningen.</p>
+                </div>
+            </td>
+        </tr>`;
+
+    for (const [key, label] of Object.entries(intervalMapping)) {
+        if (results.tidsintervall && results.tidsintervall[key]) {
+            tableHTML += `
+                <tr>
+                    <td>${label}</td>
+                    <td class="value-cell">${results.tidsintervall[key].procent.toFixed(1)}% (${results.tidsintervall[key].tid})</td>
+                </tr>`;
+        }
+    }
+    
+    // Episoder
+    tableHTML += `
+        <tr class="section-header">
+            <th colspan="2">Glukosepisoder</th>
+        </tr>`;
+    
+    const episodeMapping = {
+        'låga': 'Låga episoder (<3.6 mmol/L)',
+        'höga': 'Höga episoder (≥10.0 mmol/L)',
+        'mycket_höga': 'Mycket höga episoder (>11.1 mmol/L)'
+    };
+    
+    for (const [key, label] of Object.entries(episodeMapping)) {
+        // Visa alla episoder även om vissa typer inte finns i resultaten
+        const episoder = (results.episoder && results.episoder[key]) ? results.episoder[key] : { antal: 0, lista: [] };
+        
+        tableHTML += `
+            <tr>
+                <td>${label}</td>
+                <td class="value-cell">Antal: ${episoder.antal}</td>
+            </tr>`;
+            
+        // Add collapsible section for episode details if there are episodes
+        if (episoder.lista && episoder.lista.length > 0) {
+            tableHTML += `
+            <tr>
+                <td colspan="2">
+                    <button class="collapsible">Visa detaljer för ${label.toLowerCase()}</button>
+                    <div class="episode-content">
+                        <div class="episode-details">`;
+            
+            episoder.lista.forEach((ep, index) => {
+                tableHTML += `
+                    <div class="episode-row">
+                        <span class="episode-time">${ep.start} → ${ep.slut}</span>
+                        <span class="episode-duration">${ep.duration}</span>
+                    </div>`;
+            });
+            
+            tableHTML += `
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+        }
+    }
+    
+    // Duration av episoder
+    if (results.medelduration) {
+        tableHTML += `
+            <tr class="section-header">
+                <th colspan="2">Medelduration av episoder</th>
+            </tr>
+            <tr>
+                <td>Låga episoder</td>
+                <td class="value-cell">${results.medelduration.låga?.toFixed(1) || '0'} minuter</td>
+            </tr>
+            <tr>
+                <td>Höga episoder (≥10.0 mmol)</td>
+                <td class="value-cell">${results.medelduration.höga?.toFixed(1) || '0'} minuter</td>
+            </tr>
+            <tr>
+                <td>Mycket höga episoder (>11.1 mmol/L)</td>
+                <td class="value-cell">${results.medelduration.mycket_höga?.toFixed(1) || '0'} minuter</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div style="background: #f8f8f8; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                        <h3 style="margin-top: 0; color: #4A4845;">Hur beräknas glukosepisoder?</h3>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #4A4845;">Definition av episoder</div>
+                            <p>En glukosepisod börjar när ditt blodsocker passerar ett tröskelvärde (t.ex. över 10.0 mmol/L för höga episoder) 
+                            och slutar när värdet återgår till normalintervallet.</p>
+                            <ul style="margin-top: 5px;">
+                                <li><b>Låg episod</b>: När glukos faller under 3.6 mmol/L</li>
+                                <li><b>Hög episod</b>: När glukos stiger över 10.0 mmol/L</li>
+                                <li><b>Mycket hög episod</b>: När glukos stiger över 11.1 mmol/L</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #4A4845;">Beräkning av antalet episoder</div>
+                            <p>Systemet räknar varje gång ditt blodsocker korsar ett tröskelvärde och sedan återvänder till normalintervallet som <b>en episod</b>. 
+                            För att räknas som separata episoder måste blodsockret återgå till normalt värde en viss tid mellan episoderna.</p>
+                        </div>
+                        
+                        <div>
+                            <div style="font-weight: bold; color: #4A4845;">Beräkning av medelduration</div>
+                            <p>Medeldurationen beräknas genom att summera tiden för alla episoder av samma typ och dela med antalet episoder.</p>
+                            <div style="background: #EFEFEF; padding: 8px; border-radius: 3px; font-family: monospace; margin-top: 5px;">
+                                Medelduration = Total tid för alla episoder ÷ Antal episoder
+                            </div>
+                            <p style="margin-top: 5px;">Om inga episoder av en viss typ har registrerats visas värdet "0 minuter".</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+    }
+    
+    tableHTML += `</table>`;
+    
+    resultsContainer.innerHTML = tableHTML;
+    resultsSection.style.display = 'block';
+    
+    // Set up collapsible elements
+    const collapsibles = document.getElementsByClassName("collapsible");
+    for (let i = 0; i < collapsibles.length; i++) {
+        collapsibles[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            const content = this.nextElementSibling;
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    }
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTION Login</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #a6c5b0;
+            --secondary: #def1e4;
+            --accent: #8BC34A;
+            --light: #F8F9FA;
+            --dark: #1A2E28;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #F0EEEC;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            width: 20%;
+            min-width: 250px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        h2 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.7rem;
+            margin: 0.7rem 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #F0EEEC;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #d3d0cc;
+            box-shadow: 0 0 0 3px rgba(240, 238, 236, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.7rem;
+            background-color: #F0EEEC;
+            color: var(--dark);
+            border: none;
+            border-radius: 6px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #d3d0cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: #FF6B6B;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .footer-logo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .footer-logo img {
+            height: 80px;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Välkommen</h2>
+        <form action="/login" method="POST">
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <input type="text" name="username" placeholder="Användarnamn" required>
+            <input type="password" name="password" placeholder="Lösenord" required>
+            <button type="submit">Logga in</button>
+        </form>
+        <p>Har du problem att logga in? <a href="https://www.sention.health/" target="_blank" rel="noopener noreferrer">Kontakta SENTION</a></p>
+    </div>
+    <div class="footer-logo">
+        <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="SENTION Logo">
+    </div>
+</body>
+</html>

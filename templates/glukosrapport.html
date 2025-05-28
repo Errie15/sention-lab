@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTION Glukosanalys</title>
+<link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --background-color: #f5f5f5;
+        --text-color: #2c3e50;
+        --table-bg-color: #ffffff;
+        --table-border-color: #bdc3c7;
+        --table-header-bg-color: #34495e;
+        --good-bg-color: #92c25e;
+        --moderate-bg-color: #ecdc48;
+        --bad-bg-color: #cd4036;
+        --accent-color: #4c565e;
+        --gradient-bg: linear-gradient(135deg, #e0eafc, #cfdef3);
+
+        /* New softer colors */
+        --good-bg-soft: rgba(146, 194, 94, 0.7);
+        --moderate-bg-soft: rgba(236, 220, 72, 0.7);
+        --bad-bg-soft: rgba(205, 64, 54, 0.7);
+    }
+
+    body {
+        font-family: 'Georgia', serif;
+        margin: 20px;
+        color: var(--text-color);
+        line-height: 1.6;
+        background: #f0eeec;
+        background-attachment: fixed; /* Ensure the background stays fixed */
+        background-size: cover; /* Cover the entire page */
+    }
+
+    .report-title {
+font-family: 'Rajdhani';
+color: #3b444b;
+font-size: 2em;
+margin-bottom: 10px;
+font-weight: 500; /* You can adjust this: 400, 500, 600, or 700 */
+}
+
+.parameter-input input {
+    font-family: 'Verdana', sans-serif;  /* Different font for input fields */
+    font-size: 1rem;
+    padding: 5px;
+    border: 1px solid #cfc9c3;
+    border-radius: 4px;
+}
+
+/* Update the existing header styles */
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+    .logo {
+    position: absolute; /* Keeps the logo fixed in place */
+    top: 10px; /* Aligns the logo 10px from the top of the page */
+    left: 10px; /* Aligns the logo 10px from the left of the page */
+    width: 100px; /* Sets the width of the logo */
+    height: auto; /* Maintains the aspect ratio */
+    z-index: 1000; /* Ensures the logo stays on top of other elements */
+    border-radius: 5px; /* Optional: Adds rounded corners */
+}
+
+    h1 {
+        color: #3b444b;
+        font-size: 3em;
+        margin-bottom: 10px;
+    }
+
+    h2 {
+        color: #3b444b;
+        font-size: 2em;
+        margin-top: 30px;
+        margin-bottom: 10px;
+        border-bottom: #000000;
+        padding-bottom: 5px;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 40px;
+        background-color: var(--table-bg-color);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        border: 1px solid #cfc9c3;
+        padding: 15px;
+        text-align: left;
+        font-size: 1.1em;
+        vertical-align: top;
+        font-family: Arial, sans-serif;
+    }
+
+    th {
+        background-color: #cfc9c3;
+        color: #3b444b;
+        font-weight: bold;
+    }
+
+    .good {
+        background-color: var(--good-bg-soft);
+        color: #3b444b;
+    }
+
+    .moderate {
+        background-color: var(--moderate-bg-soft);
+        color: #3b444b;
+    }
+
+    .bad {
+        background-color: var(--bad-bg-soft);
+        color: #3b444b;
+    }
+
+    .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Ändrat från 4 till 2 diagram per rad */
+    gap: 20px; /* Add spacing between the charts */
+    margin-top: 40px;
+}
+
+.chart-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px 10px 12px 10px; /* Justerad padding för att ge mer utrymme för diagrammet */
+    margin-top: 10px;
+    width: 100%; /* Ändrat från fixed width till 100% för att fylla ut utrymmet */
+    max-width: 600px; /* Lägg till max-width för att säkerställa att diagram inte blir för stora */
+    height: 300px; /* Ökad höjd från 250px till 300px */
+    overflow: hidden; /* Prevent overflow */
+    position: relative; /* För positionering av titeln */
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto; /* Centrera varje diagram i dess grid-cell */
+}
+
+.chart-container canvas {
+    width: 100%; /* Ensure the canvas fits the container */
+    height: calc(100% - 30px); /* Ensure the canvas fits the container, minus title space */
+    margin-top: 10px; /* Ge lite avstånd till titeln */
+    flex-grow: 1;
+}
+
+.chart-container h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+    font-family: 'Verdana', sans-serif;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+/* Stil för datumrubriker i diagram */
+.date-title {
+    font-family: 'Verdana', sans-serif;
+    color: #3b444b;
+    font-weight: 600;
+    font-size: 0.95em;
+    display: block;
+    padding: 3px 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin: 0 auto;
+    text-align: center;
+    min-width: 130px;
+    max-width: 300px; /* Tillåt längre datum att visas */
+    white-space: normal; /* Tillåt radbrytning */
+    line-height: 1.3;
+    border: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+    .large-chart-container {
+        margin-top: 40px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .large-chart-container h2 {
+        text-align: center;
+        color: var(--accent-color);
+    }
+
+    .nutrition-advice {
+        margin-top: 40px;
+        text-align: left;
+    }
+
+    .nutrition-advice label {
+        font-weight: normal;
+        font-size: 1.2em;
+        display: block;
+        margin-bottom: 10px;
+        text-align: center;
+        font-family: Arial, sans-serif; /* Added Arial font */
+    }
+
+    .nutrition-advice textarea {
+        width: 70%; /* Set the width of the box */
+    min-height: 100px; /* Minimum height */
+    padding: 10px; /* Add padding inside the box */
+    font-size: 1em; /* Font size */
+    border: 1px solid var(--table-border-color); /* Border style */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a shadow */
+    background-color: #ffffff; /* White background */
+    overflow-wrap: break-word; /* Ensure long words break properly */
+    white-space: pre-wrap; /* Preserve line breaks */
+    display: block; /* Ensure it behaves like a block element */
+    margin: 0 auto; /* Center the box horizontally */
+    }
+
+    #nutrition-advice-export {
+        width: 70%; /* Match the textarea width */
+        min-height: 100px; /* Match the textarea minimum height */
+        padding: 10px; /* Match the textarea padding */
+        font-size: 1em; /* Match the textarea font size */
+        border: 1px solid var(--table-border-color); /* Match the textarea border */
+        border-radius: 5px; /* Match the textarea border radius */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Match the textarea shadow */
+        background-color: #ffffff; /* Ensure a white background */
+        overflow-wrap: break-word; /* Ensure long words break properly */
+        white-space: pre-wrap; /* Preserve line breaks */
+        display: none; /* Initially hidden */
+        margin: 0 auto; /* Center the div horizontally */
+    }
+
+    .info-box {
+        background-color: var(--table-bg-color);
+        border: 1px solid var(--table-border-color);
+        border-radius: 5px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-box h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+
+    /* Flexbox for header layout */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px; /* Space between the info and the table */
+}
+
+.header-info {
+    flex: 1; /* Allow the info section to take up remaining space */
+}
+
+.summary-table {
+    border-collapse: collapse;
+    width: auto;
+    margin-left: 20px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 0.9em; /* Reduce font size */
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summary-table td {
+    padding: 6px 10px; /* Slightly more padding */
+    border: none;
+    text-align: left;
+    vertical-align: middle;
+    line-height: 1.3; /* Slightly more line height */
+}
+
+.summary-table td:first-child {
+    font-weight: bold;
+    font-size: 0.9em; /* Make the labels slightly larger */
+    padding-right: 15px; /* Add more space between label and value */
+}
+
+.summary-table td:last-child {
+    min-width: 70px; /* Set a minimum width for the value column */
+    text-align: center; /* Center the values */
+    position: relative; /* For icon positioning */
+}
+
+/* Updated colored cells with icons */
+.summary-table .good,
+.summary-table .moderate,
+.summary-table .bad {
+    padding: 4px 10px; /* Increased padding */
+    border-radius: 4px; /* More rounding */
+    width: 70px; /* Increased width */
+    position: relative; /* For positioning the icon */
+}
+
+.summary-table .good {
+    background-color: var(--good-bg-soft);
+    color: #3b444b;
+}
+
+.summary-table .moderate {
+    background-color: var(--moderate-bg-soft);
+    color: #3b444b;
+}
+
+.summary-table .bad {
+    background-color: var(--bad-bg-soft);
+    color: #3b444b;
+}
+
+/* Add icons to the summary table cells */
+.summary-table .good::before {
+    content: "✓ ";
+    font-weight: bold;
+    color: #4f7826; /* Mörkare grön för bättre kontrast */
+}
+
+.summary-table .moderate::before {
+    content: "⚠ ";
+    font-weight: bold;
+    color: #b8a932; /* Mörkare gul för bättre kontrast */
+}
+
+.summary-table .bad::before {
+    content: "✗ ";
+    font-weight: bold;
+    color: #a32e25; /* Mörkare röd för bättre kontrast */
+}
+
+    textarea {
+        width: 100%;
+        min-height: 50px;
+        padding: 10px;
+        font-size: 1em;
+        border: 1px solid var(--table-border-color);
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        resize: vertical;
+        overflow: hidden;
+    }
+
+    input[type="number"] {
+        appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .parameter-input input[type="text"] {
+        width: auto;
+        min-width: 150px; /* Adjust this value as needed */
+        display: inline-block;
+    }
+    .spaced-table {
+    margin-top: 10px; /* Flytta ner tabellen med 10px */
+}
+
+footer.parameter-input .btn {
+    margin: 10px; /* Add space around each button */
+    padding: 12px 24px; /* Adjust padding for larger buttons */
+    font-size: 16px; /* Adjust font size */
+    border-radius: 8px; /* Add rounded corners */
+    background-color: #cfc9c3; /* Use the accent color */
+    color: white; /* Ensure text is white */
+    border: none; /* Remove border */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover and click effects */
+}
+
+/* Hover effect for buttons */
+footer.parameter-input .btn:hover {
+    background-color: #b6aea7; /* Slightly darker shade of the accent color */
+    transform: translateY(-2px); /* Lift the button slightly on hover */
+}
+
+/* Active (clicked) effect for buttons */
+footer.parameter-input .btn:active {
+    background-color: #b6aea7; /* Even darker shade for active state */
+    transform: translateY(0); /* Reset the lift effect */
+}
+
+
+
+@media print {
+    /* Add a margin to every element that starts on a new page */
+    * {
+        margin-top: 10px; /* Add a 20px margin at the top */
+    }
+
+    /* Prevent elements from being split across pages */
+    * {
+        page-break-inside: avoid; /* Avoid breaking inside elements */
+    }
+
+    /* Ensure proper page breaks for block-level elements */
+    div, section, table, h1, h2, h3, p {
+        page-break-before: auto; /* Allow automatic page breaks */
+        page-break-after: auto; /* Allow automatic page breaks */
+    }
+
+    /* Optional: Add extra margin for elements that explicitly break pages */
+    .page-break {
+        page-break-before: always; /* Force a new page */
+        margin-top: 10px; /* Add a margin at the top of the new page */
+    }
+}
+
+@media print {
+    /* Ensure all sections have a margin at the top when they start on a new page */
+    section.info-box {
+        page-break-before: auto; /* Allow automatic page breaks */
+        page-break-inside: avoid; /* Avoid splitting inside sections */
+        margin-top: 10px; /* Add a 10px margin at the top */
+    }
+
+    /* Add a forced margin for sections that start on a new page */
+    section.info-box:first-of-type {
+        margin-top: 0; /* No margin for the first section */
+    }
+
+    /* Ensure sections always have space at the top when breaking */
+    section.info-box + section.info-box {
+        margin-top: 10px; /* Add margin between consecutive sections */
+    }
+}
+
+@media print {
+    .chart-container {
+        margin-top: 20px; /* Flytta ner varje diagram med 10px vid utskrift */
+    }
+}
+
+@media print {
+    .page-break {
+        page-break-before: always; /* Tvinga en ny sida före detta element */
+    }
+    .spaced-table {
+        margin-top: 100px; /* Behåll avståndet vid utskrift */
+    }
+}
+    @media print {
+        .page-break {
+            page-break-before: always;
+        }
+
+        .large-chart-container {
+            page-break-inside: avoid;
+            margin-top: 50px;
+        }
+
+        body {
+            background-color: white;
+            color: black;
+        }
+
+        table {
+            background-color: white;
+        }
+
+        th {
+            background-color: var(--table-header-bg-color) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .good {
+            background-color: var(--good-bg-color) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .moderate {
+            background-color: var(--moderate-bg-color) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .bad {
+            background-color: var(--bad-bg-color) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        #excel-file {
+            display: none;
+        }
+        
+        /* Force specific page breaks */
+        .page-1 {
+            page-break-after: always;
+        }
+        
+        .page-2 {
+            page-break-before: always;
+            page-break-after: always;
+        }
+        
+        .page-3 {
+            page-break-before: always;
+            page-break-after: always;
+        }
+        
+        .page-4 {
+            page-break-before: always;
+        }
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding-top: 60px;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 1000px;
+        height: 70vh;
+        border-radius: 8px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    #enlargedChart {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .signature-dropdown {
+    width: 70%;
+    margin: 10px auto;
+    text-align: left;
+    color: #4c565e;
+}
+
+.signature-dropdown label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: normal;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+    color: #4c565e;
+}
+
+.signature-dropdown select {
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid var(--table-border-color);
+    border-radius: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+    font-family: Arial, Helvetica, sans-serif; /* Changed to Arial */
+    font-weight: normal; /* Added normal weight */
+    width: auto;
+    min-width: 200px;
+    color: #4c565e;
+}
+
+.signature-dropdown select option {
+    white-space: pre-line;
+    padding: 8px;
+    font-family: Arial, Helvetica, sans-serif; /* Changed to Arial */
+    font-weight: normal; /* Added normal weight */
+    color: #4c565e;
+}
+
+.parameter-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 40px;
+    background-color: var(--table-bg-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.parameter-table th, .parameter-table td {
+    padding: 18px 15px; /* Ökat padding */
+    text-align: left;
+    font-size: 1.1em;
+    vertical-align: middle;
+    font-family: Arial, sans-serif;
+    border: none; /* Remove borders */
+    border-bottom: 1px solid #eaeaea; /* Just bottom border */
+}
+
+.parameter-table th {
+    background-color: #cfc9c3;
+    color: #3b444b;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.parameter-table .parameter-name {
+    width: 42%; /* Lite bredare för att säkerställa att text får plats */
+    padding-right: 20px;
+    line-height: 1.4;
+}
+
+.parameter-table .parameter-value {
+    width: 28%; /* Justerat för att kompensera för bredare namn */
+    text-align: center;
+    position: relative;
+    padding: 10px 15px;
+    transition: background-color 0.3s ease;
+}
+
+.parameter-table .parameter-target {
+    width: 30%;
+    text-align: center;
+    font-weight: 500;
+}
+
+.parameter-table .parameter-description {
+    display: block;
+    font-size: 0.9em;
+    color: #555; /* Mörkare färg för bättre läsbarhet */
+    margin-top: 6px;
+    font-style: italic;
+    max-width: 95%; /* Begränsa textens bredd */
+    line-height: 1.4; /* Förbättrad radavstånd */
+}
+
+/* Styla texten i sista raden (nattlig trend) särskilt */
+tr:last-child .parameter-description {
+    font-weight: 500; /* Något fetare text */
+}
+
+/* Justera typsnitt för parameternamn */
+.parameter-name {
+    font-family: 'Verdana', sans-serif;
+    font-weight: 500;
+}
+
+/* Justera typsnitt för optimala värden-kolumnen */
+.parameter-table .parameter-target {
+    width: 30%;
+    text-align: center;
+    font-weight: 500;
+    font-family: 'Verdana', sans-serif;
+}
+
+.parameter-table input[type="number"] {
+    font-size: 1.2em;
+    width: 100px; /* Ökad bredd från 80px till 100px */
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    transition: all 0.2s ease;
+    margin-right: 5px;
+}
+
+/* Särskild styling för nattlig trend fältet som är längre */
+#night-trend {
+    width: 120px; /* Extra bredd för detta specifika fält */
+}
+
+.parameter-table input[type="number"]:focus {
+    border-color: #b6aea7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(182, 174, 167, 0.3);
+}
+
+/* Add transition to the cell status changes */
+.parameter-value.good,
+.parameter-value.moderate,
+.parameter-value.bad {
+    transition: background-color 0.3s ease;
+}
+
+/* Ensure the inputs appear properly on colored backgrounds */
+.parameter-value.good input[type="number"],
+.parameter-value.moderate input[type="number"],
+.parameter-value.bad input[type="number"] {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust the print styles for the parameter table */
+@media print {
+    .parameter-table th, .parameter-table td {
+        padding: 12px;
+    }
+    
+    .parameter-table input[type="number"] {
+        border: none;
+        background: transparent;
+    }
+    
+    .parameter-value.good,
+    .parameter-value.moderate,
+    .parameter-value.bad {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    font-size: 1.2em;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.parameter-value .status-indicator {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.good-indicator::before {
+    content: "✓";
+    color: #4f7826; /* Mörkare grön för bättre kontrast */
+    font-weight: bold;
+    transform: scale(1.2); /* Make the checkmark slightly larger */
+}
+
+.moderate-indicator::before {
+    content: "⚠";
+    color: #b8a932; /* Mörkare gul för bättre kontrast */
+    font-weight: bold;
+}
+
+.bad-indicator::before {
+    content: "✗";
+    color: #a32e25; /* Mörkare röd för bättre kontrast */
+    font-weight: bold;
+}
+
+.parameter-row {
+    transition: background-color 0.3s ease;
+}
+
+.parameter-row:hover {
+    background-color: #f9f9f9;
+}
+
+.parameter-row:last-child {
+    border-bottom: none;
+}
+
+/* Justera typsnitt för parameternamn */
+.parameter-table .parameter-name {
+    font-family: 'Verdana', sans-serif;
+    font-weight: 500;
+}
+
+/* Justera bredden för specifika inputfält som behöver mer utrymme */
+#night-trend, #fasting-glucose, #average-glucose, #ehba1c {
+    width: 120px; /* Mer bredd för fält med decimaler */
+}
+
+/* Lägg till lite mellanrum efter varje rad */
+.parameter-row {
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.parameter-row:last-child {
+    border-bottom: none;
+}
+
+/* Förbättra radhöjden för bättre läsbarhet */
+.parameter-table td {
+    padding: 18px 15px;
+}
+
+/* Stil för diagramtitlar i kombinerade diagrammet */
+.chart-title {
+    font-family: 'Verdana', sans-serif;
+    color: #3b444b;
+    font-weight: 600;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Förbättra tooltip-utseendet */
+.chart-tooltip {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'Verdana', sans-serif;
+    font-size: 0.9em;
+    pointer-events: none;
+}
+
+
+</style>
+<script>
+// Uppdatera chartjs tooltip externa styling
+Chart.register({
+    id: 'customTooltipStyles',
+    beforeDraw: (chart, args, options) => {
+        const tooltips = chart.tooltip;
+        if (tooltips && tooltips._active && tooltips._active.length) {
+            // Om tooltip är aktiv, lägg till en klass på canvas-elementet
+            chart.canvas.parentNode.classList.add('showing-tooltip');
+        } else {
+            // Om ingen tooltip är aktiv, ta bort klassen
+            chart.canvas.parentNode.classList.remove('showing-tooltip');
+        }
+    }
+});
+</script>
+</head>
+<body>
+    <div class="page-1">
+        <header>
+            <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Logo" class="logo">
+            <div class="header-content">
+                <div class="header-info">
+                    <h1 class="report-title">SENTION - Glukosanalys</h1>
+                    <div class="parameter-input">
+                        <label for="name"></label>
+                        <input type="text" id="name" placeholder="Namn" aria-label="Namn" size="20" onchange="updateReport()">
+                    </div>
+                    <div class="parameter-input">
+                        <label for="date-range"></label>
+                        <input type="text" id="date-range" placeholder="Datum" aria-label="Datum" size="30" onchange="updateReport()">
+                    </div>
+                </div>
+                <table class="summary-table">
+                    <tr>
+                        <td>Tillgänglig data:</td>
+                        <td id="available-data"></td>
+                    </tr>
+                    <tr>
+                        <td>Inom optimala värden:</td>
+                        <td class="good"></td>
+                    </tr>
+                    <tr>
+                        <td>Lite utanför optimala värden:</td>
+                        <td class="moderate"></td>
+                    </tr>
+                    <tr>
+                        <td>Mycket utanför optimala värden:</td>
+                        <td class="bad"></td>
+                    </tr>
+                </table>
+            </div>
+        </header>
+        <main>
+            <section>
+                <table class="parameter-table" aria-label="Sammanfattning av glukosvärden">
+                    <thead>
+                        <tr>
+                            <th class="parameter-name">Parameter</th>
+                            <th class="parameter-value">Värde</th>
+                            <th class="parameter-target">Optimala värden</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Tid optimala värden (%) 3,9 - 8,0 mmol/l
+                                <span class="parameter-description">Procentuell tid i det glukosintervall där vi mår och presterar som bäst.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="optimal-time" value=" " step="1" aria-label="Tid optimala värden (%) 3,9 - 8,0 mmol/l" onchange="updateReport()">
+                                <span class="status-indicator" id="optimal-time-indicator"></span>
+                            </td>
+                            <td class="parameter-target">93-100%</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Fasteglukos (mmol/l)
+                                <span class="parameter-description">Glukosnivåerna efter en natts fasta (i genomsnitt över mätperioden).</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="fasting-glucose" value=" " step="0.1" aria-label="Fasteglukos" onchange="updateReport()">
+                                <span class="status-indicator" id="fasting-glucose-indicator"></span>
+                            </td>
+                            <td class="parameter-target">&lt;5,3 mmol/l</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Medelglukos (mmol/l)
+                                <span class="parameter-description">Genomsnittlig glukosnivå över mätperioden.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="average-glucose" value=" " step="0.1" aria-label="Medelglukos" onchange="updateReport()">
+                                <span class="status-indicator" id="average-glucose-indicator"></span>
+                            </td>
+                            <td class="parameter-target">&lt;6,5 mmol/l</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                eHbA1c
+                                <span class="parameter-description">Estimerat långsiktigt glukosvärde.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="ehba1c" value=" " step="0.1" aria-label="eHbA1c" onchange="updateReport()">
+                                <span class="status-indicator" id="ehba1c-indicator"></span>
+                            </td>
+                            <td class="parameter-target">&lt;5,5</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Antal låga episoder (Under 3,6 mmol/l i mer än 15 min)
+                                <span class="parameter-description">Antal episoder med låga glukosnivåer.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="low-episodes" value=" " aria-label="Låga episoder" onchange="updateReport()">
+                                <span class="status-indicator" id="low-episodes-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Genomsnittlig varaktighet av låga episoder (min)
+                                <span class="parameter-description">Medelvärde av händelsernas längd.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="average-duration" value=" " aria-label="Genomsnittlig varaktighet" onchange="updateReport()">
+                                <span class="status-indicator" id="average-duration-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Antal höga episoder (Över 10,0 mmol/l i mer än 15 min)
+                                <span class="parameter-description">Antal episoder med höga glukosnivåer.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="high-episodes" value=" " aria-label="Höga episoder" onchange="updateReport()">
+                                <span class="status-indicator" id="high-episodes-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Genomsnittlig varaktighet av höga episoder (min)
+                                <span class="parameter-description">Medelvärde av händelsernas längd.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="average-duration-2" value=" " aria-label="Genomsnittlig varaktighet 2" onchange="updateReport()">
+                                <span class="status-indicator" id="average-duration-2-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Antal mycket höga episoder (Över 11,1 mmol/l i mer än 15 min)
+                                <span class="parameter-description">Antal episoder med mycket höga glukosnivåer.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="very-high-episodes" value=" " aria-label="Mycket höga episoder" onchange="updateReport()">
+                                <span class="status-indicator" id="very-high-episodes-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Genomsnittlig varaktighet av mycket höga episoder (min)
+                                <span class="parameter-description">Medelvärde av händelsernas längd.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="very-high-duration" value=" " aria-label="Varaktighet mycket höga episoder" onchange="updateReport()">
+                                <span class="status-indicator" id="very-high-duration-indicator"></span>
+                            </td>
+                            <td class="parameter-target">0</td>
+                        </tr>
+                        <tr class="parameter-row">
+                            <td class="parameter-name">
+                                Genomsnittlig nattlig trend (mmol/l/h)
+                                <span class="parameter-description">Sömnen är en form av fasta – det sker naturligt en långsam sänkning av glukosvärdet nattetid.</span>
+                            </td>
+                            <td class="parameter-value">
+                                <input type="number" id="night-trend" value="- " step="0.01" aria-label="Nattlig trend" onchange="updateReport()">
+                                <span class="status-indicator" id="night-trend-indicator"></span>
+                            </td>
+                            <td class="parameter-target">&lt; 0 (negativ trend)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <section class="large-chart-container">
+                    <h2>Sammanställda Glukosvärden</h2>
+                    <canvas id="combinedGlucoseChart" aria-label="Sammanställda Glukosvärden"></canvas>
+                </section>
+            </section>
+        </div>
+        
+        <!-- SIDA 2: Dagliga diagram -->
+        <div class="page-2">
+            <h2 style="text-align: center; margin-bottom: 20px;">Dagliga Diagram</h2>
+            <section class="chart-grid" id="chartGrid">
+                <!-- Chart containers will be generated by JavaScript -->
+            </section>
+        </div>
+        
+        <!-- SIDA 3: Tolkning -->
+        <div class="page-3">
+            <section class="nutrition-advice">
+                <label for="nutrition-advice">Tolkning och Rekommendation:</label>
+                <textarea id="nutrition-advice" aria-label="Nutritionsråd" oninput="autoResize(this)"></textarea>
+
+                <div class="signature-dropdown">
+                    <label for="signature-select">Tolkat av:</label>
+                    <select id="signature-select">
+                        <option value="linda">Linda Bakkman PhD&#13;&#10;Chefsnutritionist</option>
+                    </select>
+                </div>
+                <div id="nutrition-advice-export" style="display: none;"></div>
+            </section>
+        </div>
+        
+        <!-- SIDA 4: Info-boxar -->
+        <div class="page-4">
+            <section class="info-box">
+                <h3>Optimala Glukosnivåer</h3>
+                <p>För hälsa, välbefinnande och prestation är det bra om vi håller våra glukosnivåer inom ett snävt intervall (4 och 6 mmol/l) under större delen av dagen. Vår livsstil kan påverka glukoskontroll och insulinkänslighet. Med balanserade måltider med måttligt av snabba kolhydrater, måltider som är jämnt fördelade över dagen och regelbundna avbrott i stillasittandet samt genom att vara fysiskt aktiva dagligen, kan vi förbättra vår glukoshantering och därmed vår hälsa och energinivå.</p>
+            </section>
+
+            <section class="info-box">
+                <h3>Variationer</h3>
+                <p>Stora mängder (snabba) kolhydrater, eller ett ensidigt kolhydratintag kan orsaka betydande svängningar i glukosnivåerna. Dessa svängningar kan leda till sötsug, trötthet, hunger, bristande fokus och orkeslöshet, vilket påverkar vårt välbefinnande och våra prestationer. På lång sikt kan det även påverka vår hälsa. Stabila glukosnivåer ger bra förutsättningar för välmående och prestation.</p>
+            </section>
+
+            <section class="info-box">
+                <h3>Låga Glukosnivåer</h3>
+                <p>Varken för låga eller för höga glukosnivåer är bra. Om glukosnivån sjunker för mycket (hypoglykemi) frisätts stresshormoner, vilket kan påverka ditt välbefinnande negativt och leda till orkeslöshet, sömnproblem, muskelnedbrytning och sämre motståndskraft (både fysiskt och mentalt). Obalans mellan träning och matintag eller enbart ett lågt energi- och kolhydratintag kan orsaka låga värden. Sträva efter att minimera tiden i katabolt (nedbrytande) tillstånd under 3,6 mmol/l. </p>
+            </section>
+
+            <section class="info-box">
+                <h3>Höga Glukosnivåer</h3>
+                <p>Om glukosnivån stiger för högt (hyperglykemi) under längre perioder ökar risken för diabetes och hjärt-kärlsjukdomar. Det är bra om glukosnivån håller sig under 8 mmol/l. Vid återkommande höga nivåer bör du se över din måltidssammansättning för att undvika för mycket snabba kolhydrater eller ett för ensidigt kolhydratintag. Snabba kolhydrater, som snabbt bryts ner till glukos, påverkar glukosnivåerna kraftigt. Mer komplexa kolhydrater som fullkorn och baljväxter har en mindre påverkan. Måltider med en balans av protein och fett påverkar glukosnivåerna mindre än de med enbart kolhydrater. Regelbunden motion liksom att frekvent bryta stillasittandet kan bidra till normalisering av höga glukosvärden och minska risken för ohälsa.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="parameter-input">
+        <div class="parameter-input">
+            <input type="file" id="excel-file" class="btn btn-primary" accept=".xlsx, .xls" onchange="handleFileUpload(event)">
+        </div>
+        
+        <div class="parameter-input">
+            <button id="export-jpeg-button" class="btn btn-primary">Exportera JPEG</button>
+        </div>
+        
+        <div class="parameter-input">
+            <button id="export-pdf-button" class="btn btn-primary">Exportera PDF</button>
+        </div>
+    </footer>
+
+<style>
+    @media print {
+        .no-print {
+            display: none; /* Dölj elementet vid utskrift */
+        }
+    }
+</style>
+
+<!-- Modal for enlarged chart -->
+<div id="chartModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <canvas id="enlargedChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const nameInput = document.getElementById('name');
+
+    nameInput.addEventListener('input', function () {
+        // Create a temporary span element to measure the text width
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.whiteSpace = 'nowrap';
+        tempSpan.style.fontSize = window.getComputedStyle(this).fontSize;
+        tempSpan.style.fontFamily = window.getComputedStyle(this).fontFamily;
+        tempSpan.textContent = this.value || this.placeholder;
+
+        document.body.appendChild(tempSpan);
+        const newWidth = tempSpan.offsetWidth + 20; // Add some padding
+        this.style.width = `${newWidth}px`;
+        document.body.removeChild(tempSpan);
+    });
+
+    const reportData = {
+        glucoseValues: [],
+        additionalData: {},
+        patientInfo: {},
+        dates: [] // Lägg till en array för att lagra faktiska datum
+    };
+
+    let dailyCharts = [];
+    let combinedChart;
+    let enlargedChart;
+
+    // Add an updateReport function to make sure indicators update
+    function updateReport() {
+        // Update color-based indicators
+        applyColorBasedOnValue();
+    }
+
+    // Function to copy data to input fields
+    function copyDataToFields(workbook, mappings) {
+        mappings.forEach(mapping => {
+            const sheet = workbook.Sheets[mapping.sheetName];
+            if (!sheet) {
+                console.error(`Sheet "${mapping.sheetName}" not found in the workbook.`);
+                return;
+            }
+
+            const cellAddress = XLSX.utils.encode_cell({ r: mapping.row - 1, c: mapping.column - 1 });
+            const cellValue = sheet[cellAddress] ? sheet[cellAddress].v : null;
+
+            if (cellValue !== null) {
+                const inputField = document.getElementById(mapping.inputId);
+                if (inputField) {
+                    // Special handling for 'available-data'
+                    if (mapping.inputId === 'available-data') {
+                        inputField.textContent = cellValue; // Use textContent for non-input fields
+                    } else if (mapping.inputId === 'optimal-time') {
+                        // Round Tid optimala värden (%) to one decimal place
+                        inputField.value = parseFloat(cellValue).toFixed(1);
+                    } else if (mapping.inputId === 'average-glucose' || mapping.inputId === 'ehba1c' ||
+                            mapping.inputId === 'average-duration' || mapping.inputId === 'average-duration-2' ||
+                            mapping.inputId === 'very-high-duration') {
+                        // Round to one decimal place for specific fields
+                        inputField.value = parseFloat(cellValue).toFixed(1);
+                    } else {
+                        // For other fields, just copy the value as is
+                        inputField.value = cellValue;
+                    }
+                } else {
+                    console.error(`Input field with ID "${mapping.inputId}" not found.`);
+                }
+            } else {
+                console.warn(`No value found at ${mapping.sheetName}!${cellAddress}`);
+            }
+        });
+
+        // Apply colors to the table fields based on their values
+        applyColorBasedOnValue();
+    }
+
+function applyColorBasedOnValue() {
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+        const cell = row.querySelector('td:nth-child(2) input');
+        if (cell) {
+            let value = parseFloat(cell.value);
+            const indicator = row.querySelector('.status-indicator');
+            
+            if (row.cells[0].textContent.includes('Tid optimala värden')) {
+                const statusClass = value >= 93 ? 'good' : value >= 85 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Fasteglukos')) {
+                const statusClass = value < 5.3 ? 'good' : value < 6.0 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Medelglukos')) {
+                const statusClass = value < 6.5 ? 'good' : value < 7.5 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('eHbA1c')) {
+                const statusClass = value < 5.5 ? 'good' : value < 6.0 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Antal låga episoder')) {
+                if (isNaN(value)) {
+                    value = 0;
+                    cell.value = value;
+                }
+                const statusClass = value === 0 ? 'good' : value <= 3 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Antal höga episoder')) {
+                if (isNaN(value)) {
+                    value = 0;
+                    cell.value = value;
+                }
+                const statusClass = value === 0 ? 'good' : value <= 3 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Genomsnittlig varaktighet av låga episoder')) {
+                if (isNaN(value)) {
+                    value = 0;
+                    cell.value = value;
+                }
+                const statusClass = value === 0 ? 'good' : value <= 90 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Genomsnittlig varaktighet av höga episoder')) {
+                if (isNaN(value)) {
+                    value = 0;
+                    cell.value = value;
+                }
+                const statusClass = value === 0 ? 'good' : value <= 90 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Genomsnittlig nattlig trend')) {
+                const trendValue = parseFloat(cell.value.trim());
+                let statusClass;
+                
+                // Ny logik: Negativt värde = bra (grön), 0 = måttligt (gul), >0.2 = dåligt (röd)
+                if (!isNaN(trendValue)) {
+                    if (trendValue < 0) {
+                        statusClass = 'good'; // Negativ trend är bra (grön)
+                    } else if (trendValue <= 0.2) {
+                        statusClass = 'moderate'; // 0 till 0.2 är måttligt (gul)
+                    } else {
+                        statusClass = 'bad'; // >0.2 är dåligt (röd)
+                    }
+                } else {
+                    statusClass = 'moderate'; // Om värdet inte kan tolkas, använd moderate som standard
+                }
+                
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Antal mycket höga episoder')) { 
+                const statusClass = value === 0 ? 'good' : value <= 2 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            } else if (row.cells[0].textContent.includes('Genomsnittlig varaktighet av mycket höga episoder')) { 
+                const statusClass = value === 0 ? 'good' : value <= 120 ? 'moderate' : 'bad';
+                cell.parentElement.className = `parameter-value ${statusClass}`;
+                if (indicator) {
+                    indicator.className = 'status-indicator';
+                    indicator.classList.add(`${statusClass}-indicator`);
+                }
+            }
+        }
+    });
+}
+
+    // Mappings for input fields
+    const mappings = [
+    { sheetName: 'Resultat', row: 33, column: 2, inputId: 'available-data' },
+    { sheetName: 'Resultat', row: 20, column: 2, inputId: 'name' },
+    { sheetName: 'Resultat', row: 21, column: 2, inputId: 'date-range' },
+    { sheetName: 'Resultat', row: 7, column: 2, inputId: 'optimal-time' },
+    { sheetName: 'Resultat', row: 4, column: 2, inputId: 'fasting-glucose' },
+    { sheetName: 'Resultat', row: 2, column: 2, inputId: 'average-glucose' },
+    { sheetName: 'Resultat', row: 3, column: 2, inputId: 'ehba1c' },
+    { sheetName: 'Resultat', row: 30, column: 2, inputId: 'low-episodes' },
+    { sheetName: 'Resultat', row: 17, column: 2, inputId: 'average-duration' },
+    { sheetName: 'Resultat', row: 31, column: 2, inputId: 'high-episodes' },
+    { sheetName: 'Resultat', row: 18, column: 2, inputId: 'average-duration-2' },
+    { sheetName: 'Resultat', row: 5, column: 2, inputId: 'night-trend' },
+    { sheetName: 'Resultat', row: 32, column: 2, inputId: 'very-high-episodes' },
+    { sheetName: 'Resultat', row: 19, column: 2, inputId: 'very-high-duration' } 
+];
+
+    // Updated handleFileUpload function
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Copy data to input fields
+            copyDataToFields(workbook, mappings);
+
+            // Process data for charts
+            const nySheet = workbook.Sheets['NySheet'];
+            if (nySheet) {
+                const jsonData = XLSX.utils.sheet_to_json(nySheet, { header: 1 });
+                parseNySheetDataForCharts(jsonData);
+            } else {
+                console.error('Sheet "NySheet" not found in the workbook.');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Chart-related functions (unchanged)
+    function parseNySheetDataForCharts(data) {
+    const glucoseData = data.slice(1).map(row => {
+        // Kontrollera om det första värdet är ett datum eller en siffra
+        let dateValue = row[0];
+        
+        // Logga för att se vilket format datum har från excel
+        console.log("Rådata från Excel, datum:", dateValue, "typeof:", typeof dateValue);
+        
+        return {
+            date: dateValue,
+            time: convertTimeFormat(row[1]), // Konvertera från HH:mm:ss till HH:mm
+            glucose: parseFloat(row[2])
+        };
+    });
+
+    console.log("Bearbetad data:", glucoseData); // Kontrollera att datan ser korrekt ut
+
+    const groupedData = glucoseData.reduce((acc, curr) => {
+        const date = curr.date;
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(curr);
+        return acc;
+    }, {});
+
+    const allIntervals = generateTimeIntervals(); // Minut-för-minut-intervall
+
+    // Sortera datumen för att säkerställa kronologisk ordning
+    const dates = Object.keys(groupedData).sort();
+    
+    // Logga datumen för att se vad vi arbetar med
+    console.log("Extraherade datum:", dates);
+    
+    // Spara de faktiska datumen i reportData
+    reportData.dates = dates;
+    
+    reportData.glucoseValues = dates.map(date => {
+        const dailyData = groupedData[date];
+        return allIntervals.map(interval => {
+            const exactEntry = findExactEntry(dailyData, interval);
+            return exactEntry ? exactEntry.glucose : null; // Sätt `null` om ingen matchning hittas
+        });
+    });
+
+    updateAllCharts();
+}
+
+function convertTimeFormat(timeString) {
+    // Extrahera timmar och minuter från HH:mm:ss
+    const [hours, minutes] = timeString.split(':');
+    // Returnera i formatet HH:mm
+    return `${hours}:${minutes}`;
+}
+
+function generateTimeIntervals() {
+    const intervals = [];
+    for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute++) {
+            intervals.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+        }
+    }
+    return intervals;
+}
+
+    function findClosestEntry(dailyData, targetTime) {
+        const targetDate = new Date(`1970-01-01T${targetTime}:00`);
+        let closestEntry = null;
+        let smallestDifference = Infinity;
+
+        dailyData.forEach(entry => {
+            const entryDate = new Date(`1970-01-01T${entry.time}`);
+            const difference = Math.abs(entryDate - targetDate);
+
+            if (difference < smallestDifference) {
+                smallestDifference = difference;
+                closestEntry = entry;
+            }
+        });
+
+        return smallestDifference <= 7.5 * 60 * 1000 ? closestEntry : null;
+    }
+
+    function findExactEntry(dailyData, targetTime) {
+    // Kontrollera om det finns en exakt matchning i dailyData
+    const exactEntry = dailyData.find(entry => entry.time === targetTime);
+    console.log(`Söker efter: ${targetTime}, Hittad:`, exactEntry); // För felsökning
+    return exactEntry || null; // Returnera matchningen eller null om ingen hittas
+}
+function updateAllCharts() {
+    createDailyCharts(); // Populate dailyCharts
+    createCombinedChart(); // Create the combined chart
+
+    // Apply the removePointsForPrint function after charts are created
+    removePointsForPrint(dailyCharts);
+}
+
+    function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    function updateAllCharts() {
+        createDailyCharts();
+        createCombinedChart();
+    }
+
+    // Lägg till en formatDate-funktion för att visa datumen i ett mer läsbart format
+    function formatDate(dateString) {
+        // Logga input för felsökning
+        console.log("formatDate input:", dateString, "type:", typeof dateString);
+        
+        try {
+            // Hantera numeriska datumvärden (Excel serienummer)
+            if (typeof dateString === 'number') {
+                const excelEpoch = new Date(1899, 11, 30); // Excel datum börjar 30 Dec 1899
+                const dateMiliseconds = excelEpoch.getTime() + (dateString * 24 * 60 * 60 * 1000);
+                const date = new Date(dateMiliseconds);
+                
+                // Svenska månadsnamn
+                const months = [
+                    'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+                    'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+                ];
+                
+                return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+            }
+            
+            // Hantera stringvärden
+            if (typeof dateString === 'string') {
+                // Hantera Excel serienummer som strings
+                if (!isNaN(dateString) && dateString.length <= 6) {
+                    const excelNumber = parseInt(dateString);
+                    if (excelNumber > 1000) { // Sannolikt ett Excel-datum
+                        const excelEpoch = new Date(1899, 11, 30);
+                        const dateMiliseconds = excelEpoch.getTime() + (excelNumber * 24 * 60 * 60 * 1000);
+                        const date = new Date(dateMiliseconds);
+                        
+                        // Svenska månadsnamn
+                        const months = [
+                            'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+                            'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+                        ];
+                        
+                        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+                    }
+                    return `Datum ${dateString}`; // Om det inte är ett Excel-datum
+                }
+                
+                // Hantera ISO-format (YYYY-MM-DD)
+                if (dateString.includes('-')) {
+                    const parts = dateString.split('-');
+                    if (parts.length === 3) {
+                        const year = parseInt(parts[0]);
+                        const month = parseInt(parts[1]) - 1; // Månad 0-11
+                        const day = parseInt(parts[2]);
+                        
+                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                            // Svenska månadsnamn
+                            const months = [
+                                'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+                                'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+                            ];
+                            
+                            return `${day} ${months[month]} ${year}`;
+                        }
+                    }
+                }
+                
+                // Försök tolka med JavaScript Date
+                const date = new Date(dateString);
+                if (!isNaN(date.getTime())) {
+                    // Svenska månadsnamn
+                    const months = [
+                        'januari', 'februari', 'mars', 'april', 'maj', 'juni',
+                        'juli', 'augusti', 'september', 'oktober', 'november', 'december'
+                    ];
+                    
+                    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+                }
+                
+                // Om ingenting fungerar, lägg till "Datum" för att förtydliga
+                return `Datum ${dateString}`;
+            }
+            
+            // Om det inte är string eller number
+            return dateString ? `Datum ${dateString}` : "Okänt datum";
+            
+        } catch (e) {
+            console.error("Fel vid formatering av datum:", e);
+            return dateString ? `Datum ${dateString}` : "Okänt datum";
+        }
+    }
+
+    // Uppdatera createDailyCharts för att ta bort duplicerade datumtext
+    function createDailyCharts() {
+    const chartGrid = document.getElementById('chartGrid');
+    chartGrid.innerHTML = '';
+    dailyCharts = [];
+
+    const allIntervals = generateTimeIntervals(); // Minut-för-minut-intervall
+    console.log("Tidsintervall:", allIntervals); // Kontrollera tidsintervallen
+
+    reportData.glucoseValues.forEach((dayValues, index) => {
+        console.log(`Dag ${index + 1} data:`, dayValues); // Kontrollera data för varje dag
+
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        const title = document.createElement('h3');
+        title.className = 'date-title';
+        
+        // Använd faktiskt datum om det finns, annars använd "Dag X"
+        const rawDate = reportData.dates && reportData.dates[index] 
+            ? reportData.dates[index] 
+            : `Dag ${index + 1}`;
+            
+        // Formatera datumet
+        let dateLabel;
+        if (rawDate.startsWith('Dag ')) {
+            dateLabel = rawDate;
+        } else {
+            dateLabel = formatDate(rawDate);
+            console.log(`Formaterat datum: ${rawDate} -> ${dateLabel}`);
+        }
+        
+        title.textContent = dateLabel;
+        container.appendChild(title);
+
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+        chartGrid.appendChild(container);
+
+        const chart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: allIntervals, // Minut-för-minut-intervall som etiketter
+                datasets: [
+                    {
+                        label: '', // Ta bort etiketten för att undvika duplicering av datumet
+                        data: dayValues, // Data för varje minut
+                        borderColor: 'rgba(75, 192, 192, 1)', // Linjens färg
+                        backgroundColor: 'rgba(255, 255, 255, 0)', // Neutral bakgrundsfärg (helt transparent)
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 1, // Behåll samma punktstorlek
+                        hoverRadius: 5, // Öka storleken vid hover (valfritt)
+                        hitRadius: 10, // Gör träffytan större för enklare interaktion
+                        spanGaps: true // Aktivera linjer mellan datapunkter även om vissa är null
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                plugins: {
+                    legend: {
+                        display: false, // Dölj legenden eftersom vi redan har en titel
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#3b444b',
+                        bodyColor: '#3b444b',
+                        borderColor: '#ccc',
+                        borderWidth: 1,
+                        cornerRadius: 4,
+                        padding: 10,
+                        titleFont: {
+                            weight: 'bold',
+                            family: 'Verdana'
+                        },
+                        bodyFont: {
+                            family: 'Verdana'
+                        },
+                        displayColors: false, // Dölj färgade rutor i tooltip
+                        callbacks: {
+                            title: function(context) {
+                                // Använd datum och tid i tooltip-titeln
+                                const timeLabel = context[0].label;
+                                return `${dateLabel} ${timeLabel}`;
+                            },
+                            label: function(context) {
+                                return context.raw !== null
+                                    ? `Glukos: ${context.raw} mmol/l`
+                                    : 'Ingen data';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Tid'
+                        },
+                        ticks: {
+                            autoSkip: true, // Hoppa över etiketter om det är trångt
+                            maxTicksLimit: 8, // Ökat från 6 till 8 etiketter
+                            maxRotation: 0, // Förhindra rotation av etiketter
+                            font: {
+                                size: 10 // Mindre storlek på texten
+                            },
+                            callback: function(value, index, values) {
+                                // Visa timmar med 3-timmars intervall (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00)
+                                const timeLabel = allIntervals[value];
+                                if (!timeLabel) return '';
+                                const [hours, minutes] = timeLabel.split(':');
+                                return minutes === '00' && hours % 3 === 0 ? timeLabel : '';
+                            }
+                        },
+                        grid: {
+                            display: true, // Visa rutnät
+                            drawOnChartArea: true,
+                            color: 'rgba(0, 0, 0, 0.1)' // Ljusare rutnätslinjer
+                        },
+                        // Lägg till padding för att ge plats för etiketter
+                        afterFit: function(scale) {
+                            scale.paddingBottom = 10; // Ge mer plats längst ner
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Glukos (mmol/l)'
+                        },
+                        min: 0,
+                        suggestedMax: 20 // Tillåt att diagrammet expanderar om värden överstiger 20
+                    }
+                },
+                // Säkerställ att diagram har tillräckligt med utrymme för etiketter
+                layout: {
+                    padding: {
+                        left: 5,
+                        right: 10,
+                        top: 5,
+                        bottom: 15 // Öka padding under diagrammet för att ge plats för x-axelns etiketter
+                    }
+                }
+            },
+            plugins: [backgroundPlugin] // Lägg till bakgrundsplugin här
+        });
+
+        container.addEventListener('click', () => openModal(chart));
+
+        dailyCharts.push(chart);
+    });
+
+    // Ta bort punkter vid utskrift
+    removePointsForPrint(dailyCharts);
+}
+
+    // Ta bort punkter vid utskrift
+    removePointsForPrint(dailyCharts);
+
+// Funktion för att ta bort punkter vid utskrift
+function removePointsForPrint(charts) {
+    // Function to remove points before printing
+    function handleBeforePrint() {
+        charts.forEach(chart => {
+            chart.data.datasets.forEach(dataset => {
+                dataset.pointRadius = 0; // Remove points
+                dataset.pointHoverRadius = 0; // Remove hover points
+            });
+            chart.update(); // Update the chart
+        });
+        console.log("Before print: Points removed for all charts");
+    }
+
+    // Function to restore points after printing
+    function handleAfterPrint() {
+        charts.forEach(chart => {
+            chart.data.datasets.forEach(dataset => {
+                dataset.pointRadius = 1; // Restore default point size (adjust as needed)
+                dataset.pointHoverRadius = 5; // Restore hover points
+            });
+            chart.update(); // Update the chart
+        });
+        console.log("After print: Points restored for all charts");
+    }
+
+    // Attach the print event listeners
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+}
+
+function createCombinedChart() {
+    const ctx = document.getElementById('combinedGlucoseChart').getContext('2d');
+    if (combinedChart) combinedChart.destroy();
+
+    const labels = generateTimeIntervals(); // Minut-för-minut-intervall som etiketter
+
+    // Färgpalett med 15 mjuka och professionella färger
+    const colorPalette = [
+        '#6A5ACD', // Mjuk lila
+        '#4682B4', // Stålblå
+        '#5F9EA0', // Cadet blå
+        '#66CDAA', // Medium aquamarine
+        '#8FBC8F', // Mjuk grön
+        '#BDB76B', // Mjuk gulbrun
+        '#DAA520', // Guld
+        '#CD5C5C', // Mjuk röd
+        '#F4A460', // Sandbrun
+        '#D2B48C', // Tan
+        '#778899', // Ljus skiffergrå
+        '#708090', // Skiffergrå
+        '#4682B4', // Stålblå
+        '#B0C4DE', // Ljus stålblå
+        '#C0C0C0'  // Silver
+    ];
+
+    combinedChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels, // Minut-för-minut-intervall som etiketter
+            datasets: reportData.glucoseValues.map((dayValues, index) => {
+                // Använd faktiskt datum om det finns, annars använd "Dag X"
+                const rawDate = reportData.dates && reportData.dates[index] 
+                    ? reportData.dates[index] 
+                    : `Dag ${index + 1}`;
+                
+                // Formatera datumet
+                let dateLabel;
+                if (rawDate.startsWith('Dag ')) {
+                    dateLabel = rawDate;
+                } else {
+                    dateLabel = formatDate(rawDate);
+                }
+                
+                return {
+                    label: dateLabel, // Använd formaterat datum
+                    data: dayValues, // Data för varje dag
+                    borderColor: colorPalette[index % colorPalette.length], // Använd en färg från paletten
+                    backgroundColor: 'rgba(255, 255, 255, 0)', // Neutral bakgrundsfärg (helt transparent)
+                    borderWidth: 2,
+                    fill: true,
+                    pointRadius: 1, // Standardpunktstorlek
+                    spanGaps: true // Aktivera linjer mellan datapunkter även om vissa är null
+                };
+            })
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12, // Mindre legend-ruta
+                        padding: 10 // Mer padding mellan legend-objekt
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Timvisa Glukosvärden över 14 Dagar',
+                    font: {
+                        family: 'Verdana, sans-serif',
+                        size: 18,
+                        weight: 'bold'
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    },
+                    color: '#3b444b'
+                },
+                tooltip: {
+                    mode: 'nearest',
+                    intersect: true
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Tid (HH:mm)'
+                    },
+                    ticks: {
+                        autoSkip: true, // Hoppa över etiketter om det blir för trångt
+                        maxTicksLimit: 12, // Begränsa antalet etiketter som visas
+                        callback: function(value, index, values) {
+                            // Visa timmar med 2-timmars intervall (00:00, 02:00, 04:00, etc.)
+                            const timeLabel = labels[value];
+                            if (!timeLabel) return '';
+                            const [hours, minutes] = timeLabel.split(':');
+                            return minutes === '00' && hours % 2 === 0 ? timeLabel : '';
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        drawOnChartArea: true,
+                        color: 'rgba(0, 0, 0, 0.05)' // Ljusare rutnätslinjer
+                    },
+                    // Lägg till padding för att ge plats för etiketter
+                    afterFit: function(scale) {
+                        scale.paddingBottom = 15; // Ge mer plats längst ner
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Glukos (mmol/l)'
+                    },
+                    min: 0,
+                    suggestedMax: 20 // Tillåt att diagrammet expanderar om värden överstiger 20
+                }
+            },
+            // Säkerställ att diagram har tillräckligt med utrymme för etiketter
+            layout: {
+                padding: {
+                    left: 5,
+                    right: 10,
+                    top: 20,
+                    bottom: 20 // Öka padding under diagrammet för att ge plats för x-axelns etiketter
+                }
+            }
+        },
+        plugins: [backgroundPlugin] // Lägg till plugin här om det behövs
+    });
+
+    // Anpassa diagrammet för utskrift
+    resizeChartForPrint(combinedChart);
+}
+
+function resizeChartForPrint(chart, printWidth = 1400, printHeight = 1000, pointRadius = 0) {
+    const mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addEventListener('change', (e) => {
+        if (e.matches) {
+            // Anpassa storleken och ta bort punkter för utskrift
+            chart.options.maintainAspectRatio = true; // Tillåt anpassad storlek
+            chart.resize(printWidth, printHeight); // Sätt storleken till angivna värden
+            chart.data.datasets.forEach(dataset => {
+                dataset.pointRadius = pointRadius; // Justera punktstorleken
+            });
+            chart.update(); // Uppdatera diagrammet
+        } else {
+            // Återställ storleken och punkterna efter utskrift
+            chart.options.maintainAspectRatio = true; // Återställ proportionerna
+            chart.resize(); // Återställ till standardstorlek
+            chart.data.datasets.forEach(dataset => {
+                dataset.pointRadius = 1; // Återställ punkterna
+            });
+            chart.update(); // Uppdatera diagrammet
+        }
+    });
+}
+
+const backgroundPlugin = {
+    id: 'backgroundPlugin',
+    beforeDraw: (chart) => {
+        const ctx = chart.ctx;
+        const yScale = chart.scales.y;
+        const chartArea = chart.chartArea;
+
+        ctx.save();
+
+        // Rita det röda området (över 11.1)
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; // Röd färg
+        if (yScale.getPixelForValue(11.1) > chartArea.top) {
+            ctx.fillRect(
+                chartArea.left,
+                chartArea.top,
+                chartArea.right - chartArea.left,
+                yScale.getPixelForValue(11.1) - chartArea.top
+            );
+        }
+
+        // Rita det orange området (mellan 10 och 11.1)
+        ctx.fillStyle = 'rgba(255, 165, 0, 0.2)'; // Orange färg
+        if (yScale.getPixelForValue(11.1) > chartArea.top && yScale.getPixelForValue(10) < chartArea.bottom) {
+            ctx.fillRect(
+                chartArea.left,
+                yScale.getPixelForValue(11.1),
+                chartArea.right - chartArea.left,
+                yScale.getPixelForValue(10) - yScale.getPixelForValue(11.1)
+            );
+        }
+
+        // Rita det gula området (mellan 8 och 10)
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.2)'; // Gult område
+        if (yScale.getPixelForValue(10) > chartArea.top && yScale.getPixelForValue(8) < chartArea.bottom) {
+            ctx.fillRect(
+                chartArea.left,
+                yScale.getPixelForValue(10),
+                chartArea.right - chartArea.left,
+                yScale.getPixelForValue(8) - yScale.getPixelForValue(10)
+            );
+        }
+
+        // Rita det gröna området (mellan 3.6 och 8)
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)'; // Grönt område
+        if (yScale.getPixelForValue(8) > chartArea.top && yScale.getPixelForValue(3.6) < chartArea.bottom) {
+            ctx.fillRect(
+                chartArea.left,
+                yScale.getPixelForValue(8),
+                chartArea.right - chartArea.left,
+                yScale.getPixelForValue(3.6) - yScale.getPixelForValue(8)
+            );
+        }
+
+        // Rita det gula området (under 3.6)
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.2)'; // Gult område
+        if (yScale.getPixelForValue(3.6) < chartArea.bottom) {
+            ctx.fillRect(
+                chartArea.left,
+                yScale.getPixelForValue(3.6),
+                chartArea.right - chartArea.left,
+                chartArea.bottom - yScale.getPixelForValue(3.6)
+            );
+        }
+
+        ctx.restore();
+    }
+};
+
+function openModal(chart) {
+    const modal = document.getElementById('chartModal');
+    const enlargedCanvas = document.getElementById('enlargedChart');
+    const ctx = enlargedCanvas.getContext('2d');
+
+    if (enlargedChart) enlargedChart.destroy();
+
+    enlargedChart = new Chart(ctx, {
+        type: chart.config.type,
+        data: chart.config.data,
+        options: {
+            ...chart.config.options,
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            onHover: (event, elements) => {
+                if (elements.length > 0 && activePointIndex === null) {
+                    // Set the active point index to the hovered point (only once)
+                    activePointIndex = elements[0].index;
+                }
+            }
+        },
+        plugins: [backgroundPlugin]
+    });
+
+    modal.style.display = 'block';
+
+    // Enable arrow key navigation for the enlarged chart
+    enableKeyboardNavigation(enlargedChart);
+}
+
+let activePointIndex = null; // Tracks the currently active data point
+
+function enableKeyboardNavigation(chart) {
+    // Function to handle key presses
+    function handleKeydown(event) {
+        const totalPoints = chart.data.labels.length;
+
+        if (event.key === 'ArrowRight') {
+            // Move to the next valid data point
+            activePointIndex = findNextValidPoint(chart, activePointIndex, totalPoints, 1);
+            updateTooltip(chart, activePointIndex);
+        } else if (event.key === 'ArrowLeft') {
+            // Move to the previous valid data point
+            activePointIndex = findNextValidPoint(chart, activePointIndex, totalPoints, -1);
+            updateTooltip(chart, activePointIndex);
+        }
+    }
+
+    // Add the keydown event listener
+    document.addEventListener('keydown', handleKeydown);
+
+    // Remove the keydown listener when the modal is closed
+    const modal = document.getElementById('chartModal');
+    modal.addEventListener('click', () => {
+        document.removeEventListener('keydown', handleKeydown);
+    });
+}
+
+function findNextValidPoint(chart, currentIndex, totalPoints, direction) {
+    let newIndex = currentIndex;
+
+    // Loop until we find a valid data point or return to the starting point
+    do {
+        newIndex = (newIndex + direction + totalPoints) % totalPoints; // Wrap around
+        const value = chart.data.datasets[0].data[newIndex]; // Get the value at the new index
+        if (value !== null && value !== undefined) {
+            return newIndex; // Return the index if the value is valid
+        }
+    } while (newIndex !== currentIndex);
+
+    return currentIndex; // If no valid point is found, return the current index
+}
+
+function updateTooltip(chart, pointIndex) {
+    const meta = chart.getDatasetMeta(0); // Get the first dataset
+    const point = meta.data[pointIndex];
+
+    if (point) {
+        // Set the active tooltip to the current data point
+        chart.tooltip.setActiveElements([
+            { datasetIndex: 0, index: pointIndex }
+        ], { x: point.x, y: point.y });
+
+        chart.update();
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('chartModal');
+    modal.style.display = 'none';
+
+    // Reset the tooltip and active point index
+    if (enlargedChart) {
+        enlargedChart.tooltip.setActiveElements([]);
+        enlargedChart.update();
+    }
+    activePointIndex = null; // Reset the active point index
+}
+
+    document.querySelector('.close').addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('chartModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    function expandTextareaForCapture() {
+    const textarea = document.getElementById('nutrition-advice');
+    textarea.style.height = 'auto'; // Reset height
+    textarea.style.height = textarea.scrollHeight + 'px'; // Set height to fit content
+}
+
+document.getElementById('export-jpeg-button').addEventListener('click', function () {
+    const exportButton = document.getElementById('export-jpeg-button');
+    const excelButton = document.getElementById('excel-file');
+    const textarea = document.getElementById('nutrition-advice');
+    const exportDiv = document.getElementById('nutrition-advice-export');
+
+    // Get the values from the name and date-range input fields
+    const name = document.getElementById('name').value.trim() || 'UnknownName';
+    const date = document.getElementById('date-range').value.trim() || 'UnknownDate';
+
+    // Construct the file name
+    const fileName = `${name}_${date}_Glukosrapport.jpeg`;
+
+    // Copy textarea content to the export div
+    exportDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+    exportDiv.style.display = 'block';
+    textarea.style.display = 'none';
+
+    // Hide buttons before capturing the page
+    exportButton.style.display = 'none';
+    if (excelButton) excelButton.style.display = 'none';
+
+    // Store original styles
+    const originalStyles = {
+        bodyMargin: document.body.style.margin,
+        bodyPadding: document.body.style.padding,
+        htmlMargin: document.documentElement.style.margin,
+        htmlPadding: document.documentElement.style.padding
+    };
+
+    // Get the computed colors before cloning
+    const goodColor = getComputedStyle(document.querySelector('.good')).backgroundColor;
+    const moderateColor = getComputedStyle(document.querySelector('.moderate')).backgroundColor;
+    const badColor = getComputedStyle(document.querySelector('.bad')).backgroundColor;
+
+    // Reset margins and padding
+    document.body.style.margin = '40px 20px 20px 20px'; // Increased top margin to 40px
+    document.body.style.padding = '0';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+    
+    // Make sure all pages are visible for the capture
+    const pageElements = document.querySelectorAll('.page-1, .page-2, .page-3, .page-4');
+    pageElements.forEach(page => {
+        page.style.display = 'block';
+        // Ensure page breaks are visible in the exported image
+        if (page !== pageElements[0]) {
+            page.style.marginTop = '50px';
+            page.style.borderTop = '1px dashed #ccc';
+            page.style.paddingTop = '20px';
+        }
+    });
+
+    html2canvas(document.body, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f0eeec',
+        scrollX: -20,  // Left margin
+        scrollY: -40,  // Increased top margin to 40px
+        width: document.documentElement.scrollWidth + 40,  // Left and right margins
+        height: document.documentElement.scrollHeight + 60,  // Top (40px) and bottom (20px) margins
+        x: -20,  // Left margin offset
+        y: -40,  // Top margin offset
+        windowWidth: document.documentElement.scrollWidth + 40,
+        onclone: function(clonedDoc) {
+            // Apply the same margins to the cloned document
+            clonedDoc.body.style.margin = '40px 20px 20px 20px';
+            
+            const clonedTable = clonedDoc.querySelector('.summary-table');
+            if (clonedTable) {
+                // Add specific styles to the cloned table
+                clonedTable.style.borderCollapse = 'collapse';
+                clonedTable.style.width = 'auto';
+                clonedTable.style.marginLeft = '20px';
+                clonedTable.style.fontFamily = 'Verdana, Geneva, Tahoma, sans-serif';
+                clonedTable.style.fontSize = '0.9em';
+
+                // Style all cells
+                const cells = clonedTable.querySelectorAll('td');
+                cells.forEach(cell => {
+                    cell.style.padding = '3px 8px';
+                    cell.style.border = 'none';
+                    cell.style.textAlign = 'left';
+                    cell.style.verticalAlign = 'middle';
+                    cell.style.lineHeight = '1.2';
+                });
+
+                // Style first column cells
+                const firstColumnCells = clonedTable.querySelectorAll('td:first-child');
+                firstColumnCells.forEach(cell => {
+                    cell.style.fontWeight = 'bold';
+                    cell.style.fontSize = '0.85em';
+                });
+
+                // Style last column cells
+                const lastColumnCells = clonedTable.querySelectorAll('td:last-child');
+                lastColumnCells.forEach(cell => {
+                    cell.style.minWidth = '60px';
+                    cell.style.textAlign = 'center';
+                });
+
+                // Style colored cells with preserved colors
+                clonedTable.querySelectorAll('.good').forEach(cell => {
+                    cell.style.backgroundColor = goodColor;
+                    cell.style.padding = '2px 6px';
+                    cell.style.borderRadius = '3px';
+                    cell.style.width = '60px';
+                    cell.style.color = '#ffffff';
+                });
+
+                clonedTable.querySelectorAll('.moderate').forEach(cell => {
+                    cell.style.backgroundColor = moderateColor;
+                    cell.style.padding = '2px 6px';
+                    cell.style.borderRadius = '3px';
+                    cell.style.width = '60px';
+                    cell.style.color = '#000000';
+                });
+
+                clonedTable.querySelectorAll('.bad').forEach(cell => {
+                    cell.style.backgroundColor = badColor;
+                    cell.style.padding = '2px 6px';
+                    cell.style.borderRadius = '3px';
+                    cell.style.width = '60px';
+                    cell.style.color = '#ffffff';
+                });
+            }
+            
+            // Ensure page breaks are visible in the exported image
+            const clonedPages = clonedDoc.querySelectorAll('.page-2, .page-3, .page-4');
+            clonedPages.forEach(page => {
+                page.style.marginTop = '50px';
+                page.style.borderTop = '1px dashed #ccc';
+                page.style.paddingTop = '20px';
+            });
+        }
+    }).then(canvas => {
+        // Create and trigger download
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.download = fileName;
+        link.click();
+
+        // Restore all original styles
+        exportButton.style.display = 'inline-block';
+        if (excelButton) excelButton.style.display = 'inline-block';
+        document.body.style.margin = originalStyles.bodyMargin;
+        document.body.style.padding = originalStyles.bodyPadding;
+        document.documentElement.style.margin = originalStyles.htmlMargin;
+        document.documentElement.style.padding = originalStyles.htmlPadding;
+        textarea.style.display = 'block';
+        exportDiv.style.display = 'none';
+        
+        // Reset page styles
+        pageElements.forEach(page => {
+            page.style.marginTop = '';
+            page.style.borderTop = '';
+            page.style.paddingTop = '';
+        });
+
+    }).catch(error => {
+        console.error('Error exporting page as JPEG:', error);
+        
+        // Restore original styles
+        exportButton.style.display = 'inline-block';
+        if (excelButton) excelButton.style.display = 'inline-block';
+        document.body.style.margin = originalStyles.bodyMargin;
+        document.body.style.padding = originalStyles.bodyPadding;
+        document.documentElement.style.margin = originalStyles.htmlMargin;
+        document.documentElement.style.padding = originalStyles.htmlPadding;
+        textarea.style.display = 'block';
+        exportDiv.style.display = 'none';
+        
+        // Reset page styles
+        pageElements.forEach(page => {
+            page.style.marginTop = '';
+            page.style.borderTop = '';
+            page.style.paddingTop = '';
+        });
+        
+        alert('Ett fel uppstod vid export av rapporten. Vänligen försök igen.');
+    });
+});
+
+// Lägg till PDF export funktionalitet
+document.getElementById('export-pdf-button').addEventListener('click', function() {
+    const { jsPDF } = window.jspdf;
+    const exportButton = document.getElementById('export-pdf-button');
+    const exportJpegButton = document.getElementById('export-jpeg-button');
+    const excelButton = document.getElementById('excel-file');
+    const textarea = document.getElementById('nutrition-advice');
+    const exportDiv = document.getElementById('nutrition-advice-export');
+
+    // Visa en laddningsindikation
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.background = 'rgba(255, 255, 255, 0.9)';
+    loadingIndicator.style.padding = '20px';
+    loadingIndicator.style.borderRadius = '8px';
+    loadingIndicator.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    loadingIndicator.style.zIndex = '9999';
+    document.body.appendChild(loadingIndicator);
+
+    // Get the values from the name and date-range input fields
+    const name = document.getElementById('name').value.trim() || 'UnknownName';
+    const date = document.getElementById('date-range').value.trim() || 'UnknownDate';
+
+    // Construct the file name
+    const fileName = `${name}_${date}_Glukosrapport.pdf`;
+
+    // Copy textarea content to the export div
+    exportDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+    exportDiv.style.display = 'block';
+    textarea.style.display = 'none';
+
+    // Hide buttons before capturing the page
+    exportButton.style.display = 'none';
+    exportJpegButton.style.display = 'none';
+    if (excelButton) excelButton.style.display = 'none';
+
+    // Store original styles
+    const originalStyles = {
+        bodyMargin: document.body.style.margin,
+        bodyPadding: document.body.style.padding,
+        htmlMargin: document.documentElement.style.margin,
+        htmlPadding: document.documentElement.style.padding
+    };
+
+    // Reset margins and padding
+    document.body.style.margin = '40px 20px 20px 20px';
+    document.body.style.padding = '0';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+    
+    // Uppdaterad metod för PDF-skapande baserad på specificerade sidor
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    const pageElements = [
+        document.querySelector('.page-1'),
+        document.querySelector('.page-2'),
+        document.querySelector('.page-3'),
+        document.querySelector('.page-4')
+    ];
+    
+    // Skapa en PDF med en sida för varje div med class page-X
+    let currentPage = 0;
+    
+    // Funktion för att behandla en sida och gå vidare till nästa
+    function processPage() {
+        if (currentPage >= pageElements.length) {
+            // Alla sidor är klara, spara PDF
+            pdf.save(fileName);
+            
+            // Återställ original styling
+            exportButton.style.display = 'inline-block';
+            exportJpegButton.style.display = 'inline-block';
+            if (excelButton) excelButton.style.display = 'inline-block';
+            document.body.style.margin = originalStyles.bodyMargin;
+            document.body.style.padding = originalStyles.bodyPadding;
+            document.documentElement.style.margin = originalStyles.htmlMargin;
+            document.documentElement.style.padding = originalStyles.htmlPadding;
+            textarea.style.display = 'block';
+            exportDiv.style.display = 'none';
+            
+            // Ta bort laddningsindikator
+            document.body.removeChild(loadingIndicator);
+            return;
+        }
+        
+        const pageElement = pageElements[currentPage];
+        
+        // Dölj alla sidor utom den aktuella för korrekt rendering
+        pageElements.forEach((el, index) => {
+            if (index === currentPage) {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+        
+        // Rendera sidan till en canvas
+        html2canvas(pageElement, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#f0eeec',
+            logging: false
+        }).then(canvas => {
+            // Beräkna skalning för att passa på PDF-sidan
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pdfWidth - 40; // 20px marginal på varje sida
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            // Lägg till ny sida för alla utom första sidan
+            if (currentPage > 0) {
+                pdf.addPage();
+            }
+            
+            // Sätt bakgrundsfärg på sidan
+            pdf.setFillColor(240, 238, 236); // #f0eeec i RGB
+            pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+            
+            // Lägg till bilden på sidan
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                20, // Vänstermarginal
+                20, // Toppmarginal
+                imgWidth,
+                imgHeight
+            );
+            
+            // Gå vidare till nästa sida
+            currentPage++;
+            processPage();
+        }).catch(error => {
+            console.error(`Error rendering page ${currentPage + 1}:`, error);
+            currentPage++;
+            processPage(); // Fortsätt med nästa sida även vid fel
+        });
+    }
+    
+    // Starta processen med första sidan
+    processPage();
+}).catch(error => {
+    console.error('Error generating PDF:', error);
+    
+    // Ta bort laddningsindikator
+    if (document.body.contains(loadingIndicator)) {
+        document.body.removeChild(loadingIndicator);
+    }
+    
+    // Återställ original styling
+    exportButton.style.display = 'inline-block';
+    exportJpegButton.style.display = 'inline-block';
+    if (excelButton) excelButton.style.display = 'inline-block';
+    document.body.style.margin = originalStyles.bodyMargin;
+    document.body.style.padding = originalStyles.bodyPadding;
+    document.documentElement.style.margin = originalStyles.htmlMargin;
+    document.documentElement.style.padding = originalStyles.htmlPadding;
+    textarea.style.display = 'block';
+    exportDiv.style.display = 'none';
+    
+    alert('Ett fel uppstod vid export av PDF. Vänligen försök igen.');
+});
+</script>
+</body>
+</html>

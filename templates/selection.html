@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Välkommen</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #a6c5b0;
+            --secondary: #def1e4;
+            --accent: #8BC34A;
+            --light: #F8F9FA;
+            --dark: #1A2E28;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #F0EEEC;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .selection-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            width: 20%;
+            min-width: 250px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        h2 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            color: #555;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin: 0.7rem 0;
+        }
+
+        a {
+            display: block;
+            padding: 0.7rem;
+            background-color: #F0EEEC;
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        a:hover {
+            background-color: #d3d0cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-link {
+            margin-top: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer-logo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .footer-logo img {
+            height: 80px;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="selection-container">
+        <h1>Välkommen</h1>
+        <h2>Välj ett alternativ för att fortsätta:</h2>
+        <ul>
+            <li><a href="/obla-test">OBLA-Test</a></li>
+            <li><a href="/inbody-man">InBody Man</a></li>
+            <li><a href="/inbody-kvinna">InBody Kvinna</a></li>
+            <li><a href="/blodprover">Blodprover</a></li>
+            <li><a href="/glukos-analys">Glukosanalys</a></li>
+            <li><a href="/glukos-rapport">Glukosrapport</a></li>
+        </ul>
+        <a href="{{ url_for('logout') }}" class="logout-link">Logga ut</a>
+    </div>
+    <div class="footer-logo">
+        <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="SENTION Logo">
+    </div>
+</body>
+</html>
