@@ -121,7 +121,7 @@ input[type="number"]:focus {
 }
 
 #thresholdTable {
-    margin-top: 60px; /* Added margin to move the table down */
+    margin-top: 0px; /* Changed margin to 0px */
 }
 
 .controls {
@@ -387,7 +387,7 @@ input[type="number"]:focus {
     <button class="btn" onclick="updateChart()">Uppdatera graf</button>
     
     <!-- Empty header for the threshold table -->
-    <h2></h2>
+    <h3 style="margin-top: 60px; margin-bottom: 20px; color: #444444; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 2rem; text-align: center;">Tröskelvärden</h3>
     
     <table id="thresholdTable" class="table">
         <thead>
@@ -427,6 +427,8 @@ input[type="number"]:focus {
     <button class="btn" onclick="exportAsJPEG()">Spara JPEG</button>
     <button class="btn" onclick="exportAsExcel()">Spara Excel</button>
     <button class="btn" onclick="exportAsPDF()">Spara PDF</button>
+    <button class="btn" onclick="exportDiagramAsPDF()">Spara Diagram som PDF</button>
+    <button class="btn" onclick="exportThresholdTableAsPDF()">Spara Tröskelvärden som PDF</button>
     </div>
     <img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" alt="Logo" class="bottom-logo">
     <script>
@@ -493,6 +495,15 @@ adjustInputWidth(nameInput);
             },
             options: {
                 responsive: true,
+                devicePixelRatio: 2, // Improved resolution
+                layout: {
+                    padding: {
+                        left: 20,
+                        right: 50, // Increased padding on right for full visibility of all numbers
+                        top: 20,
+                        bottom: 20
+                    }
+                },
                 scales: {
                     x: {
                         display: true,
@@ -502,7 +513,7 @@ adjustInputWidth(nameInput);
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 20, // Increased font size for clarity
+                                size: 20,
                                 weight: 'bold',
                                 lineHeight: 1.2
                             },
@@ -512,8 +523,10 @@ adjustInputWidth(nameInput);
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 14 // Increased font size for clarity
-                            }
+                                size: 14
+                            },
+                            maxTicksLimit: 8, // Prevent overcrowding
+                            padding: 10
                         }
                     },
                     y: {
@@ -521,14 +534,14 @@ adjustInputWidth(nameInput);
                         display: true,
                         position: 'left',
                         min: 50,
-                        suggestedMax: 200, // Allows the chart to expand if values exceed 180
+                        suggestedMax: 200,
                         title: {
                             display: true,
                             text: 'Puls',
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 20, // Increased font size for clarity
+                                size: 20,
                                 weight: 'bold',
                                 lineHeight: 1.2
                             },
@@ -538,7 +551,7 @@ adjustInputWidth(nameInput);
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 14 // Increased font size for clarity
+                                size: 14
                             }
                         }
                     },
@@ -554,7 +567,7 @@ adjustInputWidth(nameInput);
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 20, // Increased font size for clarity
+                                size: 20,
                                 weight: 'bold',
                                 lineHeight: 1.2
                             },
@@ -567,7 +580,7 @@ adjustInputWidth(nameInput);
                             color: '#333',
                             font: {
                                 family: 'Roboto',
-                                size: 14 // Increased font size for clarity
+                                size: 14
                             }
                         }
                     }
@@ -884,12 +897,16 @@ function exportAsJPEG() {
 
     // Use html2canvas to export the page
     html2canvas(element, {
-        scale: 2, // Increase resolution for better quality
+        scale: 2, // Increased scale for better quality
         useCORS: true, // Allow cross-origin images
         scrollX: 0, // Ensure no horizontal scrolling
         scrollY: 0, // Start rendering from the top of the page
         windowWidth: document.documentElement.scrollWidth, // Full page width
-        windowHeight: document.documentElement.scrollHeight // Full page height
+        windowHeight: document.documentElement.scrollHeight, // Full page height
+        backgroundColor: '#F0EEEC',
+        ignoreElements: (element) => {
+            return element === textareaDiv;
+        }
     }).then(canvas => {
         const link = document.createElement('a');
         link.download = filename; // Use the dynamically generated filename
@@ -1111,50 +1128,70 @@ function exportAsPDF() {
         pdf.setFillColor(240, 238, 236);
         pdf.rect(0, 0, pageWidth, pageHeight, 'F');
         
-        // Use html2canvas with optimized settings for landscape
-        html2canvas(document.documentElement, {
-            scale: 2,
+        // Add title
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(24);
+        pdf.setTextColor(68, 68, 68);
+        const title = 'SENTION - Onset of Blood Lactate Accumulation';
+        const titleWidth = pdf.getTextWidth(title);
+        const titleX = (pageWidth - titleWidth) / 2;
+        pdf.text(title, titleX, 50);
+        
+        // Get the chart container
+        const chartContainer = document.getElementById('chartContainer');
+        
+        // Use html2canvas with optimized settings
+        html2canvas(chartContainer, {
+            scale: 2, // Increased scale for better quality
             useCORS: true,
             scrollX: 0,
             scrollY: 0,
-            windowWidth: document.documentElement.scrollWidth,
-            windowHeight: document.documentElement.scrollHeight,
+            windowWidth: chartContainer.offsetWidth + 100, // Extra width to capture right axis
+            windowHeight: chartContainer.offsetHeight + 50, // Extra height for safety
             backgroundColor: '#F0EEEC',
             ignoreElements: (element) => {
-                return element === loadingIndicator || element === overlayDiv;
+                return element === loadingIndicator;
             }
         }).then(canvas => {
-            // Convert canvas to image data with high quality
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            // Convert canvas to image data with maximum quality
+            const imgData = canvas.toDataURL('image/png', 1.0); // Use PNG for better quality
             
-            // Calculate dimensions to maintain aspect ratio
+            // Calculate dimensions to fit properly ensuring right side is visible
+            const availableHeight = pageHeight - 80; // Even smaller margin for maximum diagram size
+            const availableWidth = pageWidth - 60; // Minimal margins for maximum diagram size
             const aspectRatio = canvas.width / canvas.height;
-            let imgWidth = pageWidth - 50; // 25px margin on each side
+            
+            let imgWidth = availableWidth * 0.96; // Use 96% of available width for maximum diagram size
             let imgHeight = imgWidth / aspectRatio;
             
-            // If height is too tall, scale based on height instead
-            if (imgHeight > pageHeight - 50) {
-                imgHeight = pageHeight - 50;
+            // If height is too tall, scale based on available height
+            if (imgHeight > availableHeight * 0.96) {
+                imgHeight = availableHeight * 0.96; // Use 96% of available height
                 imgWidth = imgHeight * aspectRatio;
             }
             
-            // Center the image on the page
+            // Center the image horizontally and vertically
             const xOffset = (pageWidth - imgWidth) / 2;
-            const yOffset = (pageHeight - imgHeight) / 2;
             
-            // Add image to PDF with optimized positioning
+            // Calculate vertical centering: equal space from title to diagram and diagram to logo
+            const titleSpace = 80; // Space taken by title + margin
+            const logoSpace = 80; // Space taken by logo + margin at bottom
+            const availableVerticalSpace = pageHeight - titleSpace - logoSpace;
+            const yOffset = titleSpace + (availableVerticalSpace - imgHeight) / 2; // Center vertically
+            
+            // Add image to PDF with highest quality
             pdf.addImage(
                 imgData,
-                'JPEG',
+                'PNG', // Use PNG for better quality
                 xOffset,
                 yOffset,
                 imgWidth,
                 imgHeight,
                 undefined,
-                'FAST'
+                'SLOW' // Use SLOW for best quality instead of FAST
             );
             
-            // Save the PDF
+            // Save the PDF with generated filename
             pdf.save(filename);
             
             // Clean up
@@ -1201,6 +1238,308 @@ function exportAsPDF() {
             });
         });
     }, 100);
+}
+
+function exportDiagramAsPDF() {
+    // Get patient data
+    const dateInput = document.getElementById('dateInput');
+    const nameInput = document.getElementById('nameInput');
+    const personnummerInput = document.getElementById('personnummerInput');
+
+    const date = dateInput.value;
+    const name = nameInput.value.trim();
+    const personnummer = personnummerInput.value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Generate filename
+    const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+    const filename = `OBLA-Test_Diagram_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    document.body.appendChild(loadingIndicator);
+
+    // Use setTimeout to ensure chart is fully rendered
+    setTimeout(() => {
+        // Initialize PDF in landscape orientation
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('l', 'pt', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Set background color
+        pdf.setFillColor(240, 238, 236);
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+        // Add title
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(24);
+        pdf.setTextColor(68, 68, 68);
+        const title = 'Onset of Blood Lactate Accumulation';
+        const titleWidth = pdf.getTextWidth(title);
+        const titleX = (pageWidth - titleWidth) / 2;
+        pdf.text(title, titleX, 50);
+
+        // Get the chart container
+        const chartContainer = document.getElementById('chartContainer');
+        
+        // Use html2canvas with optimized settings
+        html2canvas(chartContainer, {
+            scale: 2, // Increased scale for better quality
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: chartContainer.offsetWidth + 100, // Extra width to capture right axis
+            windowHeight: chartContainer.offsetHeight + 50, // Extra height for safety
+            backgroundColor: '#F0EEEC',
+            ignoreElements: (element) => {
+                return element === loadingIndicator;
+            }
+        }).then(canvas => {
+            // Convert canvas to image data with high quality
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Calculate dimensions to fit properly ensuring right side is visible
+            const availableHeight = pageHeight - 80; // Even smaller margin for maximum diagram size
+            const availableWidth = pageWidth - 60; // Minimal margins for maximum diagram size
+            const aspectRatio = canvas.width / canvas.height;
+            
+            let imgWidth = availableWidth * 0.96; // Use 96% of available width for maximum diagram size
+            let imgHeight = imgWidth / aspectRatio;
+            
+            // If height is too tall, scale based on available height
+            if (imgHeight > availableHeight * 0.96) {
+                imgHeight = availableHeight * 0.96; // Use 96% of available height
+                imgWidth = imgHeight * aspectRatio;
+            }
+            
+            // Center the image horizontally and vertically
+            const xOffset = (pageWidth - imgWidth) / 2;
+            
+            // Calculate vertical centering: equal space from title to diagram and diagram to logo
+            const titleSpace = 80; // Space taken by title + margin
+            const logoSpace = 80; // Space taken by logo + margin at bottom
+            const availableVerticalSpace = pageHeight - titleSpace - logoSpace;
+            const yOffset = titleSpace + (availableVerticalSpace - imgHeight) / 2; // Center vertically
+            
+            // Add image to PDF
+            pdf.addImage(
+                imgData,
+                'JPEG',
+                xOffset,
+                yOffset,
+                imgWidth,
+                imgHeight,
+                undefined,
+                'FAST'
+            );
+
+            // Add the Sention logo
+            const logoImg = new Image();
+            logoImg.src = 'https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png';
+            logoImg.onload = function() {
+                const logoWidth = 60; // Changed from 80 to 60 to match threshold table PDF
+                const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+                const logoX = pageWidth - logoWidth - 20;
+                const logoY = pageHeight - logoHeight - 20;
+
+                pdf.addImage(
+                    logoImg,
+                    'PNG',
+                    logoX,
+                    logoY,
+                    logoWidth,
+                    logoHeight
+                );
+
+                // Save the PDF with generated filename
+                pdf.save(filename);
+
+                // Cleanup
+                document.body.removeChild(loadingIndicator);
+            };
+        }).catch(error => {
+            console.error("Error capturing chart:", error);
+            alert("Ett fel inträffade vid exporten av diagrammet.");
+            document.body.removeChild(loadingIndicator);
+        });
+    }, 100);
+}
+
+function exportThresholdTableAsPDF() {
+    // Get patient data
+    const dateInput = document.getElementById('dateInput');
+    const nameInput = document.getElementById('nameInput');
+    const personnummerInput = document.getElementById('personnummerInput');
+
+    const date = dateInput.value;
+    const name = nameInput.value.trim();
+    const personnummer = personnummerInput.value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Generate filename
+    const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+    const filename = `OBLA-Test_Troskeldata_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    document.body.appendChild(loadingIndicator);
+
+    // Create a temporary container
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        width: 800px;
+        background-color: #F0EEEC;
+        padding: 20px;
+        font-family: 'Rajdhani', sans-serif;
+    `;
+    document.body.appendChild(tempContainer);
+
+    // Add the data table
+    const dataTable = document.createElement('div');
+    dataTable.innerHTML = `
+        <h3 style="margin-bottom: 20px;">Mätdata</h3>
+        <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse; background-color: #e0e0e0;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Belastning (Watt)</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Belastning (Watt/kg)</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Puls</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Laktat</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">BORG</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${Array.from(document.querySelectorAll('#dataTable tbody tr')).map(row => `
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">${row.cells[0].querySelector('input').value}</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">${row.cells[1].querySelector('input').value}</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">${row.cells[2].querySelector('input').value}</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">${row.cells[3].querySelector('input').value}</td>
+                        <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">${row.cells[4].querySelector('input').value}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    tempContainer.appendChild(dataTable);
+
+    // Add the threshold table with a header
+    const thresholdHeader = document.createElement('h3');
+    thresholdHeader.textContent = 'Tröskelvärden';
+    thresholdHeader.style.marginBottom = '20px';
+    tempContainer.appendChild(thresholdHeader);
+
+    // Clone the threshold table
+    const tableClone = document.getElementById('thresholdTable').cloneNode(true);
+    tempContainer.appendChild(tableClone);
+
+    // Initialize PDF in landscape orientation
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l', 'pt', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Set background color
+    pdf.setFillColor(240, 238, 236);
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    // Use html2canvas to capture the temporary container
+    html2canvas(tempContainer, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#F0EEEC'
+    }).then(canvas => {
+        // Calculate dimensions to fit the page
+        const aspectRatio = canvas.width / canvas.height;
+        let imgWidth = pageWidth - 80; // 40px margin on each side
+        let imgHeight = imgWidth / aspectRatio;
+
+        if (imgHeight > pageHeight - 80) {
+            imgHeight = pageHeight - 80;
+            imgWidth = imgHeight * aspectRatio;
+        }
+
+        // Center the image
+        const xOffset = (pageWidth - imgWidth) / 2;
+        const yOffset = 40; // Position at top with margin
+
+        // Add the table image
+        pdf.addImage(
+            canvas.toDataURL('image/jpeg', 1.0),
+            'JPEG',
+            xOffset,
+            yOffset,
+            imgWidth,
+            imgHeight
+        );
+
+        // Add the Sention logo
+        const logoImg = new Image();
+        logoImg.src = 'https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png';
+        logoImg.onload = function() {
+            const logoWidth = 60;
+            const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+            const logoX = pageWidth - logoWidth - 20;
+            const logoY = pageHeight - logoHeight - 20;
+
+            pdf.addImage(
+                logoImg,
+                'PNG',
+                logoX,
+                logoY,
+                logoWidth,
+                logoHeight
+            );
+
+            // Save the PDF with generated filename
+            pdf.save(filename);
+
+            // Cleanup
+            document.body.removeChild(tempContainer);
+            document.body.removeChild(loadingIndicator);
+        };
+    });
 }
 
     </script>
