@@ -1101,22 +1101,26 @@ Chart.register({
         </div>
         
         <div class="parameter-input">
+            <button id="export-all-separate-files-button" class="btn btn-primary">Exportera som separata filer</button>
+        </div>
+        
+        <div class="parameter-input" style="display: none;">
             <button id="export-parameters-pdf-button" class="btn btn-primary">Exportera Parametrar PDF</button>
         </div>
         
-        <div class="parameter-input">
+        <div class="parameter-input" style="display: none;">
             <button id="export-chart-pdf-button" class="btn btn-primary">Exportera Diagram PDF</button>
         </div>
         
-        <div class="parameter-input">
+        <div class="parameter-input" style="display: none;">
             <button id="export-daily-charts-pdf-button" class="btn btn-primary">Exportera Dagliga Diagram PDF</button>
         </div>
         
-        <div class="parameter-input">
+        <div class="parameter-input" style="display: none;">
             <button id="export-info-pdf-button" class="btn btn-primary">Exportera Information PDF</button>
         </div>
         
-        <div class="parameter-input">
+        <div class="parameter-input" style="display: none;">
             <button id="export-interpretation-pdf-button" class="btn btn-primary">Exportera Tolkning PDF</button>
         </div>
         
@@ -3771,6 +3775,94 @@ document.getElementById('export-interpretation-pdf-button').addEventListener('cl
         
         alert('Ett fel uppstod vid export av tolkning. Vänligen försök igen.');
     });
+});
+
+// Lägg till kombinerad export-funktion för alla separata filer
+document.getElementById('export-all-separate-files-button').addEventListener('click', function() {
+    // Skapa en laddningsindikator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Exporterar alla filer, var god vänta...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.background = 'rgba(255, 255, 255, 0.95)';
+    loadingIndicator.style.padding = '25px 35px';
+    loadingIndicator.style.borderRadius = '10px';
+    loadingIndicator.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+    loadingIndicator.style.zIndex = '10000';
+    loadingIndicator.style.fontSize = '16px';
+    loadingIndicator.style.fontWeight = 'bold';
+    loadingIndicator.style.color = '#3b444b';
+    document.body.appendChild(loadingIndicator);
+
+    // Status-text för vad som pågår
+    const statusText = document.createElement('div');
+    statusText.style.marginTop = '10px';
+    statusText.style.fontSize = '14px';
+    statusText.style.color = '#666';
+    statusText.textContent = 'Förbereder export...';
+    loadingIndicator.appendChild(statusText);
+
+    // Funktion för att uppdatera status
+    const updateStatus = (message) => {
+        statusText.textContent = message;
+    };
+
+    // Simulera knapptryckningar med fördröjningar för att undvika konflikter
+    const executeExports = async () => {
+        try {
+            updateStatus('Exporterar parametrar...');
+            document.getElementById('export-parameters-pdf-button').click();
+            
+            // Vänta 2 sekunder mellan varje export
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            updateStatus('Exporterar diagram...');
+            document.getElementById('export-chart-pdf-button').click();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            updateStatus('Exporterar dagliga diagram...');
+            document.getElementById('export-daily-charts-pdf-button').click();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            updateStatus('Exporterar information...');
+            document.getElementById('export-info-pdf-button').click();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            updateStatus('Exporterar tolkning...');
+            document.getElementById('export-interpretation-pdf-button').click();
+            
+            // Vänta ytterligare 3 sekunder för att säkerställa att sista exporten är klar
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            updateStatus('Alla filer exporterade!');
+            
+            // Ta bort laddningsindikator efter 2 sekunder
+            setTimeout(() => {
+                if (document.body.contains(loadingIndicator)) {
+                    document.body.removeChild(loadingIndicator);
+                }
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Fel vid kombinerad export:', error);
+            updateStatus('Ett fel uppstod vid export.');
+            
+            setTimeout(() => {
+                if (document.body.contains(loadingIndicator)) {
+                    document.body.removeChild(loadingIndicator);
+                }
+                alert('Ett fel uppstod vid export av filer. Vänligen försök igen.');
+            }, 2000);
+        }
+    };
+
+    // Starta export-processen
+    executeExports();
 });
 </script>
 </body>
