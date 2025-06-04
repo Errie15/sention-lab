@@ -2392,9 +2392,10 @@ document.getElementById('export-pdf-button').addEventListener('click', function(
     // Get the values from the name and date-range input fields
     const name = document.getElementById('name').value.trim() || 'UnknownName';
     const date = document.getElementById('date-range').value.trim() || 'UnknownDate';
+    const personnummer = document.getElementById('personnummer').value.trim() || '';
 
     // Construct the file name
-    const fileName = `${name}_${date}_Glukosrapport.pdf`;
+    const fileName = personnummer ? `${name}_${personnummer}_${date}_Glukosrapport.pdf` : `${name}_${date}_Glukosrapport.pdf`;
 
     // Copy textarea content to the export div
     exportDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
@@ -2557,7 +2558,7 @@ document.getElementById('export-parameters-pdf-button').addEventListener('click'
     const personnummer = document.getElementById('personnummer').value.trim() || '';
 
     // Construct the file name
-    const fileName = `${name}_${date}_Parametrar.pdf`;
+    const fileName = personnummer ? `${name}_${personnummer}_${date}_Parametrar.pdf` : `${name}_${date}_Parametrar.pdf`;
 
     // Hide buttons before capturing
     exportButton.style.display = 'none';
@@ -2936,7 +2937,7 @@ document.getElementById('export-chart-pdf-button').addEventListener('click', fun
     const personnummer = document.getElementById('personnummer').value.trim() || '';
 
     // Construct the file name
-    const fileName = `${name}_${date}_Diagram.pdf`;
+    const fileName = personnummer ? `${name}_${personnummer}_${date}_Diagram.pdf` : `${name}_${date}_Diagram.pdf`;
 
     // Hide buttons before capturing
     exportButton.style.display = 'none';
@@ -3171,7 +3172,7 @@ document.getElementById('export-daily-charts-pdf-button').addEventListener('clic
     const personnummer = document.getElementById('personnummer').value.trim() || '';
 
     // Construct the file name
-    const fileName = `${name}_${date}_DagligaDiagram.pdf`;
+    const fileName = personnummer ? `${name}_${personnummer}_${date}_DagligaDiagram.pdf` : `${name}_${date}_DagligaDiagram.pdf`;
 
     // Hide buttons before capturing
     exportButton.style.display = 'none';
@@ -3660,7 +3661,7 @@ document.getElementById('export-interpretation-pdf-button').addEventListener('cl
     const signatureText = signatureSelect.options[signatureSelect.selectedIndex].text || 'Linda Bakkman PhD\nChefsnutritionist';
 
     // Construct the file name
-    const fileName = `${name}_${date}_Tolkning.pdf`;
+    const fileName = personnummer ? `${name}_${personnummer}_${date}_Tolkning.pdf` : `${name}_${date}_Tolkning.pdf`;
 
     // Hide buttons before capturing
     exportButton.style.display = 'none';
