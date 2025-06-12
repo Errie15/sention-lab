@@ -71,6 +71,12 @@ def obla_test():
         return redirect(url_for('login'))
     return render_template('obla-test.html')
 
+@app.route('/obla-test-running')
+def obla_test_running():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('obla-test-running.html')
+
 @app.route('/inbody-man')
 def inbody_man():
     if 'user' not in session:

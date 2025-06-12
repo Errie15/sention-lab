@@ -305,9 +305,11 @@ input[type="number"]:focus {
     <header>
         <div class="logo-container">
         </div>
-        <h1> SENTION - Onset of Blood Lactate Accumulation (Cykel)</h1>
+        <h1> SENTION - Onset of Blood Lactate Accumulation (Löpning)</h1>
         </div>
     </header>
+    
+
     <div class="input-row">
         <div class="input-group">
             <input type="text" id="nameInput" placeholder=" " required>
@@ -335,8 +337,8 @@ input[type="number"]:focus {
     <table id="dataTable" class="table">
         <thead>
             <tr>
-                <th>Belastning (Watt)</th>
-                <th>Belastning (Watt/kg)</th>
+                <th>Hastighet (km/h)</th>
+                <th>Hastighet (km/h / kg)</th>
                 <th>Puls</th>
                 <th>Laktat</th>
                 <th>BORG</th> <!-- New column for BORG -->
@@ -344,15 +346,15 @@ input[type="number"]:focus {
         </thead>
         <tbody>
             <tr>
-                <td><input type="number" value="100" oninput="calculateWattKg(this)"></td>
-                <td><input type="number" readonly></td>
+                <td><input type="number" value="8.00" step="0.01" oninput="calculateSpeedKg(this)"></td>
+                <td><input type="number" readonly step="0.01"></td>
                 <td><input type="number" value="100" oninput="updateChart()"></td>
                 <td><input type="number" value="0.7" oninput="updateChart()"></td>
                 <td><input type="number" value="6" oninput="updateChart()"></td>
             </tr>
             <tr>
-                <td><input type="number" value="105" oninput="calculateWattKg(this)"></td>
-                <td><input type="number" readonly></td>
+                <td><input type="number" value="9.50" step="0.01" oninput="calculateSpeedKg(this)"></td>
+                <td><input type="number" readonly step="0.01"></td>
                 <td><input type="number" value="110" oninput="updateChart()"></td>
                 <td><input type="number" value="0.6" oninput="updateChart()"></td>
                 <td><input type="number" value="7" oninput="updateChart()"></td>
@@ -376,11 +378,11 @@ input[type="number"]:focus {
         </div>
         <div>
             <label for="verticalLine1" class="form-label">Vertikal Linje (2 mmol):</label>
-            <input type="number" id="verticalLine1" class="form-control" value="1.8" step="0.01" oninput="updateAnnotations()">
+            <input type="number" id="verticalLine1" class="form-control" value="0.12" step="0.01" oninput="updateAnnotations()">
         </div>
         <div>
             <label for="verticalLine2" class="form-label">Vertikal Linje (4 mmol):</label>
-            <input type="number" id="verticalLine2" class="form-control" value="2.8" step="0.01" oninput="updateAnnotations()">
+            <input type="number" id="verticalLine2" class="form-control" value="0.14" step="0.01" oninput="updateAnnotations()">
         </div>
     </div>
     <button class="btn" onclick="toggleVerticalLines()">På/Av Vertikala Linjer</button>
@@ -393,22 +395,22 @@ input[type="number"]:focus {
         <thead>
             <tr>
                 <th>Trösklar</th>
-                <th>Belastning (Watt)</th>
-                <th>Belastning (Watt/kg)</th>
+                <th>Hastighet (km/h)</th>
+                <th>Hastighet (km/h / kg)</th>
                 <th>Puls</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>2.0 mMol/l</td>
-                <td><input type="number" id="watt2" oninput="calculateThresholdWattKg(2)"></td>
-                <td><input type="number" id="wattKg2" readonly></td>
+                <td><input type="number" id="speed2" step="0.01" oninput="calculateThresholdSpeedKg(2)"></td>
+                <td><input type="number" id="speedKg2" readonly step="0.01"></td>
                 <td><input type="number" id="pulse2"></td>
             </tr>
             <tr>
                 <td>4.0 mMol/l</td>
-                <td><input type="number" id="watt4" oninput="calculateThresholdWattKg(4)"></td>
-                <td><input type="number" id="wattKg4" readonly></td>
+                <td><input type="number" id="speed4" step="0.01" oninput="calculateThresholdSpeedKg(4)"></td>
+                <td><input type="number" id="speedKg4" readonly step="0.01"></td>
                 <td><input type="number" id="pulse4"></td>
             </tr>
         </tbody>
@@ -507,7 +509,7 @@ adjustInputWidth(nameInput);
                         display: true,
                         title: {
                             display: true,
-                            text: 'Belastning (Watt/kg)',
+                            text: 'Hastighet (km/h)',
                             color: '#333',
                             font: {
                                 family: 'Roboto',
@@ -606,8 +608,8 @@ adjustInputWidth(nameInput);
                             },
                             verticalLine1: {
                                 type: 'line',
-                                xMin: 1.8,
-                                xMax: 1.8,
+                                xMin: 0.12,
+                                xMax: 0.12,
                                 borderColor: 'rgba(255, 165, 0, 0.6)',
                                 borderWidth: 3,
                                 borderDash: [7, 7],
@@ -616,8 +618,8 @@ adjustInputWidth(nameInput);
                             },
                             verticalLine2: {
                                 type: 'line',
-                                xMin: 2.8,
-                                xMax: 2.8,
+                                xMin: 0.14,
+                                xMax: 0.14,
                                 borderColor: 'rgba(255, 165, 0, 0.6)',
                                 borderWidth: 3,
                                 borderDash: [7, 7],
@@ -641,34 +643,35 @@ adjustInputWidth(nameInput);
             }
         });
 
-        const calculateWattKg = (input) => {
+        const calculateSpeedKg = (input) => {
             const row = input.closest('tr');
-            const watt = parseFloat(input.value);
+            const speed = parseFloat(input.value);
             const weight = parseFloat(document.getElementById('weightInput').value);
-            const wattKgCell = row.cells[1].querySelector('input');
-            wattKgCell.value = weight > 0 ? formatNumber(watt / weight) : '';
+            const speedKgCell = row.cells[1].querySelector('input');
+            speedKgCell.value = weight > 0 ? formatSpeedKg(speed / weight) : '';
             updateChart();
         };
 
         const updateTable = () => {
             document.querySelectorAll('#dataTable tbody tr').forEach(row => {
-                calculateWattKg(row.cells[0].querySelector('input'));
+                calculateSpeedKg(row.cells[0].querySelector('input'));
             });
         };
 
         const updateChart = () => {
-    const wattKgData = [], pulseData = [], lactateData = [];
+    const speedData = [], speedKgData = [], pulseData = [], lactateData = [];
     
     // Collect data from the table
     document.querySelectorAll('#dataTable tbody tr').forEach(row => {
         const cells = row.querySelectorAll('input');
-        wattKgData.push(parseFloat(cells[1].value));
+        speedData.push(parseFloat(cells[0].value)); // Use km/h values for interpolation
+        speedKgData.push(parseFloat(cells[1].value)); // Keep km/h/kg for chart display
         pulseData.push(parseFloat(cells[2].value));
         lactateData.push(parseFloat(cells[3].value));
     });
 
-    // Update chart data
-    myChart.data.labels = wattKgData;
+    // Update chart data (use km/h/kg for display)
+    myChart.data.labels = speedKgData;
     myChart.data.datasets[0].data = pulseData.map(formatPulse);
     myChart.data.datasets[1].data = lactateData.map(formatNumber);
 
@@ -680,32 +683,36 @@ adjustInputWidth(nameInput);
     myChart.options.scales.y2.min = lactateMin > 0 ? lactateMin : 0; // Ensure no negative values
     myChart.options.scales.y2.max = lactateMax;
 
-    // Recalculate intersections
-    const intersection1 = findIntersection(wattKgData, lactateData, 2);
-    const intersection2 = findIntersection(wattKgData, lactateData, 4);
+    // Recalculate intersections using km/h values
+    const intersection1 = findIntersection(speedData, lactateData, 2);
+    const intersection2 = findIntersection(speedData, lactateData, 4);
 
-    // Update intersection values in the UI
-    document.getElementById('verticalLine1').value = formatNumber(intersection1);
-    document.getElementById('verticalLine2').value = formatNumber(intersection2);
+    // Convert km/h to km/h/kg for display in UI
+    const weight = parseFloat(document.getElementById('weightInput').value);
+    const intersection1Kg = weight > 0 ? intersection1 / weight : 0;
+    const intersection2Kg = weight > 0 ? intersection2 / weight : 0;
+    
+    document.getElementById('verticalLine1').value = formatSpeedKg(intersection1Kg);
+    document.getElementById('verticalLine2').value = formatSpeedKg(intersection2Kg);
 
     // Update threshold table and annotations
-    updateThresholdTable(intersection1, intersection2, pulseData, wattKgData);
+    updateThresholdTable(intersection1, intersection2, pulseData, speedData);
     updateAnnotations();
 
     // Update the chart
     myChart.update();
 };
 
-        const findIntersection = (wattKgData, lactateData, target) => {
+        const findIntersection = (speedData, lactateData, target) => {
             for (let i = 0; i < lactateData.length - 1; i++) {
                 if ((lactateData[i] <= target && lactateData[i + 1] >= target) ||
                     (lactateData[i] >= target && lactateData[i + 1] <= target)) {
-                    const x1 = wattKgData[i], x2 = wattKgData[i + 1];
+                    const x1 = speedData[i], x2 = speedData[i + 1];
                     const y1 = lactateData[i], y2 = lactateData[i + 1];
                     return x1 + (target - y1) * (x2 - x1) / (y2 - y1);
                 }
             }
-            return wattKgData[0];
+            return speedData[0];
         };
 
         const updateAnnotations = () => {
@@ -726,33 +733,35 @@ adjustInputWidth(nameInput);
             myChart.update();
         };
 
-        const updateThresholdTable = (intersection1, intersection2, pulseData, wattKgData) => {
+        const updateThresholdTable = (intersection1, intersection2, pulseData, speedData) => {
             const weight = parseFloat(document.getElementById('weightInput').value);
-            const watt2 = intersection1 * weight;
-            const watt4 = intersection2 * weight;
+            const speed2 = intersection1; // intersection1 is already in km/h
+            const speed4 = intersection2; // intersection2 is already in km/h
+            const speedKg2 = weight > 0 ? intersection1 / weight : 0;
+            const speedKg4 = weight > 0 ? intersection2 / weight : 0;
 
-            document.getElementById('watt2').value = formatNumber(watt2);
-            document.getElementById('wattKg2').value = formatNumber(intersection1);
-            document.getElementById('pulse2').value = formatPulse(getPulseAtIntersection(intersection1, wattKgData, pulseData));
+            document.getElementById('speed2').value = formatSpeed(speed2);
+            document.getElementById('speedKg2').value = formatSpeedKg(speedKg2);
+            document.getElementById('pulse2').value = formatPulse(getPulseAtIntersection(intersection1, speedData, pulseData));
 
-            document.getElementById('watt4').value = formatNumber(watt4);
-            document.getElementById('wattKg4').value = formatNumber(intersection2);
-            document.getElementById('pulse4').value = formatPulse(getPulseAtIntersection(intersection2, wattKgData, pulseData));
+            document.getElementById('speed4').value = formatSpeed(speed4);
+            document.getElementById('speedKg4').value = formatSpeedKg(speedKg4);
+            document.getElementById('pulse4').value = formatPulse(getPulseAtIntersection(intersection2, speedData, pulseData));
         };
 
-        const calculateThresholdWattKg = (threshold) => {
+        const calculateThresholdSpeedKg = (threshold) => {
             const weight = parseFloat(document.getElementById('weightInput').value);
-            const wattInput = document.getElementById(`watt${threshold}`);
-            const wattKgInput = document.getElementById(`wattKg${threshold}`);
-            const watt = parseFloat(wattInput.value);
-            wattKgInput.value = weight > 0 ? formatNumber(watt / weight) : '';
+            const speedInput = document.getElementById(`speed${threshold}`);
+            const speedKgInput = document.getElementById(`speedKg${threshold}`);
+            const speed = parseFloat(speedInput.value);
+            speedKgInput.value = weight > 0 ? formatSpeedKg(speed / weight) : '';
         };
 
-        const getPulseAtIntersection = (intersection, wattKgData, pulseData) => {
-            for (let i = 0; i < wattKgData.length - 1; i++) {
-                if ((wattKgData[i] <= intersection && wattKgData[i + 1] >= intersection) ||
-                    (wattKgData[i] >= intersection && wattKgData[i + 1] <= intersection)) {
-                    const x1 = wattKgData[i], x2 = wattKgData[i + 1];
+        const getPulseAtIntersection = (intersection, speedData, pulseData) => {
+            for (let i = 0; i < speedData.length - 1; i++) {
+                if ((speedData[i] <= intersection && speedData[i + 1] >= intersection) ||
+                    (speedData[i] >= intersection && speedData[i + 1] <= intersection)) {
+                    const x1 = speedData[i], x2 = speedData[i + 1];
                     const y1 = pulseData[i], y2 = pulseData[i + 1];
                     return y1 + (intersection - x1) * (y2 - y1) / (x2 - x1);
                 }
@@ -764,7 +773,7 @@ adjustInputWidth(nameInput);
     const table = document.querySelector('#dataTable tbody');
     const newRow = table.insertRow();
 
-    // Add cells for Belastning (Watt), Belastning (Watt/kg), Puls, Laktat, and BORG
+    // Add cells for Hastighet (km/h), Hastighet (km/h / kg), Puls, Laktat, and BORG
     for (let i = 0; i < 5; i++) {
         const newCell = newRow.insertCell();
         const input = document.createElement('input');
@@ -772,7 +781,11 @@ adjustInputWidth(nameInput);
         input.className = 'form-control';
         
         if (i === 0) {
-            input.oninput = () => calculateWattKg(input); // Attach calculateWattKg to the first column
+            input.step = '0.01';
+            input.oninput = () => calculateSpeedKg(input); // Attach calculateSpeedKg to the first column
+        } else if (i === 1) {
+            input.step = '0.01';
+            input.readOnly = true;
         } else if (i > 1) { // För Puls (index 2), Laktat (index 3) och BORG (index 4)
             input.oninput = () => updateChart(); // Uppdatera diagrammet när dessa värden ändras
         }
@@ -795,8 +808,16 @@ adjustInputWidth(nameInput);
             return num.toFixed(2).replace(/\.?0+$/, '');
         };
 
+        const formatSpeed = (num) => {
+            return num.toFixed(2);
+        };
+
+        const formatSpeedKg = (num) => {
+            return num.toFixed(4); // 4 decimaler för km/h/kg för maximal precision
+        };
+
         const formatPulse = (num) => {
-            return Math.round(num);
+            return Math.floor(num + 0.5); // Mer konsistent avrundning
         };
 
         document.getElementById('dateInput').valueAsDate = new Date();
@@ -949,26 +970,26 @@ function exportAsExcel() {
     }
 
     // Hämta tröskeldata
-    const watt2 = document.getElementById('watt2').value;
-    const wattKg2 = document.getElementById('wattKg2').value;
+    const speed2 = document.getElementById('speed2').value;
+    const speedKg2 = document.getElementById('speedKg2').value;
     const pulse2 = document.getElementById('pulse2').value;
 
-    const watt4 = document.getElementById('watt4').value;
-    const wattKg4 = document.getElementById('wattKg4').value;
+    const speed4 = document.getElementById('speed4').value;
+    const speedKg4 = document.getElementById('speedKg4').value;
     const pulse4 = document.getElementById('pulse4').value;
 
     // Förbered data för Excel-filen (allt på en rad)
     const data = [
         [
             'Datum', 'Personnummer', 'Namn', 'Vikt', 
-            'Tröskel 2.0 mMol/l Belastning (Watt)', 'Tröskel 2.0 mMol/l Belastning (Watt/kg)', 'Tröskel 2.0 mMol/l Puls',
-            'Tröskel 4.0 mMol/l Belastning (Watt)', 'Tröskel 4.0 mMol/l Belastning (Watt/kg)', 'Tröskel 4.0 mMol/l Puls',
+            'Tröskel 2.0 mMol/l Hastighet (km/h)', 'Tröskel 2.0 mMol/l Hastighet (km/h / kg)', 'Tröskel 2.0 mMol/l Puls',
+            'Tröskel 4.0 mMol/l Hastighet (km/h)', 'Tröskel 4.0 mMol/l Hastighet (km/h / kg)', 'Tröskel 4.0 mMol/l Puls',
             'Kommentar'
         ],
         [
             date, personnummer, name, weight, 
-            watt2, wattKg2, pulse2, 
-            watt4, wattKg4, pulse4, 
+            speed2, speedKg2, pulse2, 
+            speed4, speedKg4, pulse4, 
             comment
         ]
     ];
@@ -984,7 +1005,7 @@ function exportAsExcel() {
     const formattedDate = date.replace(/-/g, ''); // Ta bort bindestreck från datumet
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Ta bort specialtecken och ersätt mellanslag med understreck
     const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Ta bort specialtecken
-    const filename = `OBLA-Test-Cykel_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.xlsx`;
+    const filename = `OBLA-Test-Löpning_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.xlsx`;
 
     // Spara Excel-filen
     XLSX.writeFile(workbook, filename);
@@ -1258,7 +1279,7 @@ function exportDiagramAsPDF() {
     const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
     const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
-    const filename = `OBLA-Test-Cykel_Diagram_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+    const filename = `OBLA-Test-Löpning_Diagram_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
 
     // Create loading indicator
     const loadingIndicator = document.createElement('div');
@@ -1403,7 +1424,7 @@ function exportThresholdTableAsPDF() {
     const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
     const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
-    const filename = `OBLA-Test-Cykel_Troskeldata_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+    const filename = `OBLA-Test-Löpning_Troskeldata_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
 
     // Create loading indicator
     const loadingIndicator = document.createElement('div');
@@ -1440,8 +1461,8 @@ function exportThresholdTableAsPDF() {
         <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse; background-color: #e0e0e0;">
             <thead>
                 <tr>
-                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Belastning (Watt)</th>
-                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Belastning (Watt/kg)</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Hastighet (km/h)</th>
+                    <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Hastighet (km/h / kg)</th>
                     <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Puls</th>
                     <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">Laktat</th>
                     <th style="padding: 10px; background-color: #d0d0d0; border: 1px solid #ccc;">BORG</th>
