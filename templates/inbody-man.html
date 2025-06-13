@@ -870,7 +870,7 @@ document.getElementById('export-model-pdf-button').addEventListener('click', () 
             // Lägg till identifiering i nedre vänstra hörnet
             const footerText = `${name} | ${personnummer} | InBody ${date} | Tolkat av: ${tolkatAv}`;
             pdf.setFontSize(10);
-            pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+            pdf.setTextColor(255, 255, 255); // Vit färg för bättre synlighet mot bakgrund
             pdf.text(footerText, 20, pageHeight - 10);
             
             pdf.save(`InBody_Model_${sanitizedName}_${sanitizedPersonnummer}_${date}.pdf`);
