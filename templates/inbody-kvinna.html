@@ -864,9 +864,23 @@ document.getElementById('export-model-pdf-button').addEventListener('click', () 
             // Generate filename
             const name = document.getElementById('nameInput').value || 'Unnamed';
             const personnummer = document.getElementById('personnummerInput').value || '';
-            const date = new Date().toISOString().split('T')[0];
+            const date = document.getElementById('dateInput').value;
+            const tolkatAv = document.getElementById('tolkat-av').options[document.getElementById('tolkat-av').selectedIndex].text;
+            
+            // Validate inputs
+            if (!date || !name || !personnummer) {
+                alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                return;
+            }
+            
             const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
             const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+            
+            // Lägg till identifiering i nedre vänstra hörnet
+            const footerText = `${name} | ${personnummer} | InBody ${date} | Tolkat av: ${tolkatAv}`;
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+            pdf.text(footerText, 20, pageHeight - 10);
             
             pdf.save(`InBody_Model_${sanitizedName}_${sanitizedPersonnummer}_${date}.pdf`);
             

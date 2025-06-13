@@ -1189,6 +1189,14 @@ function exportAsPDF() {
                 'SLOW' // Use SLOW for best quality instead of FAST
             );
             
+            // Lägg till identifiering i nedre vänstra hörnet
+            const tolkatAvDropdown = document.getElementById("interpretedBy");
+            const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+            const footerText = `${name} | ${personnummer} | OBLA-test Cykel ${date} | Tolkat av: ${tolkatAv}`;
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+            pdf.text(footerText, 20, pageHeight - 10);
+            
             // Save the PDF with generated filename
             pdf.save(filename);
             
@@ -1369,6 +1377,14 @@ function exportDiagramAsPDF() {
                     logoHeight
                 );
 
+                // Lägg till identifiering i nedre vänstra hörnet
+                const tolkatAvDropdown = document.getElementById("interpretedBy");
+                const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+                const footerText = `${name} | ${personnummer} | OBLA-test Cykel ${date} | Tolkat av: ${tolkatAv}`;
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+                pdf.text(footerText, 20, pageHeight - 10);
+
                 // Save the PDF with generated filename
                 pdf.save(filename);
 
@@ -1529,6 +1545,14 @@ function exportThresholdTableAsPDF() {
                 logoWidth,
                 logoHeight
             );
+
+            // Lägg till identifiering i nedre vänstra hörnet
+            const tolkatAvDropdown = document.getElementById("interpretedBy");
+            const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+            const footerText = `${name} | ${personnummer} | OBLA-test Cykel ${date} | Tolkat av: ${tolkatAv}`;
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+            pdf.text(footerText, 20, pageHeight - 10);
 
             // Save the PDF with generated filename
             pdf.save(filename);

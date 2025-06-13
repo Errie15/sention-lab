@@ -1750,6 +1750,14 @@ function exportAsPDF() {
             );
             
             // Spara PDF-filen
+            // Lägg till identifiering i nedre vänstra hörnet
+            const tolkatAvDropdown = document.getElementById("tolkat-av");
+            const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+            const footerText = `${name} | ${personnummer} | Blodprover ${date} | Tolkat av: ${tolkatAv}`;
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100); // Diskret mörkgrå färg
+            pdf.text(footerText, 20, pageHeight - 10);
+            
             pdf.save(filename);
             
             // Cleanup och återställ original-elementen efter att PDF:en har sparats
