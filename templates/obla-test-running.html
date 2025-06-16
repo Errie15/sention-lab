@@ -977,8 +977,24 @@ function exportAsExcel() {
     const speedKg4 = document.getElementById('speedKg4').value;
     const pulse4 = document.getElementById('pulse4').value;
 
-    // Förbered data för Excel-filen (allt på en rad)
+    // Hämta tabelldata från dataTable
+    const tableData = [];
+    document.querySelectorAll('#dataTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('input');
+        if (cells.length >= 5) {
+            tableData.push([
+                cells[0].value, // Hastighet (km/h)
+                cells[1].value, // Hastighet (km/h / kg)
+                cells[2].value, // Puls
+                cells[3].value, // Laktat
+                cells[4].value  // BORG
+            ]);
+        }
+    });
+
+    // Förbered data för Excel-filen
     const data = [
+        // Tröskelvärden (första raden)
         [
             'Datum', 'Personnummer', 'Namn', 'Vikt', 
             'Tröskel 2.0 mMol/l Hastighet (km/h)', 'Tröskel 2.0 mMol/l Hastighet (km/h / kg)', 'Tröskel 2.0 mMol/l Puls',
@@ -990,8 +1006,18 @@ function exportAsExcel() {
             speed2, speedKg2, pulse2, 
             speed4, speedKg4, pulse4, 
             comment
-        ]
+        ],
+        // Tom rad för separation
+        [],
+        // Tabelldata header
+        ['Mätdata:', '', '', '', '', '', '', '', '', '', ''],
+        ['Hastighet (km/h)', 'Hastighet (km/h / kg)', 'Puls', 'Laktat', 'BORG', '', '', '', '', '', '']
     ];
+
+    // Lägg till tabelldata
+    tableData.forEach(row => {
+        data.push([row[0], row[1], row[2], row[3], row[4], '', '', '', '', '', '']);
+    });
 
     // Skapa en ny arbetsbok och ett kalkylblad
     const workbook = XLSX.utils.book_new();
