@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTION Ekblom-Bak Test</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f0eeec;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 200px;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: right;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            position: relative;
+            border-radius: 15px 15px 15px 15px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9rem;
+            font-weight: medium;
+            padding-left: 100px;
+            padding-top: 10px;
+        }
+
+        .logo-container {
+            position: absolute;
+            left: 320px;
+            top: 49px;
+        }
+
+        .logo-container img {
+            height: 30px;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        h1 {
+            height: 107px;
+            color: #444444;
+            font-family: 'Verdana', sans-serif;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            margin: 0;
+            font-family: 'Rajdhani';
+            font-weight: 500;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 20px 0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(102, 101, 101, 0.3);
+            padding: 40px;
+        }
+
+        .section-divider {
+            height: 2px;
+            background-color: #d0d0d0;
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+
+        .section-header {
+            background-color: #d0d0d0;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            position: relative;
+            font-size: 1.05rem;
+        }
+
+        .tooltip-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .tooltip-icon:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 1.05rem;
+            background-color: #f8f9fa;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #00bcd4;
+            box-shadow: 0 0 5px #00bcd4;
+        }
+
+        .btn {
+            background-color: #d6d2ce;
+            border: none;
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+            margin: 8px;
+            font-size: 1.05rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background-color: #b4aca4;
+        }
+
+        .btn-primary {
+            background-color: #d6d2ce;
+            color: #333;
+        }
+
+        .btn-primary:hover {
+            background-color: #b4aca4;
+        }
+
+        .btn-success {
+            background-color: #d6d2ce;
+            color: #333;
+            font-size: 1.2rem;
+            padding: 15px 40px;
+        }
+
+        .btn-success:hover {
+            background-color: #b4aca4;
+        }
+
+        .results-section {
+            background-color: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            transition: all 0.5s ease;
+        }
+
+        .results-section.has-results {
+            background-color: #ffffff;
+            border: 2px solid #d0d0d0;
+            box-shadow: 0 4px 8px rgba(102, 101, 101, 0.3);
+            animation: resultsAppear 0.8s ease-out;
+        }
+
+        @keyframes resultsAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .vo2max-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .vo2max-value {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #333;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .vo2max-unit {
+            font-size: 1.8rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .classification {
+            font-size: 2rem;
+            font-weight: 600;
+            padding: 25px 50px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 8px rgba(102, 101, 101, 0.2);
+        }
+
+        .classification.excellent {
+            background-color: #c0c0c0;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .classification.good {
+            background-color: #d0d0d0;
+            color: #0c5460;
+            border: 2px solid #17a2b8;
+        }
+
+        .classification.fair {
+            background-color: #e0e0e0;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        .classification.poor {
+            background-color: #f0f0f0;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .pulse-measurement {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+        }
+
+        .pulse-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 10px 0;
+        }
+
+        .measurement-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 800px;
+            margin: 40px 0;
+            background-color: #F0EEEC;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(102, 101, 101, 0.15);
+            border: 1px solid #d6d2ce;
+            overflow: visible;
+        }
+
+        .chart-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .data-summary {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 1px 2px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(200, 200, 200, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .data-summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6c757d, #495057, #6c757d);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .data-summary h5 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+            letter-spacing: 0.5px;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .data-summary table {
+            margin: 0;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-summary tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-summary tr:hover {
+            transform: translateX(2px);
+        }
+
+        .data-summary td {
+            padding: 14px 16px;
+            font-size: 1.05rem;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .data-summary tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-summary td:first-child {
+            font-weight: 600;
+            color: #495057;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-right: 1px solid rgba(200, 200, 200, 0.3);
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        .data-summary td:last-child {
+            color: #2c3e50;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.5px;
+            text-align: right;
+        }
+
+        .data-summary td:last-child::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 3px;
+            height: 60%;
+            background: linear-gradient(180deg, #6c757d, #495057);
+            transform: translateY(-50%);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+        }
+
+        .bottom-logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            height: 160px;
+            border-radius: 3px;
+            z-index: 1000;
+        }
+
+        .bottom-logo img {
+            height: 50px;
+        }
+
+        .calculate-button {
+            text-align: center;
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                width: 95%;
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .logo-container {
+                left: 20px;
+                top: 20px;
+            }
+
+            header {
+                padding-left: 20px;
+            }
+
+            .measurement-buttons {
+                flex-direction: column;
+            }
+
+            .chart-container {
+                height: 500px;
+                padding: 20px;
+            }
+
+            .vo2max-value {
+                font-size: 3.5rem;
+            }
+
+            .classification {
+                font-size: 1.6rem;
+                padding: 20px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Sention Logo">
+        </div>
+        <h1>Ekblom-Bak Test</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Grundläggande information -->
+        <div class="section-header">Grundläggande information</div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="gender">Kön</label>
+                    <select id="gender" onchange="calculateIfReady()">
+                        <option value="">Välj kön</option>
+                        <option value="man" selected>Man</option>
+                        <option value="kvinna">Kvinna</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="age">
+                        Ålder (år)
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Ange din ålder i hela år. Detta används för att beräkna din uppskattade maximala hjärtfrekvens.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="age" min="16" max="80" value="35" onchange="calculateIfReady()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="weight">Vikt (kg)</label>
+                    <input type="number" id="weight" min="40" max="200" step="0.1" value="80" onchange="calculateIfReady()">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="height">Längd (cm)</label>
+                    <input type="number" id="height" min="140" max="220" value="180" onchange="calculateIfReady()">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Vilopuls -->
+        <div class="section-header">Vilopuls</div>
+        
+        <div class="pulse-measurement">
+            <label>
+                Vilopuls (slag/min)
+                <span class="tooltip-icon">?
+                    <span class="tooltip-text">Mät din vilopuls efter minst 5 minuters vila i sittande position. Du kan mäta vid handleden eller på halsen i 15 sekunder och multiplicera med 4.</span>
+                </span>
+            </label>
+            
+            <div class="measurement-buttons">
+                <button type="button" class="btn btn-success" onclick="startPulseMeasurement()">Starta pulsmätning (15s)</button>
+                <button type="button" class="btn" onclick="showManualInput()">Mata in manuellt</button>
+            </div>
+
+            <div id="pulseTimer" style="display: none;">
+                <div class="pulse-display" id="timerDisplay">15</div>
+                <p>Räkna dina hjärtslag under denna tid</p>
+                <button type="button" class="btn btn-primary" onclick="stopPulseMeasurement()">Stopp - Jag räknade <span id="pulseCount">0</span> slag</button>
+                <input type="number" id="manualPulseCount" placeholder="Antal slag" style="margin-top: 10px;">
+            </div>
+
+                                <input type="number" id="restingHR" placeholder="Vilopuls (slag/min)" value="65" style="margin-top: 15px;" onchange="calculateIfReady()">
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Belastningsdata -->
+        <div class="section-header">Belastningsdata</div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h5 style="color: #333; font-weight: 600;">Låg belastning</h5>
+                <div class="form-group">
+                    <label for="lowIntensityHR">
+                        Hjärtfrekvens vid låg belastning (slag/min)
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Hjärtfrekvens vid en belastning som känns lätt till måttlig (RPE 10-12). Vanligtvis 60-70% av maxpuls.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="lowIntensityHR" min="80" max="200" value="120" onchange="calculateIfReady()">
+                </div>
+                <div class="form-group">
+                    <label for="lowIntensityWatts">
+                        Effekt vid låg belastning (Watt)
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Effekten i watt som genererades vid den låga belastningen. Detta avläses från motionscykeln.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="lowIntensityWatts" min="50" max="400" value="100" onchange="calculateIfReady()">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 style="color: #333; font-weight: 600;">Hög belastning</h5>
+                <div class="form-group">
+                    <label for="highIntensityHR">
+                        Hjärtfrekvens vid hög belastning (slag/min)
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Hjärtfrekvens vid en belastning som känns ansträngande (RPE 15-17). Vanligtvis 80-85% av maxpuls.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="highIntensityHR" min="120" max="220" value="160" onchange="calculateIfReady()">
+                </div>
+                <div class="form-group">
+                    <label for="highIntensityWatts">
+                        Effekt vid hög belastning (Watt)
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Effekten i watt som genererades vid den höga belastningen. Detta avläses från motionscykeln.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="highIntensityWatts" min="100" max="600" value="180" onchange="calculateIfReady()">
+                </div>
+            </div>
+        </div>
+
+        <div class="calculate-button">
+            <button type="button" class="btn btn-success" onclick="calculateVO2Max()">Beräkna VO₂max</button>
+            <button type="button" class="btn" onclick="clearAll()">Rensa alla fält</button>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Resultat -->
+        <div class="section-header">Testresultat</div>
+        
+        <div class="results-section" id="results">
+            <p style="color: #666; font-size: 1.2rem; font-weight: 500;">Fyll i alla fält ovan för att se dina testresultat</p>
+        </div>
+    </div>
+
+    <div class="bottom-logo">
+        <img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" alt="Sention Logo">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        let pulseTimerInterval;
+
+
+        function calculateIfReady() {
+            if (allFieldsFilled()) {
+                calculateVO2Max();
+            }
+        }
+
+        function allFieldsFilled() {
+            const fields = ['gender', 'age', 'weight', 'height', 'restingHR', 'lowIntensityHR', 'lowIntensityWatts', 'highIntensityHR', 'highIntensityWatts'];
+            return fields.every(field => document.getElementById(field).value.trim() !== '');
+        }
+
+        function startPulseMeasurement() {
+            const pulseTimerElement = document.getElementById('pulseTimer');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const manualPulseCount = document.getElementById('manualPulseCount');
+            
+            pulseTimerElement.style.display = 'block';
+            manualPulseCount.value = '';
+            
+            let timeLeft = 15;
+            timerDisplay.textContent = timeLeft;
+            
+            pulseTimerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(pulseTimerInterval);
+                    timerDisplay.textContent = 'Tid ute!';
+                }
+            }, 1000);
+        }
+
+        function stopPulseMeasurement() {
+            clearInterval(pulseTimerInterval);
+            const manualPulseCount = document.getElementById('manualPulseCount');
+            const restingHRInput = document.getElementById('restingHR');
+            
+            const pulseCount = parseInt(manualPulseCount.value) || 0;
+            const heartRate = pulseCount * 4;
+            
+            restingHRInput.value = heartRate;
+            document.getElementById('pulseTimer').style.display = 'none';
+            calculateIfReady();
+        }
+
+        function showManualInput() {
+            document.getElementById('pulseTimer').style.display = 'none';
+            clearInterval(pulseTimerInterval);
+        }
+
+        function validateInputs() {
+            let isValid = true;
+            const fields = ['gender', 'age', 'weight', 'height', 'restingHR', 'lowIntensityHR', 'lowIntensityWatts', 'highIntensityHR', 'highIntensityWatts'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#dc3545';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#ccc';
+                }
+            });
+
+            const lowHR = parseInt(document.getElementById('lowIntensityHR').value);
+            const highHR = parseInt(document.getElementById('highIntensityHR').value);
+            const lowWatts = parseInt(document.getElementById('lowIntensityWatts').value);
+            const highWatts = parseInt(document.getElementById('highIntensityWatts').value);
+
+            if (highHR && lowHR && highHR <= lowHR) {
+                alert('Hjärtfrekvensen vid hög belastning måste vara högre än vid låg belastning.');
+                isValid = false;
+            }
+
+            if (highWatts && lowWatts && highWatts <= lowWatts) {
+                alert('Effekten vid hög belastning måste vara högre än vid låg belastning.');
+                isValid = false;
+            }
+
+            if (!isValid && !allFieldsFilled()) {
+                alert('Vänligen fyll i alla obligatoriska fält korrekt.');
+            }
+
+            return isValid;
+        }
+
+        function calculateVO2Max() {
+            if (!validateInputs()) {
+                return;
+            }
+
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseInt(document.getElementById('height').value);
+            const restingHR = parseInt(document.getElementById('restingHR').value);
+            const lowHR = parseInt(document.getElementById('lowIntensityHR').value);
+            const lowWatts = parseInt(document.getElementById('lowIntensityWatts').value);
+            const highHR = parseInt(document.getElementById('highIntensityHR').value);
+            const highWatts = parseInt(document.getElementById('highIntensityWatts').value);
+
+            const hrMax = 220 - age;
+            const targetHR = hrMax * 0.85;
+            let selectedHR, selectedWatts;
+
+            if (Math.abs(highHR - targetHR) < Math.abs(lowHR - targetHR)) {
+                selectedHR = highHR;
+                selectedWatts = highWatts;
+            } else {
+                selectedHR = lowHR;
+                selectedWatts = lowWatts;
+            }
+
+            const vo2max = (selectedWatts / weight) * (hrMax / selectedHR) * 15.3;
+            displayResults(vo2max, gender, age, weight, height, restingHR, lowHR, lowWatts, highHR, highWatts, hrMax);
+        }
+
+        function displayResults(vo2max, gender, age, weight, height, restingHR, lowHR, lowWatts, highHR, highWatts, hrMax) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.classList.add('has-results');
+
+            const classification = classifyVO2Max(vo2max, gender, age);
+
+            resultsContainer.innerHTML = `
+                <div class="vo2max-display">
+                    <div class="vo2max-value">
+                        ${vo2max.toFixed(1)}
+                    </div>
+                    <div class="vo2max-unit">ml/kg/min</div>
+                </div>
+                
+                <div class="classification ${classification.category}">
+                    ${classification.text}
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Uppskattad VO₂max enligt Ekblom-Bak – Resultat och referensnivåer</div>
+                    <div id="vo2Chart"></div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="data-summary">
+                            <h5>Personliga Data</h5>
+                            <table class="table table-borderless table-sm">
+                                <tr><td><strong>Kön:</strong></td><td>${gender === 'man' ? 'Man' : 'Kvinna'}</td></tr>
+                                <tr><td><strong>Ålder:</strong></td><td>${age} år</td></tr>
+                                <tr><td><strong>Vikt:</strong></td><td>${weight} kg</td></tr>
+                                <tr><td><strong>Längd:</strong></td><td>${height} cm</td></tr>
+                                <tr><td><strong>Vilopuls:</strong></td><td>${restingHR} slag/min</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="data-summary">
+                            <h5>Prestationsdata</h5>
+                            <table class="table table-borderless table-sm">
+                                <tr><td><strong>Låg belastning HR:</strong></td><td>${lowHR} slag/min</td></tr>
+                                <tr><td><strong>Låg belastning:</strong></td><td>${lowWatts} W</td></tr>
+                                <tr><td><strong>Hög belastning HR:</strong></td><td>${highHR} slag/min</td></tr>
+                                <tr><td><strong>Hög belastning:</strong></td><td>${highWatts} W</td></tr>
+                                <tr><td><strong>Uppskattad HRmax:</strong></td><td>${hrMax} slag/min</td></tr>
+                                <tr><td><strong>VO₂max:</strong></td><td>${vo2max.toFixed(1)} ml/kg/min</td></tr>
+                                <tr><td><strong>Konditionsnivå:</strong></td><td>${classification.text}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="export-section" style="text-align: center; margin: 30px 0;">
+                    <button class="btn btn-success" onclick="exportToExcel('${gender}', ${age}, ${weight}, ${height}, ${restingHR}, ${lowHR}, ${lowWatts}, ${highHR}, ${highWatts}, ${hrMax}, ${vo2max.toFixed(1)}, '${classification.text.replace(/'/g, "\\'")}')">
+                        Exportera till Excel
+                    </button>
+                    <button class="btn btn-success" onclick="exportDiagramAndDataAsPDF('${gender}', ${age}, ${weight}, ${height}, ${restingHR}, ${lowHR}, ${lowWatts}, ${highHR}, ${highWatts}, ${hrMax}, ${vo2max.toFixed(1)}, '${classification.text.replace(/'/g, "\\'")}')">
+                        Exportera Diagram och Data som PDF
+                    </button>
+                </div>
+            `;
+
+            createVO2Chart(vo2max, gender, age);
+        }
+
+        function classifyVO2Max(vo2max, gender, age) {
+            // Official Ekblom-Bak reference values - age group ranges
+            const ageRanges = [
+                {min: 20, max: 24, index: 0},
+                {min: 25, max: 29, index: 1}, 
+                {min: 30, max: 34, index: 2},
+                {min: 35, max: 39, index: 3},
+                {min: 40, max: 44, index: 4},
+                {min: 45, max: 49, index: 5},
+                {min: 50, max: 54, index: 6},
+                {min: 55, max: 59, index: 7},
+                {min: 60, max: 64, index: 8},
+                {min: 65, max: 69, index: 9}
+            ];
+            
+            // Men's reference values (all percentile thresholds from official table)
+            const menData = {
+                veryHigh91: [61.7, 58.7, 56.5, 54.4, 52.1, 50.0, 47.7, 44.8, 42.7, 41.8], // 91-100th percentile (Very high)
+                high76: [56.9, 54.2, 51.9, 49.8, 47.8, 45.7, 43.5, 41.0, 38.9, 37.8],     // 76-90th percentile (High)
+                somewhatHigh61: [53.5, 50.8, 48.7, 46.6, 44.8, 42.9, 40.7, 38.5, 36.6, 35.2], // 61-75th percentile (Somewhat high)
+                average41: [49.1, 46.9, 44.6, 42.9, 41.1, 39.5, 37.5, 35.6, 34.0, 32.6],   // 41-60th percentile (Average)
+                somewhatLow26: [45.4, 43.5, 41.3, 39.7, 38.1, 36.8, 34.9, 33.2, 31.7, 30.7], // 26-40th percentile (Somewhat low)
+                low11: [39.8, 38.1, 36.6, 35.6, 34.2, 33.0, 31.4, 29.8, 28.5, 28.0],      // 11-25th percentile (Low)
+                veryLow0: [39.7, 38.0, 36.5, 35.5, 34.1, 32.9, 31.3, 29.7, 28.4, 27.9]    // 0-10th percentile (Very low)
+            };
+            
+            // Women's reference values (all percentile thresholds from official table)
+            const womenData = {
+                veryHigh91: [48.9, 48.8, 47.1, 46.2, 45.0, 43.0, 41.3, 39.5, 37.2, 36.7], // 91-100th percentile (Very high)
+                high76: [44.8, 44.7, 43.0, 41.8, 40.7, 39.1, 37.4, 35.8, 34.1, 33.7],     // 76-90th percentile (High)
+                somewhatHigh61: [41.8, 41.9, 40.0, 39.1, 37.8, 36.2, 34.7, 33.2, 31.9, 31.9], // 61-75th percentile (Somewhat high)
+                average41: [38.3, 38.4, 36.4, 35.6, 34.3, 32.6, 31.5, 30.2, 29.3, 28.6],   // 41-60th percentile (Average)
+                somewhatLow26: [35.4, 35.2, 33.5, 32.9, 31.4, 29.9, 28.9, 27.7, 27.1, 26.2], // 26-40th percentile (Somewhat low)
+                low11: [30.7, 30.3, 29.1, 28.5, 27.3, 26.1, 25.3, 24.4, 23.6, 23.0],      // 11-25th percentile (Low)
+                veryLow0: [30.6, 30.2, 29.0, 28.4, 27.2, 26.0, 25.2, 24.3, 23.5, 22.9]    // 0-10th percentile (Very low)
+            };
+
+            const referenceData = gender === 'man' ? menData : womenData;
+
+            // Find correct age group index
+            let ageIndex = 0;
+            for (let i = 0; i < ageRanges.length; i++) {
+                if (age >= ageRanges[i].min && age <= ageRanges[i].max) {
+                    ageIndex = ageRanges[i].index;
+                    break;
+                }
+            }
+            
+            // If age is outside ranges, use closest range
+            if (age < 20) ageIndex = 0;
+            if (age > 69) ageIndex = 9;
+
+            // Get thresholds for this age group (all 7 categories)
+            const veryHigh91 = referenceData.veryHigh91[ageIndex];
+            const high76 = referenceData.high76[ageIndex];
+            const somewhatHigh61 = referenceData.somewhatHigh61[ageIndex];
+            const average41 = referenceData.average41[ageIndex];
+            const somewhatLow26 = referenceData.somewhatLow26[ageIndex];
+            const low11 = referenceData.low11[ageIndex];
+            const veryLow0 = referenceData.veryLow0[ageIndex];
+
+            // Classify based on official percentiles (all 7 categories)
+            if (vo2max >= veryHigh91) {
+                return { text: 'Mycket hög kondition (91-100%)', category: 'excellent' };
+            } else if (vo2max >= high76) {
+                return { text: 'Hög kondition (76-90%)', category: 'excellent' };
+            } else if (vo2max >= somewhatHigh61) {
+                return { text: 'Något hög kondition (61-75%)', category: 'good' };
+            } else if (vo2max >= average41) {
+                return { text: 'Medel kondition (41-60%)', category: 'good' };
+            } else if (vo2max >= somewhatLow26) {
+                return { text: 'Något låg kondition (26-40%)', category: 'fair' };
+            } else if (vo2max >= low11) {
+                return { text: 'Låg kondition (11-25%)', category: 'poor' };
+            } else {
+                return { text: 'Mycket låg kondition (0-10%)', category: 'poor' };
+            }
+        }
+
+        function createVO2Chart(userVO2Max, gender, age) {
+            // Clear any existing chart
+            d3.select("#vo2Chart").selectAll("*").remove();
+
+            // Set dimensions and margins
+            const margin = {top: 50, right: 250, bottom: 90, left: 90};
+            const width = 1100 - margin.left - margin.right;
+            const height = 600 - margin.bottom - margin.top;
+            
+            // Create SVG with light professional styling
+            const svg = d3.select("#vo2Chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .style("background", "#F0EEEC")
+                .style("border-radius", "6px");
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // Official Ekblom-Bak reference data - using mid-points for chart display
+            const ageGroups = [22, 27, 32, 37, 42, 47, 52, 57, 62, 67]; // Mid-points for chart visualization
+            const ageLabels = ["20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69"]; // Actual age ranges
+            
+            // Men's reference values (all percentile thresholds from official table)
+            const menData = {
+                veryHigh91: [61.7, 58.7, 56.5, 54.4, 52.1, 50.0, 47.7, 44.8, 42.7, 41.8], // 91-100th percentile (Very high)
+                high76: [56.9, 54.2, 51.9, 49.8, 47.8, 45.7, 43.5, 41.0, 38.9, 37.8],     // 76-90th percentile (High)
+                somewhatHigh61: [53.5, 50.8, 48.7, 46.6, 44.8, 42.9, 40.7, 38.5, 36.6, 35.2], // 61-75th percentile (Somewhat high)
+                average41: [49.1, 46.9, 44.6, 42.9, 41.1, 39.5, 37.5, 35.6, 34.0, 32.6],   // 41-60th percentile (Average)
+                somewhatLow26: [45.4, 43.5, 41.3, 39.7, 38.1, 36.8, 34.9, 33.2, 31.7, 30.7], // 26-40th percentile (Somewhat low)
+                low11: [39.8, 38.1, 36.6, 35.6, 34.2, 33.0, 31.4, 29.8, 28.5, 28.0],      // 11-25th percentile (Low)
+                veryLow0: [39.7, 38.0, 36.5, 35.5, 34.1, 32.9, 31.3, 29.7, 28.4, 27.9]    // 0-10th percentile (Very low)
+            };
+            
+            // Women's reference values (all percentile thresholds from official table)
+            const womenData = {
+                veryHigh91: [48.9, 48.8, 47.1, 46.2, 45.0, 43.0, 41.3, 39.5, 37.2, 36.7], // 91-100th percentile (Very high)
+                high76: [44.8, 44.7, 43.0, 41.8, 40.7, 39.1, 37.4, 35.8, 34.1, 33.7],     // 76-90th percentile (High)
+                somewhatHigh61: [41.8, 41.9, 40.0, 39.1, 37.8, 36.2, 34.7, 33.2, 31.9, 31.9], // 61-75th percentile (Somewhat high)
+                average41: [38.3, 38.4, 36.4, 35.6, 34.3, 32.6, 31.5, 30.2, 29.3, 28.6],   // 41-60th percentile (Average)
+                somewhatLow26: [35.4, 35.2, 33.5, 32.9, 31.4, 29.9, 28.9, 27.7, 27.1, 26.2], // 26-40th percentile (Somewhat low)
+                low11: [30.7, 30.3, 29.1, 28.5, 27.3, 26.1, 25.3, 24.4, 23.6, 23.0],      // 11-25th percentile (Low)
+                veryLow0: [30.6, 30.2, 29.0, 28.4, 27.2, 26.0, 25.2, 24.3, 23.5, 22.9]    // 0-10th percentile (Very low)
+            };
+
+            const referenceData = gender === 'man' ? menData : womenData;
+            
+            // Extract data for chart lines (showing key percentile boundaries)
+            const veryHighNorms = referenceData.veryHigh91;     // Very high (91-100th percentile)
+            const highNorms = referenceData.high76;             // High (76-90th percentile)
+            const somewhatHighNorms = referenceData.somewhatHigh61; // Somewhat high (61-75th percentile)
+            const averageNorms = referenceData.average41;       // Average (41-60th percentile)
+            const somewhatLowNorms = referenceData.somewhatLow26; // Somewhat low (26-40th percentile)
+            const lowNorms = referenceData.low11;               // Low (11-25th percentile)
+            const veryLowNorms = referenceData.veryLow0;        // Very low (0-10th percentile)
+
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(ageGroups))
+                .range([0, width]);
+
+            const yScale = d3.scaleLinear()
+                .domain([Math.min(...veryLowNorms) - 3, Math.max(...veryHighNorms) + 3])
+                .range([height, 0]);
+
+            // Line and area generators
+            const line = d3.line()
+                .x((d, i) => xScale(ageGroups[i]))
+                .y(d => yScale(d))
+                .curve(d3.curveCardinal);
+
+            const area = d3.area()
+                .x((d, i) => xScale(ageGroups[i]))
+                .y0(height)
+                .y1(d => yScale(d))
+                .curve(d3.curveCardinal);
+
+            // Add gradient definitions for glow effects
+            const defs = svg.append("defs");
+            
+            const veryHighGradient = defs.append("linearGradient")
+                .attr("id", "veryHighGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            veryHighGradient.append("stop").attr("offset", "0%").attr("stop-color", "#198754").attr("stop-opacity", 0.1);
+            veryHighGradient.append("stop").attr("offset", "100%").attr("stop-color", "#198754").attr("stop-opacity", 0.9);
+
+            const excellentGradient = defs.append("linearGradient")
+                .attr("id", "excellentGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            excellentGradient.append("stop").attr("offset", "0%").attr("stop-color", "#28a745").attr("stop-opacity", 0.1);
+            excellentGradient.append("stop").attr("offset", "100%").attr("stop-color", "#28a745").attr("stop-opacity", 0.8);
+
+            const goodGradient = defs.append("linearGradient")
+                .attr("id", "goodGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            goodGradient.append("stop").attr("offset", "0%").attr("stop-color", "#17a2b8").attr("stop-opacity", 0.1);
+            goodGradient.append("stop").attr("offset", "100%").attr("stop-color", "#17a2b8").attr("stop-opacity", 0.6);
+
+            const fairGradient = defs.append("linearGradient")
+                .attr("id", "fairGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            fairGradient.append("stop").attr("offset", "0%").attr("stop-color", "#ffc107").attr("stop-opacity", 0.1);
+            fairGradient.append("stop").attr("offset", "100%").attr("stop-color", "#ffc107").attr("stop-opacity", 0.4);
+
+            const somewhatHighGradient = defs.append("linearGradient")
+                .attr("id", "somewhatHighGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            somewhatHighGradient.append("stop").attr("offset", "0%").attr("stop-color", "#20c997").attr("stop-opacity", 0.1);
+            somewhatHighGradient.append("stop").attr("offset", "100%").attr("stop-color", "#20c997").attr("stop-opacity", 0.5);
+
+            const lowGradient = defs.append("linearGradient")
+                .attr("id", "lowGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            lowGradient.append("stop").attr("offset", "0%").attr("stop-color", "#fd7e14").attr("stop-opacity", 0.1);
+            lowGradient.append("stop").attr("offset", "100%").attr("stop-color", "#fd7e14").attr("stop-opacity", 0.4);
+
+            const veryLowGradient = defs.append("linearGradient")
+                .attr("id", "veryLowGrad")
+                .attr("x1", 0).attr("y1", 1).attr("x2", 0).attr("y2", 0);
+            veryLowGradient.append("stop").attr("offset", "0%").attr("stop-color", "#e74c3c").attr("stop-opacity", 0.1);
+            veryLowGradient.append("stop").attr("offset", "100%").attr("stop-color", "#e74c3c").attr("stop-opacity", 0.3);
+
+            // Add filled areas (showing key percentile zones)
+            // Create area for "Mycket hög" zone (between high norms and very high norms lines)
+            const veryHighArea = d3.area()
+                .x((d, i) => xScale(ageGroups[i]))
+                .y0((d, i) => yScale(highNorms[i]))     // Start from high norms line
+                .y1((d, i) => yScale(veryHighNorms[i])) // Go to very high norms line
+                .curve(d3.curveCardinal);
+
+            g.append("path")
+                .datum(veryHighNorms)
+                .attr("fill", "url(#veryHighGrad)")
+                .attr("d", veryHighArea);
+
+            g.append("path")
+                .datum(highNorms)
+                .attr("fill", "url(#excellentGrad)")
+                .attr("d", area);
+
+            g.append("path")
+                .datum(somewhatHighNorms)
+                .attr("fill", "url(#somewhatHighGrad)")
+                .attr("d", area);
+
+            g.append("path")
+                .datum(averageNorms)
+                .attr("fill", "url(#goodGrad)")
+                .attr("d", area);
+
+            g.append("path")
+                .datum(somewhatLowNorms)
+                .attr("fill", "url(#fairGrad)")
+                .attr("d", area);
+
+            g.append("path")
+                .datum(lowNorms)
+                .attr("fill", "url(#lowGrad)")
+                .attr("d", area);
+
+            g.append("path")
+                .datum(veryLowNorms)
+                .attr("fill", "url(#veryLowGrad)")
+                .attr("d", area);
+
+            // Add glowing lines with hover effects
+            const addGlowLine = (data, color, strokeWidth = 3, label) => {
+                // Glow effect
+                g.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", color)
+                    .attr("stroke-width", strokeWidth + 6)
+                    .attr("stroke-opacity", 0.3)
+                    .attr("d", line)
+                    .style("filter", "blur(3px)");
+                
+                // Main line with hover
+                g.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", color)
+                    .attr("stroke-width", strokeWidth)
+                    .attr("d", line)
+                    .style("cursor", "pointer")
+                    .on("mouseover", function(event) {
+                        d3.select(this)
+                            .transition()
+                            .duration(150)
+                            .attr("stroke-width", strokeWidth + 2);
+                        
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity", 1);
+                        
+                        tooltip.html(`
+                            <div style="text-align: center;">
+                                <strong style="font-size: 16px; color: ${color};">${label}</strong><br/>
+                                <span style="font-size: 12px; color: #bdc3c7;">Hovra över specifika åldrar för detaljer</span>
+                            </div>
+                        `)
+                        .style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 10) + "px");
+                    })
+                    .on("mousemove", function(event) {
+                        tooltip
+                            .style("left", (event.pageX + 15) + "px")
+                            .style("top", (event.pageY - 10) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(150)
+                            .attr("stroke-width", strokeWidth);
+                        
+                        tooltip.transition()
+                            .duration(300)
+                            .style("opacity", 0);
+                    });
+            };
+
+            addGlowLine(veryHighNorms, "#198754", 3, "Mycket hög kondition (91-100%)");
+            addGlowLine(highNorms, "#28a745", 4, "Hög kondition (76-90%)");
+            addGlowLine(somewhatHighNorms, "#20c997", 3, "Något hög kondition (61-75%)");
+            addGlowLine(averageNorms, "#17a2b8", 4, "Medel kondition (41-60%)");
+            addGlowLine(somewhatLowNorms, "#ffc107", 4, "Något låg kondition (26-40%)");
+            addGlowLine(lowNorms, "#fd7e14", 3, "Låg kondition (11-25%)");
+            addGlowLine(veryLowNorms, "#e74c3c", 4, "Mycket låg kondition (0-10%)");
+
+            // Add subtle horizontal reference lines at key VO2max values (after colored areas but before user result)
+            const referenceValues = [30, 35, 40, 45, 50, 55, 60];
+            g.selectAll(".reference-line")
+                .data(referenceValues)
+                .enter()
+                .append("line")
+                .attr("class", "reference-line")
+                .attr("x1", 0)
+                .attr("x2", width)
+                .attr("y1", d => yScale(d))
+                .attr("y2", d => yScale(d))
+                .style("stroke", "#95a5a6")
+                .style("stroke-width", 0.5)
+                .style("stroke-opacity", 0.8)
+                .style("stroke-dasharray", "2,3");
+
+            // Add invisible circles for hover interaction
+            const hoverData = ageGroups.map((age, i) => ({
+                age: age,
+                ageLabel: ageLabels[i],
+                veryHigh: veryHighNorms[i],
+                high: highNorms[i],
+                somewhatHigh: somewhatHighNorms[i],
+                average: averageNorms[i],
+                somewhatLow: somewhatLowNorms[i],
+                low: lowNorms[i],
+                veryLow: veryLowNorms[i]
+            }));
+
+            // Create tooltip
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "d3-tooltip")
+                .style("position", "absolute")
+                .style("background", "rgba(44, 62, 80, 0.95)")
+                .style("color", "#ecf0f1")
+                .style("padding", "12px 16px")
+                .style("border-radius", "8px")
+                .style("font-family", "Arial, sans-serif")
+                .style("font-size", "14px")
+                .style("font-weight", "500")
+                .style("box-shadow", "0 4px 12px rgba(0,0,0,0.3)")
+                .style("pointer-events", "none")
+                .style("opacity", 0)
+                .style("z-index", "1000");
+
+            // Add hover areas (vertical rectangles covering full height)
+            g.selectAll(".hover-area")
+                .data(hoverData)
+                .enter()
+                .append("rect")
+                .attr("class", "hover-area")
+                .attr("x", d => xScale(d.age) - 20)
+                .attr("y", 0)
+                .attr("width", 40)
+                .attr("height", height)
+                .attr("fill", "transparent")
+                .style("cursor", "pointer")
+                .on("mouseover", function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", 1);
+                    
+                                            tooltip.html(`
+                            <div style="text-align: center; margin-bottom: 8px;">
+                                <strong style="font-size: 16px;">Ålder: ${d.ageLabel} år</strong>
+                            </div>
+                            <div style="line-height: 1.4; font-size: 12px;">
+                                <div style="color: #198754;"><strong>🏆 Mycket hög (91-100%):</strong> ≥ ${d.veryHigh.toFixed(1)} ml/kg/min</div>
+                                <div style="color: #28a745;"><strong>📈 Hög (76-90%):</strong> ${d.high.toFixed(1)} - ${(d.veryHigh - 0.1).toFixed(1)} ml/kg/min</div>
+                                <div style="color: #20c997;"><strong>📊 Något hög (61-75%):</strong> ${d.somewhatHigh.toFixed(1)} - ${(d.high - 0.1).toFixed(1)} ml/kg/min</div>
+                                <div style="color: #17a2b8;"><strong>📊 Medel (41-60%):</strong> ${d.average.toFixed(1)} - ${(d.somewhatHigh - 0.1).toFixed(1)} ml/kg/min</div>
+                                <div style="color: #ffc107;"><strong>📉 Något låg (26-40%):</strong> ${d.somewhatLow.toFixed(1)} - ${(d.average - 0.1).toFixed(1)} ml/kg/min</div>
+                                <div style="color: #fd7e14;"><strong>⬇️ Låg (11-25%):</strong> ${d.low.toFixed(1)} - ${(d.somewhatLow - 0.1).toFixed(1)} ml/kg/min</div>
+                                <div style="color: #e74c3c;"><strong>⬇️ Mycket låg (0-10%):</strong> < ${d.low.toFixed(1)} ml/kg/min</div>
+                            </div>
+                        `)
+                    .style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+                })
+                .on("mousemove", function(event) {
+                    tooltip
+                        .style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 10) + "px");
+                })
+                .on("mouseout", function() {
+                    tooltip.transition()
+                        .duration(300)
+                        .style("opacity", 0);
+                });
+
+            // Add styled axes
+            const xAxis = g.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickValues(ageGroups)
+                    .tickFormat((d, i) => ageLabels[i] + " år"))
+                .style("color", "#fff");
+
+            xAxis.selectAll("text")
+                .style("fill", "#2c3e50")
+                .style("font-size", "14px")
+                .style("font-weight", "500")
+                .style("font-family", "Arial, sans-serif");
+
+            xAxis.selectAll("line, path")
+                .style("stroke", "#95a5a6")
+                .style("stroke-width", 1);
+
+            const yAxis = g.append("g")
+                .call(d3.axisLeft(yScale))
+                .style("color", "#2c3e50");
+
+            yAxis.selectAll("text")
+                .style("fill", "#2c3e50")
+                .style("font-size", "14px")
+                .style("font-weight", "500")
+                .style("font-family", "Arial, sans-serif");
+
+            yAxis.selectAll("line, path")
+                .style("stroke", "#95a5a6")
+                .style("stroke-width", 1);
+
+            // Add axis labels with professional styling
+            g.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("fill", "#2c3e50")
+                .style("font-size", "16px")
+                .style("font-weight", "600")
+                .style("font-family", "Arial, sans-serif")
+                .text("VO₂max (ml/kg/min)");
+
+            g.append("text")
+                .attr("transform", `translate(${width / 2}, ${height + margin.bottom - 20})`)
+                .style("text-anchor", "middle")
+                .style("fill", "#2c3e50")
+                .style("font-size", "16px")
+                .style("font-weight", "600")
+                .style("font-family", "Arial, sans-serif")
+                .text("Ålder (år)");
+
+            // Find correct age group for user result positioning
+            const ageRanges = [
+                {min: 20, max: 24, midpoint: 22},
+                {min: 25, max: 29, midpoint: 27}, 
+                {min: 30, max: 34, midpoint: 32},
+                {min: 35, max: 39, midpoint: 37},
+                {min: 40, max: 44, midpoint: 42},
+                {min: 45, max: 49, midpoint: 47},
+                {min: 50, max: 54, midpoint: 52},
+                {min: 55, max: 59, midpoint: 57},
+                {min: 60, max: 64, midpoint: 62},
+                {min: 65, max: 69, midpoint: 67}
+            ];
+            
+            let userAgePosition = age; // Default to exact age
+            for (let i = 0; i < ageRanges.length; i++) {
+                if (age >= ageRanges[i].min && age <= ageRanges[i].max) {
+                    userAgePosition = ageRanges[i].midpoint;
+                    break;
+                }
+            }
+            
+            // Handle ages outside ranges
+            if (age < 20) userAgePosition = 22;
+            if (age > 69) userAgePosition = 67;
+
+            // Add pulsing user result point
+            const userPoint = g.append("g");
+            
+            userPoint.append("circle")
+                .attr("cx", xScale(userAgePosition))
+                .attr("cy", yScale(userVO2Max))
+                .attr("r", 20)
+                .attr("fill", "#ff0066")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 4)
+                .style("filter", "drop-shadow(0 0 10px #ff0066)")
+                .style("cursor", "pointer");
+
+            // Add pulsing animation
+            userPoint.select("circle")
+                .transition()
+                .duration(1500)
+                .ease(d3.easeLinear)
+                .attr("r", 25)
+                .transition()
+                .duration(1500)
+                .ease(d3.easeLinear)
+                .attr("r", 20)
+                .on("end", function repeat() {
+                    d3.select(this)
+                        .transition()
+                        .duration(1500)
+                        .ease(d3.easeLinear)
+                        .attr("r", 25)
+                        .transition()
+                        .duration(1500)
+                        .ease(d3.easeLinear)
+                        .attr("r", 20)
+                        .on("end", repeat);
+                });
+
+            // Add star inside circle
+            const starPoints = "0,-8 2.5,-2.5 8,0 2.5,2.5 0,8 -2.5,2.5 -8,0 -2.5,-2.5";
+            userPoint.append("polygon")
+                .attr("points", starPoints)
+                .attr("transform", `translate(${xScale(userAgePosition)}, ${yScale(userVO2Max)})`)
+                .attr("fill", "#fff")
+                .style("pointer-events", "none");
+
+            // Add result label with better visibility
+            userPoint.append("text")
+                .attr("x", xScale(userAgePosition))
+                .attr("y", yScale(userVO2Max) - 35)
+                .attr("text-anchor", "middle")
+                .style("fill", "#2c3e50")
+                .style("font-size", "15px")
+                .style("font-weight", "600")
+                .style("font-family", "Arial, sans-serif")
+                .style("text-shadow", "1px 1px 2px rgba(255,255,255,0.8)")
+                .text(`${userVO2Max.toFixed(1)} ml/kg/min`);
+
+            // Add professional legend with better visibility
+            const legend = svg.append("g")
+                .attr("transform", `translate(${width + margin.left + 15}, ${margin.top + 15})`);
+
+            const legendData = [
+                {label: "Mycket hög (91-100%)", color: "#198754"},
+                {label: "Hög (76-90%)", color: "#28a745"},
+                {label: "Något hög (61-75%)", color: "#20c997"},
+                {label: "Medel (41-60%)", color: "#17a2b8"},
+                {label: "Något låg (26-40%)", color: "#ffc107"},
+                {label: "Låg (11-25%)", color: "#fd7e14"},
+                {label: "Mycket låg (0-10%)", color: "#e74c3c"},
+                {label: "Ditt resultat", color: "#ff0066"}
+            ];
+
+            // Add legend background for better readability
+            legend.append("rect")
+                .attr("x", -15)
+                .attr("y", -15)
+                .attr("width", 220)
+                .attr("height", legendData.length * 35 + 25)
+                .attr("fill", "rgba(255, 255, 255, 0.95)")
+                .attr("stroke", "#d6d2ce")
+                .attr("stroke-width", 1)
+                .attr("rx", 6);
+
+            const legendItems = legend.selectAll(".legend-item")
+                .data(legendData)
+                .enter().append("g")
+                .attr("class", "legend-item")
+                .attr("transform", (d, i) => `translate(0, ${i * 35})`);
+
+            legendItems.append("rect")
+                .attr("width", 25)
+                .attr("height", 6)
+                .attr("fill", d => d.color)
+                .attr("rx", 3)
+                .attr("stroke", "#95a5a6")
+                .attr("stroke-width", 1)
+                .style("display", d => d.label === "Ditt resultat" ? "none" : "block");
+
+            // Add special circle symbol for "Ditt resultat"
+            legendItems.filter(d => d.label === "Ditt resultat")
+                .append("circle")
+                .attr("cx", 12.5)
+                .attr("cy", 3)
+                .attr("r", 8)
+                .attr("fill", d => d.color)
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 2);
+
+            // Add star inside the circle for "Ditt resultat"
+            const legendStarPoints = "0,-4 1.2,-1.2 4,0 1.2,1.2 0,4 -1.2,1.2 -4,0 -1.2,-1.2";
+            legendItems.filter(d => d.label === "Ditt resultat")
+                .append("polygon")
+                .attr("points", legendStarPoints)
+                .attr("transform", "translate(12.5, 3)")
+                .attr("fill", "#fff");
+
+            legendItems.append("text")
+                .attr("x", 35)
+                .attr("y", 3)
+                .attr("dy", "0.35em")
+                .style("fill", "#2c3e50")
+                .style("font-size", "15px")
+                .style("font-weight", "600")
+                .style("font-family", "Arial, sans-serif")
+                .text(d => d.label);
+        }
+
+        function exportToExcel(gender, age, weight, height, restingHR, lowHR, lowWatts, highHR, highWatts, hrMax, vo2max, classification) {
+            // Skapa data för Excel export
+            const data = [
+                {
+                    'Kön': gender === 'man' ? 'Man' : 'Kvinna',
+                    'Ålder': age,
+                    'Vikt': weight,
+                    'Längd': height,
+                    'Vilopuls': restingHR,
+                    'Låg belastning HR': lowHR,
+                    'Låg belastning W': lowWatts,
+                    'Hög belastning HR': highHR,
+                    'Hög belastning W': highWatts,
+                    'Uppskattad HRmax': hrMax,
+                    'VO₂max': parseFloat(vo2max),
+                    'Konditionsnivå': classification
+                }
+            ];
+
+            // Skapa en ny arbetsbok
+            const workbook = XLSX.utils.book_new();
+            
+            // Konvertera data till worksheet
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            
+            // Lägg till worksheet till arbetsboken
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Ekblom-Bak Test');
+            
+            // Skapa filnamn med datum
+            const fileName = `Ekblom-Bak_Test_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            
+            // Skriv och ladda ner filen
+            XLSX.writeFile(workbook, fileName);
+        }
+
+        function exportDiagramAndDataAsPDF(gender, age, weight, height, restingHR, lowHR, lowWatts, highHR, highWatts, hrMax, vo2max, classification) {
+            // Hämta jsPDF från window
+            const { jsPDF } = window.jspdf;
+            
+            // Validate that we have the necessary data
+            if (!gender || !age || !weight || !height || !restingHR || !lowHR || !lowWatts || !highHR || !highWatts || !hrMax || !vo2max) {
+                alert("Vänligen fyll i alla fält innan export.");
+                return;
+            }
+            
+            // Create overlay div to block UI interactions during processing
+            const overlayDiv = document.createElement('div');
+            overlayDiv.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.7);
+                z-index: 9998;
+            `;
+            
+            // Skapa en laddningsindikator som visas under processen
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+            loadingIndicator.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                z-index: 9999;
+            `;
+            
+            // Add the overlay and loading indicator to the DOM
+            document.body.appendChild(overlayDiv);
+            document.body.appendChild(loadingIndicator);
+            
+            // Generate filename
+            const currentDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const sanitizedName = gender === 'man' ? 'Man' : 'Kvinna';
+            const filename = `Ekblom-Bak_Test_${currentDate}_${sanitizedName}_${age}ar.pdf`;
+            
+            // Use setTimeout to ensure loading indicator is visible before heavy processing begins
+            setTimeout(() => {
+                // Initialize PDF object in landscape orientation
+                const pdf = new jsPDF('l', 'pt', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                
+                // Set background color for PDF
+                pdf.setFillColor(240, 238, 236);
+                pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                
+                // Page 1: Full-size diagram
+                // Add title for page 1
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(24);
+                pdf.setTextColor(68, 68, 68);
+                const title = 'SENTION - Ekblom-Bak Test Resultat';
+                const titleWidth = pdf.getTextWidth(title);
+                const titleX = (pageWidth - titleWidth) / 2;
+                pdf.text(title, titleX, 40);
+                
+                // Get the chart container - try a different approach for SVG
+                const chartContainer = document.getElementById('vo2Chart').parentElement;
+                
+                // Wait a moment for the chart to fully render
+                setTimeout(() => {
+                    html2canvas(chartContainer, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#F0EEEC',
+                        width: chartContainer.offsetWidth,
+                        height: chartContainer.offsetHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        ignoreElements: (element) => {
+                            return element === loadingIndicator || element === overlayDiv;
+                        }
+                    }).then(canvas => {
+                        // Convert canvas to image data with maximum quality
+                        const imgData = canvas.toDataURL('image/png', 1.0);
+                        
+                        // Calculate dimensions to fill most of the first page
+                        const diagramStartY = 70;
+                        const availableHeight = pageHeight - 120;
+                        const availableWidth = pageWidth - 60;
+                        const aspectRatio = canvas.width / canvas.height;
+                        
+                        let imgWidth = availableWidth;
+                        let imgHeight = imgWidth / aspectRatio;
+                        
+                        if (imgHeight > availableHeight) {
+                            imgHeight = availableHeight;
+                            imgWidth = imgHeight * aspectRatio;
+                        }
+                        
+                        const xOffset = (pageWidth - imgWidth) / 2;
+                        const yOffset = diagramStartY;
+                        
+                        // Add image to PDF with highest quality (Page 1)
+                        pdf.addImage(
+                            imgData,
+                            'PNG', // Use PNG for better quality
+                            xOffset,
+                            yOffset,
+                            imgWidth,
+                            imgHeight,
+                            undefined,
+                            'SLOW' // Use SLOW for best quality instead of FAST
+                        );
+                        
+                        // Add footer for page 1
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(100, 100, 100);
+                        const footerText = `Ekblom-Bak Test | ${new Date().toLocaleDateString('sv-SE')} | SENTION Lab`;
+                        pdf.text(footerText, 30, pageHeight - 20);
+                        
+                        // Page 2: Data tables (capture from web UI)
+                        pdf.addPage();
+                        
+                        // Set background color for page 2
+                        pdf.setFillColor(240, 238, 236);
+                        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                        
+                        // Add title for page 2
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(24);
+                        pdf.setTextColor(68, 68, 68);
+                        const title2 = 'Testresultat';
+                        const title2Width = pdf.getTextWidth(title2);
+                        const title2X = (pageWidth - title2Width) / 2;
+                        pdf.text(title2, title2X, 50);
+                        
+                        // Capture the data section from the web UI
+                        const resultsContainer = document.getElementById('results');
+                        const dataSummaries = resultsContainer.querySelectorAll('.data-summary');
+                        
+                        // Create a temporary container to hold both data summaries for capture
+                        const tempContainer = document.createElement('div');
+                        tempContainer.style.cssText = `
+                            position: fixed;
+                            left: -9999px;
+                            width: 800px;
+                            background-color: #ffffff;
+                            padding: 20px;
+                            display: flex;
+                            gap: 30px;
+                            font-family: 'Rajdhani', sans-serif;
+                        `;
+                        
+                        // Clone and add both data summaries
+                        dataSummaries.forEach(summary => {
+                            const clone = summary.cloneNode(true);
+                            clone.style.flex = '1';
+                            clone.style.margin = '0';
+                            tempContainer.appendChild(clone);
+                        });
+                        
+                        document.body.appendChild(tempContainer);
+                        
+                        // Capture the data tables
+                        html2canvas(tempContainer, {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            ignoreElements: (element) => {
+                                return element === loadingIndicator || element === overlayDiv;
+                            }
+                        }).then(dataCanvas => {
+                            // Convert to image
+                            const dataImgData = dataCanvas.toDataURL('image/png', 1.0);
+                            
+                            // Calculate dimensions for data tables
+                            const dataStartY = 80;
+                            const dataAvailableHeight = pageHeight - 150;
+                            const dataAvailableWidth = pageWidth - 80;
+                            const dataAspectRatio = dataCanvas.width / dataCanvas.height;
+                            
+                            let dataImgWidth = dataAvailableWidth * 0.9;
+                            let dataImgHeight = dataImgWidth / dataAspectRatio;
+                            
+                            if (dataImgHeight > dataAvailableHeight) {
+                                dataImgHeight = dataAvailableHeight;
+                                dataImgWidth = dataImgHeight * dataAspectRatio;
+                            }
+                            
+                            // Center the data tables
+                            const dataXOffset = (pageWidth - dataImgWidth) / 2;
+                            
+                            // Add data tables to page 2
+                            pdf.addImage(
+                                dataImgData,
+                                'PNG',
+                                dataXOffset,
+                                dataStartY,
+                                dataImgWidth,
+                                dataImgHeight,
+                                undefined,
+                                'SLOW'
+                            );
+                            
+                            // Add footer for page 2
+                            pdf.setFontSize(10);
+                            pdf.setTextColor(100, 100, 100);
+                            pdf.text(footerText, 30, pageHeight - 20);
+                            
+                                                     // Cleanup temporary container
+                             document.body.removeChild(tempContainer);
+                             
+                             // Save the PDF with generated filename
+                             pdf.save(filename);
+                             
+                             // Clean up
+                             document.body.removeChild(loadingIndicator);
+                             document.body.removeChild(overlayDiv);
+                             
+                         }).catch(error => {
+                             console.error("Ett fel inträffade vid data-exporten:", error);
+                             alert("Ett fel inträffade vid data-exporten.");
+                             
+                             // Clean up
+                             if (document.body.contains(tempContainer)) {
+                                 document.body.removeChild(tempContainer);
+                             }
+                             if (document.body.contains(loadingIndicator)) {
+                                 document.body.removeChild(loadingIndicator);
+                             }
+                             if (document.body.contains(overlayDiv)) {
+                                 document.body.removeChild(overlayDiv);
+                             }
+                         });
+                     });
+                 }, 100);
+            }, 100);
+        }
+
+        function clearAll() {
+            document.querySelectorAll('input, select').forEach(element => {
+                element.value = '';
+                element.style.borderColor = '#ccc';
+            });
+            
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.classList.remove('has-results');
+            resultsContainer.innerHTML = '<p style="color: #666; font-size: 1.2rem; font-weight: 500;">Fyll i alla fält ovan för att se dina testresultat</p>';
+            
+            if (vo2Chart) {
+                vo2Chart.destroy();
+                vo2Chart = null;
+            }
+        }
+    </script>
+</body>
+</html> 

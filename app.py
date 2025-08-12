@@ -50,6 +50,7 @@ def selection_page():
     # Updated options
     options = [
         {"name": "OBLA-Test1.0", "link": "/OBLA-Test1.0"},
+        {"name": "Ekblom-Bak Test", "link": "/ekblom-bak"},
         {"name": "InBodyMan", "link": "/Inbody-Man1.0"},
         {"name": "InBodyKvinna", "link": "/inbody-kvinna"},
         {"name": "Blodprover", "link": "/blodprover"},
@@ -106,6 +107,12 @@ def glukos_rapport():
     if 'user' not in session:
         return redirect(url_for('login'))
     return render_template('glukosrapport.html')
+
+@app.route('/ekblom-bak')
+def ekblom_bak():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('ekblom-bak.html')
 
 @app.route('/analyze-file', methods=['POST'])
 def analyze_file():
