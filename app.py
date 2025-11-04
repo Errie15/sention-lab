@@ -1,12 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os
+import json
+from dotenv import load_dotenv
 from glukos_analys import öppna_fil  # Make sure this matches your filename exactly
 from flask import send_file
 
-
+# Load environment variables from .env.local file for local development
+# In production (Render), these will be set via Render's environment variables
+load_dotenv('.env.local')
 
 app = Flask(__name__)
-app.secret_key = '1234'  # Required for session management
+# Load secret key from environment variable (required)
+app.secret_key = os.environ.get('SECRET_KEY')
+if not app.secret_key:
+    raise ValueError("SECRET_KEY environment variable is required. Set it in .env.local for local development or in Render's environment settings for production.")
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -14,12 +21,18 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Dummy user credentials for login
-USER_CREDENTIALS = {
-    "erik": "77994466",
-    "linda@sention.health": "Lsention!",
-    "per@sention.health": "Psention!"
-}
+# Load user credentials from environment variable
+# Format: JSON string like '{"username1": "password1", "username2": "password2"}'
+# For Render: Set USER_CREDENTIALS environment variable in Render dashboard
+# For local: Set USER_CREDENTIALS in .env.local file
+credentials_json = os.environ.get('USER_CREDENTIALS')
+if not credentials_json:
+    raise ValueError("USER_CREDENTIALS environment variable is required. Set it in .env.local for local development or in Render's environment settings for production.")
+
+try:
+    USER_CREDENTIALS = json.loads(credentials_json)
+except json.JSONDecodeError:
+    raise ValueError("USER_CREDENTIALS must be a valid JSON string. Format: {\"username1\": \"password1\", \"username2\": \"password2\"}")
 
 # Route for the login page
 @app.route('/')

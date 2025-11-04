@@ -48,3 +48,27 @@
 Notes:
 - “—” in Range Max. indicates no upper bound in the green zone (practically unbounded in the data model).
 - Thresholds reflect the exact numeric boundaries used in `templates/blodprover.html`. Some UI labels may round for readability. 
+
+## InBody — Male
+
+| Variable | Type | Value Alternatives | Unit | Range Min. | Range Max. | Red Zone | Yellow Zone | Green Zone | Note (EN) | Note (SE) |
+|---|---|---|---|---:|---:|---|---|---|---|---|
+| Vikt | Input | Number | kg | — | — | — | — | — | Not classified for zones. | Ingen zonklassning. |
+| Längd | Input | Number | cm | — | — | — | — | — | Not classified for zones. | Ingen zonklassning. |
+| Muskelmassa | Input + Derived | kg (input) / % (auto) | % | 36 | 100 | < 33% | 33–35.9% | ≥ 36% | % is computed as kg/weight×100; thresholds from app. | % beräknas som kg/vikt×100; gränser enligt appen. |
+| Fettprocent | Input | Number | % | 10 | 20 | < 10% or > 25% | 21–25% | 10–20% | Optimal male body fat 10–20%. | Optimal manlig fettprocent 10–20%. |
+| ECW Ratio | Input | Decimal ratio | — | 0.360 | 0.390 | > 0.399 | ≤ 0.359 or 0.391–0.399 | 0.360–0.390 | Extracellular water ratio; lower is better. | Extracellulärt vätskeindex; lägre är bättre. |
+| BMI | Input | Number | — | 18.5 | 24.9 | < 18.5 or ≥ 30 | 25–29.9 | 18.5–24.9 | Standard WHO categories. | Standard WHO-kategorier. |
+| Visceralt Fett | Input | Number | cm² | 0 | 99.9 | ≥ 100 | — | < 100 | Abdominal visceral fat area; keep below 100 cm². | Visceralt bukfett; håll under 100 cm². |
+
+## InBody — Female
+
+| Variable | Type | Value Alternatives | Unit | Range Min. | Range Max. | Red Zone | Yellow Zone | Green Zone | Note (EN) | Note (SE) |
+|---|---|---|---|---:|---:|---|---|---|---|---|
+| Vikt | Input | Number | kg | — | — | — | — | — | Not classified for zones. | Ingen zonklassning. |
+| Längd | Input | Number | cm | — | — | — | — | — | Not classified for zones. | Ingen zonklassning. |
+| Muskelmassa | Input + Derived | kg (input) / % (auto) | % | 27 | 100 | < 24% | 24–27% | ≥ 27% | % is computed as kg/weight×100; thresholds from app. | % beräknas som kg/vikt×100; gränser enligt appen. |
+| Fettprocent | Input | Number | % | 18 | 28 | < 10% or > 35% | 10–17.9% or 29–35% | 18–28% | Female optimal range is higher than male. | Kvinnors optimala intervall är högre än mäns. |
+| ECW Ratio | Input | Decimal ratio | — | 0.360 | 0.390 | > 0.399 | ≤ 0.359 or 0.391–0.399 | 0.360–0.390 | Extracellular water ratio; lower is better. | Extracellulärt vätskeindex; lägre är bättre. |
+| BMI | Input | Number | — | 18.5 | 24.9 | < 18.5 or ≥ 30 | 25–29.9 | 18.5–24.9 | Standard WHO categories. | Standard WHO-kategorier. |
+| Visceralt Fett | Input | Number | cm² | 0 | 99.9 | ≥ 100 | — | < 100 | Abdominal visceral fat area; keep below 100 cm². | Visceralt bukfett; håll under 100 cm². | 

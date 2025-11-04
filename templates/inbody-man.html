@@ -617,6 +617,7 @@ font-weight: 500; /* Ändra tjocklek om det behövs */
     <div class="export-container" style="margin-top: 20px;">
         <button id="export-button">Exportera Excel</button>
         <button id="export-model-pdf-button">Exportera Modell PDF</button>
+        <button id="export-model-jpeg-button">Exportera Modell JPEG</button>
     </div>
     <div class="footer-logo">
         <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
@@ -874,6 +875,115 @@ document.getElementById('export-model-pdf-button').addEventListener('click', () 
             pdf.text(footerText, 20, pageHeight - 10);
             
             pdf.save(`InBody_Model_${sanitizedName}_${sanitizedPersonnummer}_${date}.pdf`);
+            
+            // Cleanup
+            document.body.removeChild(modelContainer);
+            document.body.removeChild(loadingIndicator);
+        });
+    }, 100);
+});
+
+// Add new function for exporting just the model to JPEG
+document.getElementById('export-model-jpeg-button').addEventListener('click', () => {
+    // Create a temporary container for the model
+    const modelContainer = document.createElement('div');
+    modelContainer.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        background-color: #D3D3D3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+    `;
+    
+    // Clone the human body model
+    const humanBodyModel = document.querySelector('.model-container');
+    const modelClone = humanBodyModel.cloneNode(true);
+    modelClone.style.transform = 'scale(1.2)';
+    modelContainer.appendChild(modelClone);
+    
+    // Add loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar JPEG av modell, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    document.body.appendChild(loadingIndicator);
+    document.body.appendChild(modelContainer);
+
+    // After it's in the DOM, size the container to fit content + footer
+    const bbox = modelClone.getBoundingClientRect();
+    const footerHeight = 120; // space for footer
+    modelContainer.style.width = (bbox.width + 80) + 'px'; // add padding
+    modelContainer.style.height = (bbox.height + footerHeight) + 'px';
+
+    // Footer (patient info + logo), positioned at the bottom like PDF
+    const footerDiv = document.createElement('div');
+    footerDiv.style.cssText = `
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 0px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #000000;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 12px;
+    `;
+    const name = document.getElementById('nameInput').value || 'Unnamed';
+    const personnummer = document.getElementById('personnummerInput').value || '';
+    const date = document.getElementById('dateInput').value || '';
+    const tolkatAv = document.getElementById('tolkat-av').options[document.getElementById('tolkat-av').selectedIndex].text;
+    const footerTextDiv = document.createElement('div');
+    footerTextDiv.textContent = `${name} | ${personnummer} | InBody ${date} | Tolkat av: ${tolkatAv}`;
+    footerDiv.appendChild(footerTextDiv);
+    const logoDiv = document.createElement('div');
+    logoDiv.innerHTML = '<img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" style="height: 80px; width: auto;">';
+    footerDiv.appendChild(logoDiv);
+    modelContainer.appendChild(footerDiv);
+    
+    setTimeout(() => {
+        html2canvas(modelContainer, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#D3D3D3',
+            width: modelContainer.offsetWidth,
+            height: modelContainer.offsetHeight
+        }).then(canvas => {
+            // Generate filename
+            const name = document.getElementById('nameInput').value || 'Unnamed';
+            const personnummer = document.getElementById('personnummerInput').value || '';
+            const date = document.getElementById('dateInput').value;
+            const tolkatAv = document.getElementById('tolkat-av').options[document.getElementById('tolkat-av').selectedIndex].text;
+            
+            // Validate inputs
+            if (!date || !name || !personnummer) {
+                alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                return;
+            }
+            
+            const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+            const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `InBody_Model_${sanitizedName}_${sanitizedPersonnummer}_${date}.jpeg`;
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
             // Cleanup
             document.body.removeChild(modelContainer);

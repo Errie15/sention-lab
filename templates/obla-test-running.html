@@ -428,6 +428,8 @@ input[type="number"]:focus {
     <button class="btn" onclick="exportAsExcel()">Spara Excel</button>
     <button class="btn" onclick="exportDiagramAsPDF()">Spara Diagram som PDF</button>
     <button class="btn" onclick="exportThresholdTableAsPDF()">Spara Tröskelvärden som PDF</button>
+    <button class="btn" onclick="exportDiagramAsJPEG()">Spara Diagram som JPEG</button>
+    <button class="btn" onclick="exportThresholdTableAsJPEG()">Spara Tröskelvärden som JPEG</button>
     </div>
     <img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" alt="Logo" class="bottom-logo">
     <script>
@@ -841,14 +843,11 @@ function toggleVerticalLines() {
     myChart.update();
 }
 
-function exportAsJPEG() {
-    const element = document.documentElement; // Capture the entire HTML document
-
+function exportDiagramAsJPEG() {
     // Get patient data
     const dateInput = document.getElementById('dateInput');
     const nameInput = document.getElementById('nameInput');
     const personnummerInput = document.getElementById('personnummerInput');
-    const textarea = document.getElementById('commentInput'); // The Kommentar textarea
 
     const date = dateInput.value;
     const name = nameInput.value.trim();
@@ -864,94 +863,276 @@ function exportAsJPEG() {
     const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
     const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
-    const filename = `OBLA-Test_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.jpeg`;
+    const filename = `OBLA-Test-Löpning_Diagram_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.jpeg`;
 
-    // Elements to hide during export
-    const elementsToHide = [
-        document.querySelector('button[onclick="exportAsJPEG()"]'), // Button for "Spara JPEG"
-        document.querySelector('button[onclick="exportAsExcel()"]'), // Button for "Spara Excel"
-        document.querySelector('button[onclick="exportAsPDF()"]'), // Button for "Spara PDF"
-        document.querySelector('button[onclick="toggleVerticalLines()"]'), // Button for "På/Av Vertikala Linjer"
-        document.querySelector('button[onclick="updateChart()"]'), // Button for "Uppdatera Graf"
-        document.querySelector('button[onclick="addRow()"]'), // Button for "Lägg till rad"
-        document.querySelector('button[onclick="removeLastRow()"]'), // Button for "Ta bort rad"
-        document.querySelector('label[for="horizontalLine1"]'), // Label for "Horisontell Linje (2 mmol)"
-        document.querySelector('label[for="horizontalLine2"]'), // Label for "Horisontell Linje (4 mmol)"
-        document.querySelector('label[for="verticalLine1"]'), // Label for "Vertikal Linje (2 mmol)"
-        document.querySelector('label[for="verticalLine2"]'), // Label for "Vertikal Linje (4 mmol)"
-        document.getElementById('horizontalLine1'), // Textbox for "Horisontell Linje (2 mmol)"
-        document.getElementById('horizontalLine2'), // Textbox for "Horisontell Linje (4 mmol)"
-        document.getElementById('verticalLine1'), // Textbox for "Vertikal Linje (2 mmol)"
-        document.getElementById('verticalLine2') // Textbox for "Vertikal Linje (4 mmol)"
-    ];
-
-    // Hide the specified elements
-    elementsToHide.forEach(el => {
-        if (el) el.style.display = 'none';
-    });
-
-    // Replace the textarea with a styled div for proper rendering
-    const textareaDiv = document.createElement('div');
-    textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>'); // Preserve line breaks
-    textareaDiv.style.cssText = `
-        display: block;
-        white-space: pre-wrap; /* Preserve spaces and line breaks */
-        word-wrap: break-word; /* Ensure long words break properly */
-        font-family: ${window.getComputedStyle(textarea).fontFamily};
-        font-size: ${window.getComputedStyle(textarea).fontSize};
-        line-height: ${window.getComputedStyle(textarea).lineHeight};
-        padding: ${window.getComputedStyle(textarea).padding};
-        border: ${window.getComputedStyle(textarea).border};
-        border-radius: ${window.getComputedStyle(textarea).borderRadius};
-        width: ${textarea.offsetWidth}px;
-        height: ${textarea.offsetHeight}px;
-        background: ${window.getComputedStyle(textarea).backgroundColor};
-        color: ${window.getComputedStyle(textarea).color};
-        margin-top: ${window.getComputedStyle(textarea).marginTop};
-        margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar JPEG, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
     `;
-    textarea.style.display = 'none'; // Hide the original textarea
-    textarea.parentNode.insertBefore(textareaDiv, textarea); // Insert the div before the textarea
+    document.body.appendChild(loadingIndicator);
 
-    // Use html2canvas to export the page
-    html2canvas(element, {
-        scale: 2, // Increased scale for better quality
-        useCORS: true, // Allow cross-origin images
-        scrollX: 0, // Ensure no horizontal scrolling
-        scrollY: 0, // Start rendering from the top of the page
-        windowWidth: document.documentElement.scrollWidth, // Full page width
-        windowHeight: document.documentElement.scrollHeight, // Full page height
-        backgroundColor: '#F0EEEC',
-        ignoreElements: (element) => {
-            return element === textareaDiv;
+    // Use setTimeout to ensure chart is fully rendered
+    setTimeout(() => {
+        // Create a temporary container for the JPEG export
+        const tempContainer = document.createElement('div');
+        tempContainer.style.cssText = `
+            position: fixed;
+            left: -9999px;
+            width: 1200px;
+            height: 800px;
+            background-color: #F0EEEC;
+            padding: 40px;
+            font-family: 'Rajdhani', sans-serif;
+        `;
+
+        // Add title
+        const titleDiv = document.createElement('div');
+        titleDiv.innerHTML = '<h1 style="text-align: center; margin-bottom: 30px; color: #1A2E28; font-size: 28px;">Onset of Blood Lactate Accumulation</h1>';
+        tempContainer.appendChild(titleDiv);
+
+        // Add chart image from the REAL rendered canvas (clone would be blank)
+        const chartCanvas = document.getElementById('myChart');
+        if (chartCanvas) {
+            const chartImg = new Image();
+            chartImg.src = chartCanvas.toDataURL('image/png', 1.0);
+            chartImg.style.display = 'block';
+            chartImg.style.margin = '0 auto 30px auto';
+            chartImg.style.maxWidth = '100%';
+            chartImg.style.height = 'auto';
+            tempContainer.appendChild(chartImg);
         }
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = filename; // Use the dynamically generated filename
-        link.href = canvas.toDataURL('image/jpeg', 1.0); // Convert canvas to JPEG
-        link.click();
 
-        // Restore the original textarea and remove the temporary div
-        textarea.style.display = 'block';
-        textareaDiv.remove();
+        // Add footer with patient info and logo
+        const footerDiv = document.createElement('div');
+        footerDiv.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
 
-        // Show the hidden elements again
-        elementsToHide.forEach(el => {
-            if (el) el.style.display = 'block';
+        const tolkatAvDropdown = document.getElementById("interpretedBy");
+        const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+        const footerText = `${name} | ${personnummer} | OBLA-test Löpning ${date} | Tolkat av: ${tolkatAv}`;
+        
+        const footerTextDiv = document.createElement('div');
+        footerTextDiv.innerHTML = `<span style="color: #666; font-size: 12px;">${footerText}</span>`;
+        footerDiv.appendChild(footerTextDiv);
+
+        const logoDiv = document.createElement('div');
+        logoDiv.innerHTML = '<img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" style="height: 80px; width: auto;">';
+        footerDiv.appendChild(logoDiv);
+
+        tempContainer.appendChild(footerDiv);
+        document.body.appendChild(tempContainer);
+
+        // Use html2canvas with optimized settings
+        html2canvas(tempContainer, {
+            scale: 2,
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+            backgroundColor: '#F0EEEC',
+            ignoreElements: (element) => {
+                return element === loadingIndicator;
+            }
+        }).then(canvas => {
+            // Create download link
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Cleanup
+            document.body.removeChild(tempContainer);
+            document.body.removeChild(loadingIndicator);
+        }).catch(error => {
+            console.error("Error capturing chart:", error);
+            alert("Ett fel inträffade vid exporten av diagrammet.");
+            
+            // Cleanup
+            if (document.body.contains(tempContainer)) {
+                document.body.removeChild(tempContainer);
+            }
+            document.body.removeChild(loadingIndicator);
         });
-    }).catch(error => {
-        console.error("An error occurred while exporting the page as JPEG:", error);
-        alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
+    }, 100);
+}
 
-        // Restore the original textarea and remove the temporary div in case of an error
-        textarea.style.display = 'block';
-        textareaDiv.remove();
+function exportThresholdTableAsJPEG() {
+    // Get patient data
+    const dateInput = document.getElementById('dateInput');
+    const nameInput = document.getElementById('nameInput');
+    const personnummerInput = document.getElementById('personnummerInput');
 
-        // Show the hidden elements again
-        elementsToHide.forEach(el => {
-            if (el) el.style.display = 'block';
+    const date = dateInput.value;
+    const name = nameInput.value.trim();
+    const personnummer = personnummerInput.value.trim();
+
+    // Validate inputs
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Generate filename
+    const formattedDate = date.replace(/-/g, ''); // Remove dashes from the date
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_'); // Remove special characters and replace spaces with underscores
+    const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters
+    const filename = `OBLA-Test-Löpning_Troskeldata_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.jpeg`;
+
+    // Create loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerText = 'Skapar JPEG, var god vänta...';
+    loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+    `;
+    document.body.appendChild(loadingIndicator);
+
+    // Use setTimeout to ensure table is fully rendered
+    setTimeout(async () => {
+        // Create a temporary container for the JPEG export
+        const tempContainer = document.createElement('div');
+        tempContainer.style.cssText = `
+            position: fixed;
+            left: -9999px;
+            width: 1200px;
+            height: 800px;
+            background-color: #F0EEEC;
+            padding: 40px;
+            font-family: 'Rajdhani', sans-serif;
+        `;
+
+        // Add title
+        const titleDiv = document.createElement('div');
+        titleDiv.innerHTML = '<h1 style="text-align: center; margin-bottom: 30px; color: #1A2E28; font-size: 28px;">Tröskelvärden</h1>';
+        tempContainer.appendChild(titleDiv);
+
+        // Add measurement data table snapshot
+        const measurementTable = document.getElementById('dataTable');
+        if (measurementTable) {
+            const measurementWrapper = document.createElement('div');
+            measurementWrapper.style.marginBottom = '30px';
+            tempContainer.appendChild(measurementWrapper);
+
+            // Wait for the measurement table to be captured
+            await html2canvas(measurementTable, { scale: 2, useCORS: true, backgroundColor: '#F0EEEC' }).then(tableCanvas => {
+                const tableImg = new Image();
+                tableImg.src = tableCanvas.toDataURL('image/png', 1.0);
+                tableImg.style.maxWidth = '100%';
+                tableImg.style.height = 'auto';
+                tableImg.style.display = 'block';
+                tableImg.style.margin = '0 auto';
+                measurementWrapper.appendChild(tableImg);
+            });
+        }
+
+        // Add threshold table snapshot using html2canvas to capture computed styles
+        const thresholdTable = document.getElementById('thresholdTable');
+        if (thresholdTable) {
+            const tableWrapper = document.createElement('div');
+            tableWrapper.style.marginBottom = '30px';
+            tempContainer.appendChild(tableWrapper);
+
+            // Wait for the table to be captured before proceeding
+            await html2canvas(thresholdTable, { scale: 2, useCORS: true, backgroundColor: '#F0EEEC' }).then(tableCanvas => {
+                const tableImg = new Image();
+                tableImg.src = tableCanvas.toDataURL('image/png', 1.0);
+                tableImg.style.maxWidth = '100%';
+                tableImg.style.height = 'auto';
+                tableImg.style.display = 'block';
+                tableImg.style.margin = '0 auto';
+                tableWrapper.appendChild(tableImg);
+            });
+        }
+
+        // Add footer with patient info and logo
+        const footerDiv = document.createElement('div');
+        footerDiv.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
+
+        const tolkatAvDropdown = document.getElementById("interpretedBy");
+        const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+        const footerText = `${name} | ${personnummer} | OBLA-test Löpning ${date} | Tolkat av: ${tolkatAv}`;
+        
+        const footerTextDiv = document.createElement('div');
+        footerTextDiv.innerHTML = `<span style="color: #666; font-size: 12px;">${footerText}</span>`;
+        footerDiv.appendChild(footerTextDiv);
+
+        const logoDiv = document.createElement('div');
+        logoDiv.innerHTML = '<img src="https://i.postimg.cc/x1PkvmGq/SENTION-logo-Black-Transparent-BG.png" style="height: 80px; width: auto;">';
+        footerDiv.appendChild(logoDiv);
+
+        tempContainer.appendChild(footerDiv);
+        document.body.appendChild(tempContainer);
+
+        // Use html2canvas with optimized settings
+        html2canvas(tempContainer, {
+            scale: 2,
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+            backgroundColor: '#F0EEEC',
+            ignoreElements: (element) => {
+                return element === loadingIndicator;
+            }
+        }).then(canvas => {
+            // Create download link
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Cleanup
+            document.body.removeChild(tempContainer);
+            document.body.removeChild(loadingIndicator);
+        }).catch(error => {
+            console.error("Error capturing threshold table:", error);
+            alert("Ett fel inträffade vid exporten av tröskelvärdena.");
+            
+            // Cleanup
+            if (document.body.contains(tempContainer)) {
+                document.body.removeChild(tempContainer);
+            }
+            document.body.removeChild(loadingIndicator);
         });
-    });
+    }, 100);
 }
 
 function exportAsExcel() {

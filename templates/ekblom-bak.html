@@ -832,6 +832,9 @@
                     <button class="btn btn-success" onclick="exportDiagramAndDataAsPDF('${gender}', ${age}, ${weight}, ${height}, ${restingHR}, ${lowHR}, ${lowWatts}, ${highHR}, ${highWatts}, ${hrMax}, ${vo2max.toFixed(1)}, '${classification.text.replace(/'/g, "\\'")}')">
                         Exportera Diagram och Data som PDF
                     </button>
+                    <button class="btn btn-success" onclick="exportDiagramAndDataAsJPEG('${gender}', ${age}, ${weight}, ${height}, ${restingHR}, ${lowHR}, ${lowWatts}, ${highHR}, ${highWatts}, ${hrMax}, ${vo2max.toFixed(1)}, '${classification.text.replace(/'/g, "\\'")}')">
+                        Exportera Diagram och Data som JPEG
+                    </button>
                 </div>
             `;
 
@@ -1717,6 +1720,149 @@
                          });
                      });
                  }, 100);
+            }, 100);
+        }
+
+        function exportDiagramAndDataAsJPEG(gender, age, weight, height, restingHR, lowHR, lowWatts, highHR, highWatts, hrMax, vo2max, classification) {
+            // Validate that we have the necessary data
+            if (!gender || !age || !weight || !height || !restingHR || !lowHR || !lowWatts || !highHR || !highWatts || !hrMax || !vo2max) {
+                alert("Vänligen fyll i alla fält innan export.");
+                return;
+            }
+            
+            // Create overlay div to block UI interactions during processing
+            const overlayDiv = document.createElement('div');
+            overlayDiv.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.7);
+                z-index: 9998;
+            `;
+            
+            // Skapa en laddningsindikator som visas under processen
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.innerText = 'Skapar JPEG, var god vänta...';
+            loadingIndicator.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                z-index: 9999;
+            `;
+            
+            // Add the overlay and loading indicator to the DOM
+            document.body.appendChild(overlayDiv);
+            document.body.appendChild(loadingIndicator);
+            
+            // Generate filename
+            const currentDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const sanitizedName = gender === 'man' ? 'Man' : 'Kvinna';
+            const filename = `Ekblom-Bak_Test_${currentDate}_${sanitizedName}_${age}ar.jpeg`;
+            
+            // Use setTimeout to ensure loading indicator is visible before heavy processing begins
+            setTimeout(() => {
+                // Create a temporary container to hold all content for JPEG export
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    position: fixed;
+                    left: -9999px;
+                    width: 1200px;
+                    background-color: #F0EEEC;
+                    padding: 40px;
+                    font-family: 'Rajdhani', sans-serif;
+                `;
+                
+                // Add title
+                const titleDiv = document.createElement('div');
+                titleDiv.innerHTML = '<h1 style="text-align: center; margin-bottom: 30px; color: #1A2E28;">SENTION - Ekblom-Bak Test Resultat</h1>';
+                tempContainer.appendChild(titleDiv);
+                
+                // Add chart container
+                const chartContainer = document.getElementById('vo2Chart').parentElement;
+                const chartClone = chartContainer.cloneNode(true);
+                chartClone.style.marginBottom = '30px';
+                tempContainer.appendChild(chartClone);
+                
+                // Add data summaries
+                const resultsContainer = document.getElementById('results');
+                const dataSummaries = resultsContainer.querySelectorAll('.data-summary');
+                
+                const dataContainer = document.createElement('div');
+                dataContainer.style.cssText = `
+                    display: flex;
+                    gap: 30px;
+                    justify-content: center;
+                `;
+                
+                dataSummaries.forEach(summary => {
+                    const clone = summary.cloneNode(true);
+                    clone.style.flex = '1';
+                    clone.style.margin = '0';
+                    dataContainer.appendChild(clone);
+                });
+                
+                tempContainer.appendChild(dataContainer);
+                
+                // Add footer
+                const footerDiv = document.createElement('div');
+                footerDiv.innerHTML = `<p style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">Ekblom-Bak Test | ${new Date().toLocaleDateString('sv-SE')} | SENTION Lab</p>`;
+                tempContainer.appendChild(footerDiv);
+                
+                document.body.appendChild(tempContainer);
+                
+                // Wait a moment for the chart to fully render
+                setTimeout(() => {
+                    html2canvas(tempContainer, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#F0EEEC',
+                        width: tempContainer.offsetWidth,
+                        height: tempContainer.offsetHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        ignoreElements: (element) => {
+                            return element === loadingIndicator || element === overlayDiv;
+                        }
+                    }).then(canvas => {
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = canvas.toDataURL('image/jpeg', 1.0);
+                        
+                        // Trigger download
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        // Cleanup
+                        document.body.removeChild(tempContainer);
+                        document.body.removeChild(loadingIndicator);
+                        document.body.removeChild(overlayDiv);
+                        
+                    }).catch(error => {
+                        console.error("Ett fel inträffade vid JPEG-exporten:", error);
+                        alert("Ett fel inträffade vid JPEG-exporten.");
+                        
+                        // Clean up
+                        if (document.body.contains(tempContainer)) {
+                            document.body.removeChild(tempContainer);
+                        }
+                        if (document.body.contains(loadingIndicator)) {
+                            document.body.removeChild(loadingIndicator);
+                        }
+                        if (document.body.contains(overlayDiv)) {
+                            document.body.removeChild(overlayDiv);
+                        }
+                    });
+                }, 100);
             }, 100);
         }
 
