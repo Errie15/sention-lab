@@ -1170,17 +1170,17 @@ Chart.register({
             <button id="export-all-separate-files-button" class="btn btn-primary">Exportera som separata filer</button>
         </div>
         
-        <div class="parameter-input" style="display: none;">
+        <div class="parameter-input">
             <button id="export-parameters-pdf-button" class="btn btn-primary">Exportera Parametrar PDF</button>
             <button id="export-parameters-jpeg-button" class="btn btn-primary">Exportera Parametrar JPEG</button>
         </div>
         
-        <div class="parameter-input" style="display: none;">
+        <div class="parameter-input">
             <button id="export-chart-pdf-button" class="btn btn-primary">Exportera Diagram PDF</button>
             <button id="export-chart-jpeg-button" class="btn btn-primary">Exportera Diagram JPEG</button>
         </div>
         
-        <div class="parameter-input" style="display: none;">
+        <div class="parameter-input">
             <button id="export-daily-charts-pdf-button" class="btn btn-primary">Exportera Dagliga Diagram PDF</button>
             <button id="export-daily-charts-jpeg-button" class="btn btn-primary">Exportera Dagliga Diagram JPEG</button>
         </div>
@@ -2913,7 +2913,7 @@ document.getElementById('export-parameters-pdf-button').addEventListener('click'
     });
 });
 
-// Lägg till Parameter JPEG export funktionalitet (speglar PDF-versionen)
+// Lägg till Parameter JPEG export funktionalitet (speglar PDF-versionen exakt)
 document.getElementById('export-parameters-jpeg-button').addEventListener('click', async function () {
     try {
         const name = document.getElementById('name').value.trim() || 'UnknownName';
@@ -2921,51 +2921,290 @@ document.getElementById('export-parameters-jpeg-button').addEventListener('click
         const personnummer = document.getElementById('personnummer').value.trim() || '';
         const fileName = personnummer ? `${name}_${personnummer}_${date}_Parametrar.jpeg` : `${name}_${date}_Parametrar.jpeg`;
 
+        // Create a temporary container with header and parameter table (exakt som PDF)
         const tempContainer = document.createElement('div');
         tempContainer.style.cssText = `
-            position: absolute; top: -10000px; left: -10000px; width: 700px; background: #f0eeec; padding: 30px;
-            font-family: 'Georgia', serif; color: #2c3e50; line-height: 1.4;`;
+            position: absolute;
+            top: -10000px;
+            left: -10000px;
+            width: 700px;
+            background: #f0eeec;
+            padding: 30px;
+            font-family: 'Georgia', serif;
+            color: #2c3e50;
+            line-height: 1.4;
+        `;
 
-        // Använd samma header och parametertabell som i PDF-funktionen
-        tempContainer.innerHTML = document.createElement('div').outerHTML; // placeholder to attach below
-
-        // Bygg upp header exakt som i exportParametersPDF
-        const headerWrapper = document.createElement('div');
-        headerWrapper.style.cssText = 'position: relative; margin-bottom: 30px;';
-        headerWrapper.innerHTML = `
-            <img src="https://i.postimg.cc/3NmbQhXV/Sention-Logo-Black-Small.png" style="position:absolute; top:0; left:-15px; width:60px; height:60px; border-radius:5px;" alt="Logo">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-top:15px;">
-                <div style="text-align:center; flex:1;">
-                    <h1 style="font-family:'Rajdhani'; color:#3b444b; font-size:1.8em; margin-bottom:20px; font-weight:500;">SENTION - Glukosanalys</h1>
-                    <div style="display:flex; gap:15px; justify-content:center; align-items:flex-start; margin-bottom:10px;">
-                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <span style="font-family:'Rajdhani', sans-serif; font-size:0.8em; color:#666; font-weight:500; margin-bottom:5px;">Namn:</span>
-                            <span style="font-family:'Verdana', sans-serif; font-size:0.9em; padding:5px 8px; border:1px solid #cfc9c3; border-radius:4px; background:white; color:#3b444b; width:150px; text-align:center;">${name}</span>
+        // Add header with logo and patient info (exakt som PDF)
+        tempContainer.innerHTML = `
+            <div style="position: relative; margin-bottom: 30px;">
+                <img src="https://i.postimg.cc/3NmbQhXV/Sention-Logo-Black-Small.png" 
+                     style="position: absolute; top: 0px; left: -15px; width: 60px; height: 60px; border-radius: 5px;" 
+                     alt="Logo">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-top: 15px;">
+                    <div style="text-align: center; flex: 1;">
+                        <h1 style="font-family: 'Rajdhani'; color: #3b444b; font-size: 1.8em; margin-bottom: 20px; font-weight: 500;">
+                            SENTION - Glukosanalys
+                        </h1>
+                        <div style="display: flex; gap: 15px; justify-content: center; align-items: flex-start; margin-bottom: 10px;">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Namn:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 5px 8px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; width: 150px; text-align: center;">
+                                    ${name}
+                                </span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Mätperiod:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.85em; padding: 8px 10px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; width: 120px; text-align: center; line-height: 1.3; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                    ${date.replace(' - ', '<br>')}
+                                </span>
+                            </div>
+                            ${personnummer ? `
+                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Personnummer:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 5px 8px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; width: 130px; text-align: center; white-space: nowrap;">
+                                    ${personnummer}
+                                </span>
+                            </div>
+                            ` : ''}
                         </div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <span style="font-family:'Rajdhani', sans-serif; font-size:0.8em; color:#666; font-weight:500; margin-bottom:5px;">Mätperiod:</span>
-                            <span style="font-family:'Verdana', sans-serif; font-size:0.85em; padding:8px 10px; border:1px solid #cfc9c3; border-radius:4px; background:white; color:#3b444b; width:120px; text-align:center; line-height:1.3; height:35px; display:flex; align-items:center; justify-content:center;">${date.replace(' - ', '<br>')}</span>
-                        </div>
-                        ${personnummer ? `<div style="display:flex; flex-direction:column; align-items:flex-start;"><span style="font-family:'Rajdhani', sans-serif; font-size:0.8em; color:#666; font-weight:500; margin-bottom:5px;">Personnummer:</span><span style="font-family:'Verdana', sans-serif; font-size:0.9em; padding:5px 8px; border:1px solid #cfc9c3; border-radius:4px; background:white; color:#3b444b; width:130px; text-align:center; white-space:nowrap;">${personnummer}</span></div>` : ''}
+                    </div>
+                    <div style="margin-left: 20px; margin-top: 40px;">
+                        <table style="border-collapse: collapse; width: auto; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 0.8em; background-color: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
+                            <tr>
+                                <td style="padding: 5px 8px; border: none; text-align: left; vertical-align: middle; line-height: 1.2; font-weight: bold; font-size: 0.75em; padding-right: 12px;">
+                                    Tillgänglig data:
+                                </td>
+                                <td style="padding: 5px 8px; border: none; text-align: center; vertical-align: middle; line-height: 1.2; min-width: 50px;">
+                                    ${document.getElementById('available-data') ? document.getElementById('available-data').textContent.trim() || '0%' : '0%'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 8px; border: none; text-align: left; vertical-align: middle; line-height: 1.2; font-weight: bold; font-size: 0.75em; padding-right: 12px;">
+                                    Inom optimala värden:
+                                </td>
+                                <td style="padding: 3px 8px; border: none; text-align: center; vertical-align: middle; background-color: rgba(146, 194, 94, 0.7); color: #3b444b; border-radius: 3px; width: 50px; position: relative;">
+                                    <span style="color: #4f7826; font-weight: bold;">✓</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 8px; border: none; text-align: left; vertical-align: middle; line-height: 1.2; font-weight: bold; font-size: 0.75em; padding-right: 12px;">
+                                    Lite utanför optimala värden:
+                                </td>
+                                <td style="padding: 3px 8px; border: none; text-align: center; vertical-align: middle; background-color: rgba(236, 220, 72, 0.7); color: #3b444b; border-radius: 3px; width: 50px; position: relative;">
+                                    <span style="color: #b8a932; font-weight: bold;">⚠</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 8px; border: none; text-align: left; vertical-align: middle; line-height: 1.2; font-weight: bold; font-size: 0.75em; padding-right: 12px;">
+                                    Mycket utanför optimala värden:
+                                </td>
+                                <td style="padding: 3px 8px; border: none; text-align: center; vertical-align: middle; background-color: rgba(205, 64, 54, 0.7); color: #3b444b; border-radius: 3px; width: 50px; position: relative;">
+                                    <span style="color: #a32e25; font-weight: bold;">✗</span>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
-            </div>`;
-        tempContainer.appendChild(headerWrapper);
+            </div>
+        `;
 
-        // Klona parameter-tabellen
+        // Clone and add the parameter table with all styling (exakt som PDF)
         const parameterTable = document.querySelector('.parameter-table');
         if (parameterTable) {
-            const cloned = parameterTable.cloneNode(true);
-            tempContainer.appendChild(cloned);
+            const clonedTable = parameterTable.cloneNode(true);
+            
+            // Apply styles to the cloned table to match exactly
+            clonedTable.style.cssText = `
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                margin-bottom: 20px;
+                background-color: #ffffff;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif;
+            `;
+
+            // Style table headers
+            const headers = clonedTable.querySelectorAll('th');
+            headers.forEach(th => {
+                th.style.cssText = `
+                    background-color: #cfc9c3;
+                    color: #3b444b;
+                    font-weight: bold;
+                    padding: 12px 10px;
+                    text-align: left;
+                    font-size: 0.95em;
+                    border: none;
+                    border-bottom: 1px solid #eaeaea;
+                `;
+            });
+
+            // Style table cells
+            const cells = clonedTable.querySelectorAll('td');
+            cells.forEach(td => {
+                td.style.cssText = `
+                    padding: 10px 8px;
+                    text-align: left;
+                    font-size: 0.85em;
+                    vertical-align: middle;
+                    border: none;
+                    border-bottom: 1px solid #f0f0f0;
+                    font-family: Arial, sans-serif;
+                    line-height: 1.3;
+                `;
+            });
+
+            // Style parameter names
+            const parameterNames = clonedTable.querySelectorAll('.parameter-name');
+            parameterNames.forEach(cell => {
+                cell.style.cssText += `
+                    width: 42%;
+                    padding-right: 15px;
+                    line-height: 1.3;
+                    font-family: 'Verdana', sans-serif;
+                    font-weight: 500;
+                    font-size: 0.8em;
+                `;
+            });
+
+            // Style parameter values
+            const parameterValues = clonedTable.querySelectorAll('.parameter-value');
+            parameterValues.forEach(cell => {
+                cell.style.cssText += `
+                    width: 28%;
+                    text-align: center;
+                    position: relative;
+                    padding: 8px 10px;
+                `;
+            });
+
+            // Style parameter targets
+            const parameterTargets = clonedTable.querySelectorAll('.parameter-target');
+            parameterTargets.forEach(cell => {
+                cell.style.cssText += `
+                    width: 30%;
+                    text-align: center;
+                    font-weight: 500;
+                    font-family: 'Verdana', sans-serif;
+                    font-size: 0.85em;
+                `;
+            });
+
+            // Style input fields to look like text
+            const inputs = clonedTable.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                const value = input.value || '-';
+                const parentCell = input.parentNode;
+                
+                // Remove any existing status indicators before replacing
+                const existingIndicators = parentCell.querySelectorAll('.status-indicator');
+                existingIndicators.forEach(indicator => indicator.remove());
+                
+                // Create new content with value and single status indicator
+                const valueSpan = document.createElement('span');
+                valueSpan.textContent = value;
+                valueSpan.style.cssText = `
+                    font-size: 0.95em;
+                    font-weight: 600;
+                    color: #3b444b;
+                    margin-right: 8px;
+                `;
+                
+                // Clear the cell and add the new content
+                parentCell.innerHTML = '';
+                parentCell.appendChild(valueSpan);
+                
+                // Add single status indicator based on cell class
+                if (parentCell.classList.contains('good')) {
+                    const indicator = document.createElement('span');
+                    indicator.innerHTML = '✓';
+                    indicator.style.cssText = 'color: #4f7826; font-weight: bold; font-size: 1em;';
+                    parentCell.appendChild(indicator);
+                } else if (parentCell.classList.contains('moderate')) {
+                    const indicator = document.createElement('span');
+                    indicator.innerHTML = '⚠';
+                    indicator.style.cssText = 'color: #b8a932; font-weight: bold; font-size: 0.9em;';
+                    parentCell.appendChild(indicator);
+                } else if (parentCell.classList.contains('bad')) {
+                    const indicator = document.createElement('span');
+                    indicator.innerHTML = '✗';
+                    indicator.style.cssText = 'color: #a32e25; font-weight: bold; font-size: 0.9em;';
+                    parentCell.appendChild(indicator);
+                }
+            });
+
+            // Preserve colored backgrounds and status indicators
+            const goodCells = clonedTable.querySelectorAll('.good');
+            goodCells.forEach(cell => {
+                cell.style.backgroundColor = 'rgba(146, 194, 94, 0.7)';
+                cell.style.color = '#3b444b';
+            });
+
+            const moderateCells = clonedTable.querySelectorAll('.moderate');
+            moderateCells.forEach(cell => {
+                cell.style.backgroundColor = 'rgba(236, 220, 72, 0.7)';
+                cell.style.color = '#3b444b';
+            });
+
+            const badCells = clonedTable.querySelectorAll('.bad');
+            badCells.forEach(cell => {
+                cell.style.backgroundColor = 'rgba(205, 64, 54, 0.7)';
+                cell.style.color = '#3b444b';
+            });
+
+            // Style descriptions
+            const descriptions = clonedTable.querySelectorAll('.parameter-description');
+            descriptions.forEach(desc => {
+                desc.style.cssText = `
+                    display: block;
+                    font-size: 0.75em;
+                    color: #666;
+                    margin-top: 4px;
+                    font-style: italic;
+                    max-width: 95%;
+                    line-height: 1.3;
+                `;
+            });
+
+            tempContainer.appendChild(clonedTable);
         }
 
         document.body.appendChild(tempContainer);
-        const canvas = await html2canvas(tempContainer, { scale: 2.5, useCORS: true, backgroundColor: '#f0eeec', logging: false, width: 700, height: tempContainer.offsetHeight });
+
+        // Capture the temporary container
+        const canvas = await html2canvas(tempContainer, {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: '#f0eeec',
+            logging: false,
+            width: 700,
+            height: tempContainer.offsetHeight,
+            allowTaint: false,
+            foreignObjectRendering: false,
+            removeContainer: true
+        });
+
+        // Create and trigger download
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/jpeg', 0.9);
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         document.body.removeChild(tempContainer);
+
     } catch (e) {
         console.error('Fel vid JPEG-export (Parametrar):', e);
         alert('Ett fel uppstod vid JPEG-exporten (Parametrar).');
@@ -3200,25 +3439,154 @@ document.getElementById('export-chart-pdf-button').addEventListener('click', fun
     }
 });
 
-// Lägg till Diagram JPEG export funktionalitet
+// Lägg till Diagram JPEG export funktionalitet (exakt som PDF)
 document.getElementById('export-chart-jpeg-button').addEventListener('click', async function () {
     try {
         const name = document.getElementById('name').value.trim() || 'UnknownName';
         const date = document.getElementById('date-range').value.trim() || 'UnknownDate';
         const personnummer = document.getElementById('personnummer').value.trim() || '';
-        const fileName = personnummer ? `${name}_${personnummer}_${date}_Glukosrapport_Diagram.jpeg` : `${name}_${date}_Glukosrapport_Diagram.jpeg`;
+        const fileName = personnummer ? `${name}_${personnummer}_${date}_Diagram.jpeg` : `${name}_${date}_Diagram.jpeg`;
 
-        const chartSection = document.getElementById('chart-section') || document.querySelector('#chartContainer') || document.body;
-        const tempContainer = chartSection.cloneNode(true);
-        tempContainer.style.cssText = 'position:absolute; left:-9999px; top:-9999px; background:#f0eeec; padding:30px;';
+        // Create a temporary container with header and chart (exakt som PDF)
+        const tempContainer = document.createElement('div');
+        tempContainer.style.cssText = `
+            position: absolute;
+            top: -10000px;
+            left: -10000px;
+            width: 1200px;
+            background: #f0eeec;
+            padding: 30px;
+            font-family: 'Georgia', serif;
+            color: #2c3e50;
+            line-height: 1.4;
+        `;
+
+        // Add header with logo, name, measurement period, and personnummer (exakt som PDF)
+        tempContainer.innerHTML = `
+            <div style="position: relative; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
+                <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" 
+                     style="position: absolute; left: 0; width: 70px; height: auto; border-radius: 5px;" 
+                     alt="Logo">
+                <div style="text-align: center; flex: 1;">
+                    <h1 style="font-family: 'Rajdhani'; color: #3b444b; font-size: 1.6em; margin: 0 0 10px 0; font-weight: 500;">
+                        SENTION - Glukosanalys
+                    </h1>
+                    <div style="display: flex; gap: 15px; justify-content: center; align-items: flex-start; margin-bottom: 10px;">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                Namn:
+                            </span>
+                            <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 4px 8px; 
+                                         border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center;">
+                                ${name}
+                            </span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                Mätperiod:
+                            </span>
+                            <span style="font-family: 'Verdana', sans-serif; font-size: 0.85em; padding: 6px 10px; 
+                                         border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center; line-height: 1.3; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                ${date.replace(' - ', '<br>')}
+                            </span>
+                        </div>
+                        ${personnummer ? `
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                Personnummer:
+                            </span>
+                            <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 4px 8px; 
+                                         border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center; white-space: nowrap;">
+                                ${personnummer}
+                            </span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Clone and add the chart container (exakt som PDF)
+        const chartContainer = document.querySelector('.large-chart-container');
+        if (chartContainer && combinedChart) {
+            // Get chart as image using Chart.js built-in method with higher quality
+            const chartImageUrl = combinedChart.toBase64Image('image/png', 1.0);
+            
+            // Create chart container for JPEG (exakt som PDF)
+            const chartDiv = document.createElement('div');
+            chartDiv.style.cssText = `
+                margin-top: 10px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+                width: 100%;
+                text-align: center;
+            `;
+
+            // Add chart title
+            const chartTitle = document.createElement('h2');
+            chartTitle.textContent = 'Sammanställda Glukosvärden';
+            chartTitle.style.cssText = `
+                text-align: center;
+                color: #4c565e;
+                font-family: 'Verdana', sans-serif;
+                font-size: 1.2em;
+                font-weight: 600;
+                margin-bottom: 15px;
+                margin-top: 0;
+            `;
+            chartDiv.appendChild(chartTitle);
+
+            // Add chart image
+            const chartImage = document.createElement('img');
+            chartImage.src = chartImageUrl;
+            chartImage.style.cssText = `
+                width: 100%;
+                max-width: 1100px;
+                height: auto;
+                border-radius: 4px;
+            `;
+            chartDiv.appendChild(chartImage);
+
+            tempContainer.appendChild(chartDiv);
+        }
+
         document.body.appendChild(tempContainer);
 
-        const canvas = await html2canvas(tempContainer, { scale: 2.5, useCORS: true, backgroundColor: '#f0eeec' });
+        // Give the chart time to render properly before capturing
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Ensure the chart image is fully loaded
+        const chartImage = tempContainer.querySelector('img');
+        if (chartImage && !chartImage.complete) {
+            await new Promise(resolve => {
+                chartImage.onload = resolve;
+            });
+        }
+
+        // Capture the temporary container directly with higher quality
+        const canvas = await html2canvas(tempContainer, {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: '#f0eeec',
+            logging: false,
+            width: 1200,
+            height: tempContainer.offsetHeight,
+            allowTaint: false,
+            foreignObjectRendering: false,
+            removeContainer: true,
+        });
+
+        // Create and trigger download
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/jpeg', 0.9);
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         document.body.removeChild(tempContainer);
+
     } catch (e) {
         console.error('Fel vid JPEG-export (Diagram):', e);
         alert('Ett fel uppstod vid JPEG-exporten (Diagram).');
@@ -3520,25 +3888,228 @@ document.getElementById('export-daily-charts-pdf-button').addEventListener('clic
     processPage(0);
 });
 
-// Lägg till Dagliga Diagram JPEG export funktionalitet
+// Lägg till Dagliga Diagram JPEG export funktionalitet (exakt som PDF)
 document.getElementById('export-daily-charts-jpeg-button').addEventListener('click', async function () {
     try {
+        // Check if we have daily charts
+        if (!dailyCharts || dailyCharts.length === 0) {
+            alert('Inga dagliga diagram att exportera. Ladda upp Excel-fil först.');
+            return;
+        }
+
         const name = document.getElementById('name').value.trim() || 'UnknownName';
         const date = document.getElementById('date-range').value.trim() || 'UnknownDate';
         const personnummer = document.getElementById('personnummer').value.trim() || '';
-        const fileName = personnummer ? `${name}_${personnummer}_${date}_Glukosrapport_DagligaDiagram.jpeg` : `${name}_${date}_Glukosrapport_DagligaDiagram.jpeg`;
+        const fileName = personnummer ? `${name}_${personnummer}_${date}_DagligaDiagram.jpeg` : `${name}_${date}_DagligaDiagram.jpeg`;
 
-        const section = document.getElementById('daily-charts-section') || document.body;
-        const tempContainer = section.cloneNode(true);
-        tempContainer.style.cssText = 'position:absolute; left:-9999px; top:-9999px; background:#f0eeec; padding:30px;';
-        document.body.appendChild(tempContainer);
+        // Constants for layout (exakt som PDF)
+        const chartsPerRow = 4;
+        const maxChartsPerPage = 8; // 2 rows × 4 charts
+        const containerWidth = 1400;
+        const chartHeight = 220; // Increased height for larger charts
 
-        const canvas = await html2canvas(tempContainer, { scale: 2.5, useCORS: true, backgroundColor: '#f0eeec' });
-        const link = document.createElement('a');
-        link.download = fileName;
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        document.body.removeChild(tempContainer);
+        // Split charts into pages
+        const chartPages = [];
+        for (let i = 0; i < dailyCharts.length; i += maxChartsPerPage) {
+            chartPages.push(dailyCharts.slice(i, i + maxChartsPerPage));
+        }
+
+        // Function to create header HTML (exakt som PDF)
+        function createHeaderHTML() {
+            return `
+                <div style="position: relative; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
+                    <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" 
+                         style="position: absolute; left: 0; width: 70px; height: auto; border-radius: 5px;" 
+                         alt="Logo">
+                    <div style="text-align: center; flex: 1;">
+                        <h1 style="font-family: 'Rajdhani'; color: #3b444b; font-size: 1.6em; margin: 0 0 10px 0; font-weight: 500;">
+                            SENTION - Glukosanalys - Dagliga Diagram
+                        </h1>
+                        <div style="display: flex; gap: 15px; justify-content: center; align-items: flex-start; margin-bottom: 10px;">
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Namn:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 4px 8px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center;">
+                                    ${name}
+                                </span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Mätperiod:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.85em; padding: 6px 10px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center; line-height: 1.3; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                    ${date.replace(' - ', '<br>')}
+                                </span>
+                            </div>
+                            ${personnummer ? `
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.8em; color: #666; font-weight: 500; margin-bottom: 5px;">
+                                    Personnummer:
+                                </span>
+                                <span style="font-family: 'Verdana', sans-serif; font-size: 0.9em; padding: 4px 8px; 
+                                             border: 1px solid #cfc9c3; border-radius: 4px; background: white; color: #3b444b; text-align: center; white-space: nowrap;">
+                                    ${personnummer}
+                                </span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Process all charts - create separate JPEG files for each page
+        for (let pageIndex = 0; pageIndex < chartPages.length; pageIndex++) {
+            const pageCharts = chartPages[pageIndex];
+            const chartStartIndex = pageIndex * maxChartsPerPage;
+
+            // Create temporary container for this page
+            const tempContainer = document.createElement('div');
+            tempContainer.style.cssText = `
+                position: absolute;
+                top: -10000px;
+                left: -10000px;
+                width: ${containerWidth}px;
+                background: #f0eeec;
+                padding: 30px;
+                font-family: 'Georgia', serif;
+                color: #2c3e50;
+                line-height: 1.4;
+            `;
+
+            // Add header with page number if multiple pages
+            let headerHTML = createHeaderHTML();
+            if (chartPages.length > 1) {
+                // Modify header to include page number
+                headerHTML = headerHTML.replace(
+                    'SENTION - Glukosanalys - Dagliga Diagram',
+                    `SENTION - Glukosanalys - Dagliga Diagram (Sida ${pageIndex + 1}/${chartPages.length})`
+                );
+            }
+            tempContainer.innerHTML = headerHTML;
+
+            // Create charts grid container for this page
+            const chartsGrid = document.createElement('div');
+            chartsGrid.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(${chartsPerRow}, 1fr);
+                gap: 15px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+                width: 100%;
+            `;
+
+            // Process charts for this page
+            pageCharts.forEach((chart, chartIndex) => {
+                if (chart && chart.canvas) {
+                    const globalIndex = chartStartIndex + chartIndex;
+                    
+                    // Get chart as high-quality image
+                    const chartImageUrl = chart.toBase64Image('image/png', 1.0);
+                    
+                    // Get the date label for this chart
+                    const dateLabel = reportData.dates && reportData.dates[globalIndex] 
+                        ? (typeof reportData.dates[globalIndex] === 'string' && reportData.dates[globalIndex].startsWith('Dag ') 
+                           ? reportData.dates[globalIndex] 
+                           : formatDate(reportData.dates[globalIndex]))
+                        : `Dag ${globalIndex + 1}`;
+
+                    // Create chart container
+                    const chartContainer = document.createElement('div');
+                    chartContainer.style.cssText = `
+                        background-color: #ffffff;
+                        border-radius: 6px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        padding: 10px;
+                        text-align: center;
+                        border: 1px solid #e0e0e0;
+                    `;
+
+                    // Add date title
+                    const dateTitle = document.createElement('h3');
+                    dateTitle.textContent = dateLabel;
+                    dateTitle.style.cssText = `
+                        font-family: 'Verdana', sans-serif;
+                        color: #3b444b;
+                        font-weight: 600;
+                        font-size: 0.8em;
+                        margin: 0 0 8px 0;
+                        padding: 3px 6px;
+                        background-color: #f5f5f5;
+                        border-radius: 3px;
+                        border: 1px solid #e0e0e0;
+                    `;
+                    chartContainer.appendChild(dateTitle);
+
+                    // Add chart image
+                    const chartImage = document.createElement('img');
+                    chartImage.src = chartImageUrl;
+                    chartImage.style.cssText = `
+                        width: 100%;
+                        height: ${chartHeight}px;
+                        object-fit: contain;
+                        border-radius: 3px;
+                    `;
+                    chartContainer.appendChild(chartImage);
+
+                    chartsGrid.appendChild(chartContainer);
+                }
+            });
+
+            tempContainer.appendChild(chartsGrid);
+            document.body.appendChild(tempContainer);
+
+            // Wait for images to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const images = tempContainer.querySelectorAll('img');
+            await Promise.all(Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+
+            // Capture this page
+            const canvas = await html2canvas(tempContainer, {
+                scale: 2.5,
+                useCORS: true,
+                backgroundColor: '#f0eeec',
+                logging: false,
+                width: containerWidth,
+                height: tempContainer.offsetHeight,
+                allowTaint: false,
+                foreignObjectRendering: false,
+                removeContainer: true
+            });
+
+            // Create file name with page number if multiple pages
+            let pageFileName = fileName;
+            if (chartPages.length > 1) {
+                const baseName = fileName.replace('.jpeg', '');
+                pageFileName = `${baseName}_Sida${pageIndex + 1}.jpeg`;
+            }
+
+            // Create and trigger download for this page
+            const link = document.createElement('a');
+            link.download = pageFileName;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            document.body.removeChild(tempContainer);
+
+            // Small delay between downloads to avoid browser blocking multiple downloads
+            if (pageIndex < chartPages.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
     } catch (e) {
         console.error('Fel vid JPEG-export (Dagliga diagram):', e);
         alert('Ett fel uppstod vid JPEG-exporten (Dagliga diagram).');
