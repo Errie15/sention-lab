@@ -31,6 +31,8 @@ if not credentials_json:
 
 try:
     USER_CREDENTIALS = json.loads(credentials_json)
+    # Normalize credentials: trim whitespace from usernames
+    USER_CREDENTIALS = {username.strip(): password for username, password in USER_CREDENTIALS.items()}
 except json.JSONDecodeError:
     raise ValueError("USER_CREDENTIALS must be a valid JSON string. Format: {\"username1\": \"password1\", \"username2\": \"password2\"}")
 
@@ -42,7 +44,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].strip()
         password = request.form['password']
 
         # ✅ Kolla om användaren finns och om lösenordet matchar
@@ -50,7 +52,13 @@ def login():
             session['user'] = username  # Spara inloggad användare i session
             return redirect(url_for('selection_page'))
         else:
-            return render_template('login.html', error="Ogiltigt användarnamn eller lösenord")
+            # Debug: Log available usernames (only in debug mode)
+            if app.debug:
+                available_users = list(USER_CREDENTIALS.keys())
+                error_msg = f"Ogiltigt användarnamn eller lösenord. Tillgängliga användare: {', '.join(available_users)}"
+            else:
+                error_msg = "Ogiltigt användarnamn eller lösenord"
+            return render_template('login.html', error=error_msg)
 
     return render_template('login.html')
 
