@@ -75,6 +75,7 @@ def selection_page():
         {"name": "InBodyMan", "link": "/Inbody-Man1.0"},
         {"name": "InBodyKvinna", "link": "/inbody-kvinna"},
         {"name": "Blodprover", "link": "/blodprover"},
+        {"name": "Blodprover - Alla Prover", "link": "/blodprover-alla"},
         {"name": "GlukosAnalys", "link": "/glukos-analys"},
         {"name": "GlukosRapport", "link": "/glukos-rapport"}
     ]
@@ -116,6 +117,12 @@ def blodprover():
     if 'user' not in session:
         return redirect(url_for('login'))
     return render_template('blodprover.html')
+
+@app.route('/blodprover-alla')
+def blodprover_alla():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('blodprover-alla.html')
 
 @app.route('/glukos-analys')
 def glukos_analys():

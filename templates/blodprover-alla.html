@@ -1,0 +1,2637 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTION Blodvärden</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #a6c5b0;
+            --secondary: #def1e4;
+            --accent: #8BC34A;
+            --danger: #FF6F61;
+            --warning: #FFC107;
+            --light: #F8F9FA;
+            --dark: #1A2E28;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #F0EEEC;
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .header {
+            background: #ffffff;
+            height: 100px;
+            color: #444444;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: static;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 1.3rem;
+            font-weight: medium;
+        }
+
+        h1 {
+            font-family: 'Rajdhani';
+            font-size: 3rem;
+            font-weight: 500; 
+        }
+
+        .logo {
+            height: 30px;
+            margin-right: 1rem;
+            border-radius: 3px 3px 2px 2px;
+            margin-top: 3px;
+        }
+
+        .input-fields {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 1rem;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: none;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: none;
+            color: #000000;
+            width: calc(100% - 2rem);
+            box-sizing: border-box;
+        }
+
+        .input-fields input[type="date"] {
+            width: 180px;
+        }
+
+        .input-fields input[type="text"][placeholder="Namn"] {
+            min-width: 200px;
+            width: auto;
+            flex: 0 1 auto;
+            max-width: 400px;
+        }
+
+        .input-fields input[type="text"][placeholder="Personnummer"] {
+            width: 160px;
+        }
+        .input-group {
+            position: relative;
+        }
+
+        .input-group input {
+            font-size: 0.9rem;
+            line-height: 1.2rem;
+            padding: 0.8rem;
+            border-radius: 10px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #d3d0cc;
+            box-shadow: 0 0 0 3px #F0EEEC;
+        }
+
+        .input-group label {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label {
+            top: -8px;
+            left: 0.4rem;
+            font-size: 0.75rem;
+            color: #000000;
+            background: white;
+            padding: 0 0.2rem;
+        }
+
+        .input-fields input {
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 0.9rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-fields input:focus {
+            outline: none;
+            border-color: #d3d0cc;
+            box-shadow: 0 0 0 3px #F0EEEC;
+        }
+
+        .biomarker, .comments-box {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            page-break-inside: avoid;
+            position: relative;
+            width: calc(100% - 2rem);
+            box-sizing: border-box;
+        }
+
+        .biomarker:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .biomarker-remove {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 107, 97, 0.1);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .biomarker-remove:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .biomarker:hover .biomarker-remove {
+            display: flex;
+        }
+
+        .range-bar {
+            height: 20px;
+            background: linear-gradient(to right,
+                var(--danger) 0%,
+                var(--danger) 50%,
+                var(--accent) 50%,
+                var(--accent) 100%);
+            border-radius: 15px;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .indicator {
+            width: 34px;
+            height: 34px;
+            background: #F0EEEC;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .value-input {
+            width: 100px;
+            padding: 0.6rem;
+            border: 2px solid #F0EEEC;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .comments-box {
+            margin-top: 2rem;
+        }
+
+        .comments-box textarea {
+            width: 50%;
+            min-height: 50px;
+            border: 2px solid #F0EEEC;
+            border-radius: 15px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .comments-box textarea:focus {
+            border-color: #F0EEEC;
+            outline: none;
+        }
+
+        .comments-box select {
+            width: 25%;
+            padding: 0.6rem;
+            border: 2px solid #F0EEEC;
+            border-radius: 10px;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+
+        .export-button {
+            margin: 20px auto;
+            display: block;
+            padding: 12px 24px;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-button:hover {
+            background-color: #d3d0cc;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hide-on-export {
+            display: none !important;
+        }
+
+        .selection-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #F0EEEC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .selection-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .selection-box select, .selection-box button {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 2px solid #F0EEEC;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .selection-box button {
+            background-color: #F0EEEC;
+            color: rgb(0, 0, 0);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .selection-box button:hover {
+            background-color: #d3d0cc;
+        }
+
+        .selection-box .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            margin-top: -33px;
+        }
+
+        .selection-box label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .footer-logo {
+            position: relative;
+            bottom: 0px;
+            margin-left: auto;
+            margin-right: 20px;
+            z-index: 999;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .footer-logo img {
+            height: 100px;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .explanation {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin: 15px 0;
+            font-size: 14px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--dark);
+            max-width: 100%;
+            padding: 10px;
+        }
+
+        .unit {
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .range-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .range-labels span {
+            color: #444;
+        }
+
+        .biomarker-note {
+            width: 100%;
+            padding: 0.6rem;
+            border: 2px solid #F0EEEC;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            min-height: 40px;
+            resize: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+
+        .biomarker-note:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(166, 197, 176, 0.2);
+        }
+
+        @media print {
+            body {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: var(--dark);
+                margin: 0;
+            }
+
+            .header {
+                position: static;
+                box-shadow: none;
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+
+            .biomarker, .comments-box, .input-fields {
+                page-break-inside: avoid;
+                margin: auto;
+                max-width: 1200px;
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 12px;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+                height: auto;
+            }
+
+            .biomarker, .comments-box {
+                margin: auto;
+                margin-top: 3rem;
+                margin-bottom: 3rem;
+            }
+
+            .input-fields {
+                margin: auto;
+                margin-top: 3rem;
+                margin-bottom: 3rem;
+            }
+
+            .biomarker, .comments-box, .input-fields {
+                break-before: always;
+            }
+
+            .biomarker:first-of-type, 
+            .comments-box:first-of-type, 
+            .input-fields:first-of-type {
+                margin-top: 4rem;
+            }
+
+            .export-button {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>SENTION - Blodvärden</h1>
+    </header>
+    
+    <div id="selectionPage" class="selection-container">
+        <div class="selection-box">
+            <h1>Välj Kön och Ålder</h1>
+            <div class="input-group">
+                <label for="gender">Kön:</label>
+                <select id="gender">
+                    <option value="male">Man</option>
+                    <option value="female">Kvinna</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="age-group">Åldersgrupp:</label>
+                <select id="age-group">
+                    <option value="child">18-30 år</option>
+                    <option value="adult">31-50 år</option>
+                    <option value="senior">Över 50 år</option>
+                </select>
+            </div>
+            <button onclick="showBiomarkerPage()">Gå Vidare</button>
+        </div>
+    </div>
+
+    <div id="biomarkerPage" style="display: none;">
+        <div class="input-fields">
+            <div class="input-group">
+                <input type="text" id="patient-name" placeholder="" required>
+                <label for="patient-name">Namn</label>
+            </div>
+            <div class="input-group">
+                <input type="text" id="patient-id" placeholder="" required>
+                <label for="patient-id">Personnummer</label>
+            </div>
+            <div class="input-group">
+                <input type="date" id="analysis-date" required>
+                <label for="analysis-date">Datum</label>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 1rem 0 2rem 0; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;" onchange="importFromExcel(event)">
+            <button class="export-button" onclick="document.getElementById('excel-file-input').click()" style="background: var(--primary);">
+                Importera
+            </button>
+            <button class="export-button" onclick="exportToExcel()">Exportera</button>
+            <button class="export-button" onclick="exportAsPDF()">PDF</button>
+            <button class="export-button" onclick="exportAsJPEG()">JPEG</button>
+            <button class="export-button" onclick="exportAsJPEGSplit()">JPEG Split</button>
+        </div>
+    
+        <main class="container"></main>
+    
+        <div class="comments-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">Tolkning av resultat</h3>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: var(--dark);">
+                    <input type="checkbox" id="hide-comments-export" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    Dölj vid JPEG-export
+                </label>
+            </div>
+            <textarea placeholder="Skriv din tolkning här"></textarea>
+            <div style="margin-top: 1rem;">
+                <h4 style="font-size: 1.2rem;">Tolkat av</h4>
+                <div class="input-group" style="margin-top: 0.5rem;">
+                    <select id="tolkat-av" style="width: 25%; border-radius: 6px;">
+                        <option value="Per 'Pliggen' Andersson">Överläkare Per "Pliggen" Andersson</option>
+                        <option value="Other">Läkare</option>
+                    </select>
+                </div>
+                <div class="input-group" id="other-input-container" style="display: none; margin-top: 0.5rem;">
+                    <input type="text" id="other-input" placeholder="Ange namn">
+                </div>
+            </div>
+        </div>
+        <div class="footer-logo">
+            <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
+        </div>
+    </div>
+    <script>
+        // Parse reference values and create biomarker structure
+        // Note: Columns are: Variable | Type | Value Alternatives | Unit | Age specific reference values | Ref (Male min–max) | Ref (Female min–max)
+        const referenceData = `Variable	Type	Value Alternatives (Protocol etc.)	Unit	Age specific reference values (if specified)	Ref (Male min–max)	Ref (Female min–max)
+Protocol	alphanum	"• Sention analys av Blodvärden (Swe) 
+• Sention Blood Test Analysis (Eng)"	–	–	–	–
+Patient name	String	–	–	–	–	–
+Patient surname	String	–	–	–	–	–
+Patient ID	String	yyyymmdd-xxxx	–	–	–	–
+Test date	UTC Date		–	–	–	–
+B–Erytrocyter	Numeric		x10^12/L		4,2 – 5,7	3,9 – 5,2
+B–EVF	Numeric		% (fraktion)		0,39 – 0,50	0,35 – 0,46
+B–HbA1c (IFCC)	Numeric		mmol/mol	<50 years	27 – 42	27 – 42
+B–HbA1c (IFCC)	Numeric		mmol/mol	≥50 years	31 – 46	31 – 46
+B–Hemoglobin	Numeric		g/L		134 – 170	117 – 153
+B–Leukocyter	Numeric		x10^9/L		3,5 – 8,8	3,5 – 8,8
+B–MCV	Numeric		fL		82 – 98	82 – 98
+B–Trombocyter	Numeric		x10^9/L		145 – 348	165 – 387
+Erc(B)–MCH	Numeric		pg		27 – 33	27 – 33
+fP–Glukos (faste)	Numeric		mmol/L		4,2 – 6,0	4,2 – 6,0
+P–ALAT	Numeric		µkat/L		<1,11	<0,76
+P–ASAT	Numeric		µkat/L		<0,76	<0,61
+P–ALP	Numeric		µkat/L		0,70 – 1,9	0,70 – 1,9
+P–Ferritin	Numeric		µg/L		20 – 375	7 – 120
+P–HDL–kolesterol	Numeric		mmol/L		0,8 – 2,1	1,0 – 2,7
+P–Järn	Numeric		µmol/L		9 – 34	9 – 34
+P–Kalium	Numeric		mmol/L		3,5 – 4,4	3,5 – 4,4
+P–Kolesterol	Numeric		mmol/L	18 – 30 years	2,9 – 6,1	2,9 – 6,1
+P–Kolesterol	Numeric		mmol/L	31 – 50 years	3,3 – 6,9	3,3 – 6,9
+P–Kolesterol	Numeric		mmol/L	> 50 years	3,9 – 7,8	3,9 – 7,8
+P–Kreatinin	Numeric		µmol/L		60 – 105	45 – 90
+P–LDL–kol, beräknat	Numeric		mmol/L	18 – 30 years	1,2– 4,3	1,2– 4,3
+P–LDL–kol, beräknat	Numeric		mmol/L	31 – 50 years	1,4 – 4,7	1,4 – 4,7
+P–LDL–kol, beräknat	Numeric		mmol/L	> 50 years	2,0 – 5,3	2,0 – 5,3
+P–LDL–kol/HDL–kvot	Numeric		Kvot		< 5	< 5
+P–Magnesium	Numeric		mmol/L		0,70 – 0,95	0,70 – 0,95
+P–Natrium	Numeric		mmol/L		137 – 145	137 – 145
+P–non–HDL–kolesterol	Numeric		mmol/L	18 – 29 years	1,7–5,0	1,6–4,7
+P–non–HDL–kolesterol	Numeric		mmol/L	30 – 49 years	2,0–6,1	1,9–5,1
+P–non–HDL–kolesterol	Numeric		mmol/L	≥50 years	2,5–6,2	2,4–6,2
+P–PSA	Numeric		µg/L	< 70 years	< 3,0	–
+P–PSA	Numeric		µg/L	70–80 years	< 5,0	–
+P–PSA	Numeric		µg/L	> 80	7,0	–
+P–T4, fritt (FT4)	Numeric		pmol/L		10 – 22	10 – 22
+P–Tyrotropin (TSH)	Numeric		mIE/L		0,4 – 4,0	0,4 – 4,0
+fP–Triglycerid	Numeric		mmol/L		0,45 – 2,6	0,45 – 2,6
+S–25–hydroxiVitaminD	Numeric		nmol/L		50 – 178	50 – 178
+S–Kobalamin (B12)	Numeric		pmol/L		175 – 700	175 – 700
+S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
+
+        function parseValue(valueStr) {
+            if (!valueStr || valueStr.trim() === '' || valueStr.trim() === '–') return null;
+            
+            // Handle "< value" format
+            if (valueStr.trim().startsWith('<')) {
+                const num = parseFloat(valueStr.replace('<', '').trim().replace(',', '.').replace(/\s+/g, ''));
+                if (isNaN(num)) {
+                    console.warn(`Failed to parse "< value" format: ${valueStr}`);
+                    return null;
+                }
+                return { min: null, max: num, isLessThan: true };
+            }
+            
+            // Handle range format "min – max" or "min - max" (note: using en dash – or hyphen -)
+            // Try both en dash and hyphen, and handle both comma and dot as decimal separator
+            const parts = valueStr.trim().split(/[–-]/).map(s => s.trim().replace(',', '.'));
+            if (parts.length === 2) {
+                const min = parseFloat(parts[0]);
+                const max = parseFloat(parts[1]);
+                if (isNaN(min) || isNaN(max)) {
+                    console.warn(`Failed to parse range format: ${valueStr}, parts:`, parts);
+                    return null;
+                }
+                return { 
+                    min: min, 
+                    max: max,
+                    isLessThan: false
+                };
+            }
+            
+            // Try to parse as single value
+            const singleValue = parseFloat(valueStr.trim().replace(',', '.'));
+            if (!isNaN(singleValue)) {
+                return { min: singleValue, max: singleValue, isLessThan: false };
+            }
+            
+            console.warn(`Failed to parse value: ${valueStr}`);
+            return null;
+        }
+
+        function createRanges(valueRange, isReverse = false) {
+            if (!valueRange) return null;
+            
+            const { min, max, isLessThan } = valueRange;
+            
+            if (isLessThan) {
+                // For "< value" format, create ranges where lower is better
+                // Green = within limit, Red = over limit
+                return {
+                    green: { min: 0, max: max },
+                    red: { min: max, max: Infinity },
+                    reverse: true
+                };
+            }
+            
+            if (min !== null && max !== null) {
+                // Green = within reference range, Red = outside reference range
+                return {
+                    green: { min: min, max: max },
+                    redLower: { min: 0, max: min },
+                    redUpper: { min: max, max: Infinity },
+                    reverse: false
+                };
+            }
+            
+            return null;
+        }
+
+        function parseReferenceData() {
+            const lines = referenceData.split('\n').filter(line => line.trim());
+            const biomarkers = [];
+            
+            console.log(`Parsing ${lines.length} lines from reference data`);
+            
+            lines.forEach((line, lineIndex) => {
+                const parts = line.split('\t').map(s => s.trim());
+                if (parts.length < 6) {
+                    console.warn(`Line ${lineIndex + 1} has insufficient parts:`, parts);
+                    return;
+                }
+                
+                // Skip header rows and non-data rows
+                const name = parts[0];
+                if (!name || name === 'Variable' || name === 'Protocol' || name === 'Patient name' || name === 'Patient surname' || name === 'Patient ID' || name === 'Test date') {
+                    return;
+                }
+                
+                // Correct column mapping:
+                // parts[0] = Variable (name)
+                // parts[1] = Type (ignored)
+                // parts[2] = Value Alternatives (ignored)
+                // parts[3] = Unit
+                // parts[4] = Age specific reference values (age group)
+                // parts[5] = Ref (Male min–max)
+                // parts[6] = Ref (Female min–max)
+                
+                const unit = parts[3] || '';
+                const ageGroup = parts[4] || '';
+                const maleValueStr = parts[5] || '';
+                const femaleValueStr = parts[6] || '';
+                const comment = parts[7] || ''; // Comment might be in column 7 if exists
+                
+                // Debug first few lines
+                if (lineIndex < 10) {
+                    console.log(`Line ${lineIndex + 1}: name=${name}, unit=${unit}, ageGroup="${ageGroup}", maleValueStr="${maleValueStr}", femaleValueStr="${femaleValueStr}"`);
+                }
+                
+                let maleValue = parseValue(maleValueStr);
+                let femaleValue = parseValue(femaleValueStr);
+                
+                // Special handling for PSA: if it's a single value without "<", treat it as "< value"
+                // This handles PSA > 80 years case where value is "7,0" without "<"
+                if (name === 'P–PSA' && maleValue && !maleValue.isLessThan && maleValue.min === maleValue.max) {
+                    // Convert single value to "< value" format
+                    maleValue = { min: null, max: maleValue.max, isLessThan: true };
+                }
+                
+                // Check if male-specific (PSA) - check if female value is "–" or empty
+                const isMaleSpecific = (femaleValueStr === '–' || femaleValueStr === '-') && !femaleValue;
+                
+                // Determine age group mapping
+                let ageGroupKey = '';
+                if (ageGroup.includes('<50') || ageGroup.includes('< 50')) {
+                    ageGroupKey = 'both_child_adult';
+                } else if (ageGroup.includes('≥50') || ageGroup.includes('> 50') || ageGroup.includes('>50')) {
+                    ageGroupKey = 'senior';
+                } else if (ageGroup.includes('18 – 30') || ageGroup.includes('18-30')) {
+                    ageGroupKey = 'child';
+                } else if (ageGroup.includes('31 – 50') || ageGroup.includes('31-50')) {
+                    ageGroupKey = 'adult';
+                } else if (ageGroup.includes('18 – 29') || ageGroup.includes('18-29')) {
+                    ageGroupKey = 'child';
+                } else if (ageGroup.includes('30 – 49') || ageGroup.includes('30-49')) {
+                    ageGroupKey = 'adult';
+                } else if (ageGroup.includes('< 70') || ageGroup.includes('<70')) {
+                    ageGroupKey = 'child';
+                } else if (ageGroup.includes('70 – 80') || ageGroup.includes('70-80')) {
+                    ageGroupKey = 'adult';
+                } else if (ageGroup.includes('> 80') || ageGroup.includes('>80')) {
+                    ageGroupKey = 'senior';
+                } else {
+                    ageGroupKey = 'all'; // No age restriction - show for all age groups
+                }
+                
+                // Create biomarker entries
+                if (maleValue) {
+                    if (ageGroupKey === 'both_child_adult') {
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: 'child',
+                            gender: 'male',
+                            valueRange: maleValue,
+                            isMaleSpecific: isMaleSpecific,
+                            comment: comment
+                        });
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: 'adult',
+                            gender: 'male',
+                            valueRange: maleValue,
+                            isMaleSpecific: isMaleSpecific,
+                            comment: comment
+                        });
+                    } else {
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: ageGroupKey,
+                            gender: 'male',
+                            valueRange: maleValue,
+                            isMaleSpecific: isMaleSpecific,
+                            comment: comment
+                        });
+                    }
+                } else {
+                    // Debug: log when maleValue is null
+                    console.warn(`No maleValue for ${name}, ageGroup: ${ageGroup}, parts[4]: ${parts[4]}`);
+                }
+                
+                if (femaleValue && !isMaleSpecific) {
+                    if (ageGroupKey === 'both_child_adult') {
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: 'child',
+                            gender: 'female',
+                            valueRange: femaleValue,
+                            isMaleSpecific: false,
+                            comment: comment
+                        });
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: 'adult',
+                            gender: 'female',
+                            valueRange: femaleValue,
+                            isMaleSpecific: false,
+                            comment: comment
+                        });
+                    } else {
+                        biomarkers.push({
+                            name: name,
+                            unit: unit,
+                            ageGroup: ageGroupKey,
+                            gender: 'female',
+                            valueRange: femaleValue,
+                            isMaleSpecific: false,
+                            comment: comment
+                        });
+                    }
+                }
+            });
+            
+            console.log(`Parsed ${biomarkers.length} biomarker entries total`);
+            
+            // Log unique biomarker names per gender AND age group
+            const maleBiomarkers = biomarkers.filter(b => b.gender === 'male');
+            const femaleBiomarkers = biomarkers.filter(b => b.gender === 'female');
+            
+            // Group by age group for debugging
+            const maleByAgeGroup = {};
+            maleBiomarkers.forEach(b => {
+                if (!maleByAgeGroup[b.ageGroup]) maleByAgeGroup[b.ageGroup] = [];
+                maleByAgeGroup[b.ageGroup].push(b.name);
+            });
+            
+            const femaleByAgeGroup = {};
+            femaleBiomarkers.forEach(b => {
+                if (!femaleByAgeGroup[b.ageGroup]) femaleByAgeGroup[b.ageGroup] = [];
+                femaleByAgeGroup[b.ageGroup].push(b.name);
+            });
+            
+            const uniqueMaleNames = [...new Set(maleBiomarkers.map(b => b.name))];
+            const uniqueFemaleNames = [...new Set(femaleBiomarkers.map(b => b.name))];
+            
+            console.log(`Unique male biomarkers: ${uniqueMaleNames.length}`, uniqueMaleNames.sort());
+            console.log(`Male biomarkers by age group:`, maleByAgeGroup);
+            console.log(`Unique female biomarkers: ${uniqueFemaleNames.length}`, uniqueFemaleNames.sort());
+            console.log(`Female biomarkers by age group:`, femaleByAgeGroup);
+            
+            return biomarkers;
+        }
+
+        const allBiomarkersRaw = parseReferenceData();
+        let biomarkers = [];
+
+        function getDefaultExplanation(name) {
+            const explanations = {
+                'B–Erytrocyter': 'Erytrocyter är de röda blodkropparna som transporterar syre i kroppen. Antalet erytrocyter är viktigt för kroppens syreomsättning.',
+                'B–EVF': 'EVF (erytrocytvolymsfraktion) visar hur stor del av blodet som består av röda blodkroppar. Ett lågt värde kan tyda på blodbrist.',
+                'B–HbA1c (IFCC)': 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på medelvärdet av blodsockret under cirka tre månader. Det är ett viktigt prov vid diabetesutredning.',
+                'B–Hemoglobin': 'Hemoglobin finns i de röda blodkropparna och transporterar syre från lungorna ut till kroppens vävnader. Låga värden kan tyda på järnbrist.',
+                'B–Leukocyter': 'Leukocyter är vita blodkroppar som är viktiga för immunförsvaret. Förhöjda eller för låga värden kan tyda på infektion eller andra tillstånd.',
+                'B–MCV': 'MCV (mean cell volume) visar den genomsnittliga storleken på de röda blodkropparna. Det kan hjälpa till att diagnostisera olika typer av blodbrist.',
+                'B–Trombocyter': 'Trombocyter är blodplättar som är viktiga för blodkoagulering. Förhöjda eller för låga värden kan påverka blödningsbenägenheten.',
+                'Erc(B)–MCH': 'MCH (mean cell hemoglobin) visar genomsnittlig mängd hemoglobin per röd blodkropp. Det kan hjälpa till att diagnostisera järnbrist.',
+                'fP–Glukos (faste)': 'Glukos är blodsocker. Detta värde mäts på fastande mage och är viktigt för att upptäcka diabetes eller förhöjda blodsockervärden.',
+                'P–ALAT': 'ALAT är ett levernzym som stiger vid leverskada. Förhöjda värden kan tyda på leverinflammation eller andra leversjukdomar.',
+                'P–ASAT': 'ASAT är ett enzym som finns i levern och hjärtat. Förhöjda värden kan tyda på leverskada eller hjärtproblem.',
+                'P–ALP': 'ALP (alkalisk fosfatas) är ett enzym som finns i lever, ben och gallvägar. Förhöjda värden kan tyda på problem med dessa organ.',
+                'P–Ferritin': 'Ferritin är ett protein som lagrar järn och representerar kroppens järnförråd. Låga värden kan tyda på järnbrist.',
+                'P–HDL–kolesterol': 'HDL är "det goda kolesterolet" som hjälper till att transportera bort överflödigt kolesterol från blodkärlen.',
+                'P–Järn': 'Järn är viktigt för syretransport och energiomsättning. Låga värden kan tyda på järnbrist.',
+                'P–Kalium': 'Kalium är en viktig elektrolyt som är nödvändig för nerv- och muskelcellernas funktion.',
+                'P–Kolesterol': 'Kolesterol är ett fettämne som är viktigt för kroppens cellmembran och hormonproduktion. Förhöjda nivåer kan öka risken för hjärt-kärlsjukdom.',
+                'P–Kreatinin': 'Kreatinin är en avfallsprodukt från muskelmetabolismen och används för att bedöma njurfunktionen.',
+                'P–LDL–kol, beräknat': 'LDL är "det onda kolesterolet" som kan bidra till åderförkalkning. Lägre värden är generellt fördelaktiga.',
+                'P–LDL–kol/HDL–kvot': 'Kvoten mellan LDL och HDL ger en indikation på risken för hjärt-kärlsjukdom. Lägre kvot är bättre.',
+                'P–Magnesium': 'Magnesium är en viktig mineral som är nödvändig för många kroppsfunktioner inklusive muskel- och nervfunktion.',
+                'P–Natrium': 'Natrium är en viktig elektrolyt som reglerar vätskebalansen i kroppen.',
+                'P–non–HDL–kolesterol': 'Non-HDL kolesterol inkluderar alla aterogena kolesterolpartiklar och är en viktig riskmarkör för hjärt-kärlsjukdom.',
+                'P–PSA': 'PSA (prostataspecifikt antigen) är ett protein som produceras av prostatan. Förhöjda värden kan tyda på prostatacancer eller benign prostataförstoring.',
+                'P–T4, fritt (FT4)': 'FT4 är den fria formen av tyroxin, ett sköldkörtelhormon. Det är viktigt för ämnesomsättningen.',
+                'P–Tyrotropin (TSH)': 'TSH stimulerar sköldkörteln att producera tyroxin. Förhöjda värden kan tyda på hypotyreos.',
+                'fP–Triglycerid': 'Triglycerider är blodfetter som används som energikälla. Förhöjda nivåer kan öka risken för hjärt-kärlsjukdom.',
+                'S–25–hydroxiVitaminD': 'Vitamin D är viktigt för benhälsa och immunförsvar. Låga värden kan tyda på brist på solexponering eller kost.',
+                'S–Kobalamin (B12)': 'Vitamin B12 är viktigt för nervsystemet och bildning av röda blodkroppar. Låga värden kan tyda på brist.',
+                'S–Zink': 'Zink är en viktig mineral som är nödvändig för immunförsvar, läkning och många andra kroppsfunktioner.'
+            };
+            
+            return explanations[name] || `${name} är ett viktigt blodprov som används för att bedöma hälsotillståndet.`;
+        }
+
+        function showBiomarkerPage() {
+            const gender = document.getElementById('gender').value;
+            const ageGroup = document.getElementById('age-group').value;
+            
+            // Filter biomarkers based on gender and age group
+            // Show ALL biomarkers that are relevant for the selected age group
+            const filtered = allBiomarkersRaw.filter(bio => {
+                if (bio.gender !== gender) return false;
+                // Show biomarkers with 'all' age group (always visible for all age groups)
+                if (bio.ageGroup === 'all') return true;
+                // Show biomarkers matching current age group
+                if (bio.ageGroup === ageGroup) return true;
+                return false;
+            });
+            
+            // Debug: Log what's being filtered
+            console.log(`\n=== FILTERING DEBUG ===`);
+            console.log(`Selected: ${gender}, ${ageGroup}`);
+            console.log(`Total biomarkers in raw data: ${allBiomarkersRaw.length}`);
+            const maleCount = allBiomarkersRaw.filter(b => b.gender === 'male').length;
+            const femaleCount = allBiomarkersRaw.filter(b => b.gender === 'female').length;
+            console.log(`Male biomarkers in raw: ${maleCount}`);
+            console.log(`Female biomarkers in raw: ${femaleCount}`);
+            
+            // Group by age group for selected gender
+            const ageGroupBreakdown = {};
+            allBiomarkersRaw.filter(b => b.gender === gender).forEach(bio => {
+                if (!ageGroupBreakdown[bio.ageGroup]) {
+                    ageGroupBreakdown[bio.ageGroup] = [];
+                }
+                ageGroupBreakdown[bio.ageGroup].push(bio.name);
+            });
+            console.log(`Age group breakdown for ${gender}:`, ageGroupBreakdown);
+            
+            console.log(`Filtered biomarkers: ${filtered.length}`);
+            
+            // Deduplicate: use a Map to track unique biomarkers by name
+            // Priority: ageGroup match > 'all' > first found
+            const uniqueMap = new Map();
+            filtered.forEach(bio => {
+                const key = bio.name;
+                if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, bio);
+                } else {
+                    const existing = uniqueMap.get(key);
+                    // Always prefer ageGroup match over 'all'
+                    if (bio.ageGroup === ageGroup && existing.ageGroup !== ageGroup) {
+                        uniqueMap.set(key, bio);
+                    }
+                }
+            });
+            
+            console.log(`Total biomarkers parsed: ${allBiomarkersRaw.length}`);
+            console.log(`Filtered for ${gender}, ${ageGroup}: ${filtered.length}`);
+            console.log(`Unique biomarkers after deduplication: ${uniqueMap.size}`);
+            console.log('Unique biomarker names:', Array.from(uniqueMap.keys()).sort());
+            
+            // Verify we have all expected biomarkers
+            const expectedBiomarkers = [
+                'B–Erytrocyter', 'B–EVF', 'B–HbA1c (IFCC)', 'B–Hemoglobin', 'B–Leukocyter',
+                'B–MCV', 'B–Trombocyter', 'Erc(B)–MCH', 'fP–Glukos (faste)', 'P–ALAT',
+                'P–ASAT', 'P–ALP', 'P–Ferritin', 'P–HDL–kolesterol', 'P–Järn',
+                'P–Kalium', 'P–Kolesterol', 'P–Kreatinin', 'P–LDL–kol, beräknat',
+                'P–LDL–kol/HDL–kvot', 'P–Magnesium', 'P–Natrium', 'P–non–HDL–kolesterol',
+                'P–PSA', 'P–T4, fritt (FT4)', 'P–Tyrotropin (TSH)', 'fP–Triglycerid',
+                'S–25–hydroxiVitaminD', 'S–Kobalamin (B12)', 'S–Zink'
+            ];
+            
+            const foundBiomarkers = Array.from(uniqueMap.keys());
+            const missingBiomarkers = expectedBiomarkers.filter(b => !foundBiomarkers.includes(b));
+            if (missingBiomarkers.length > 0) {
+                console.warn('Missing biomarkers:', missingBiomarkers);
+            }
+            
+            biomarkers = Array.from(uniqueMap.values()).map(bio => {
+                const ranges = createRanges(bio.valueRange, bio.valueRange.isLessThan);
+                const { min, max, isLessThan } = bio.valueRange;
+                
+                let defaultValue;
+                if (isLessThan) {
+                    defaultValue = max * 0.7;
+                } else if (min !== null && max !== null) {
+                    defaultValue = (min + max) / 2;
+                } else {
+                    defaultValue = 0;
+                }
+                
+                // Determine step and format based on unit
+                let step = '0.1';
+                let formatFunc = (v) => v.toFixed(1);
+                
+                if (bio.unit.includes('x10') || bio.unit === 'g/L' || bio.unit === 'µg/L' || bio.unit === 'µmol/L' || bio.unit === 'pmol/L' || bio.unit === 'nmol/L' || bio.unit === 'mIE/L' || bio.unit === 'fL' || bio.unit === 'pg') {
+                    step = '1';
+                    formatFunc = (v) => Math.round(v);
+                } else if (bio.unit === 'Kvot') {
+                    // Kvot should show one decimal place
+                    step = '0.1';
+                    formatFunc = (v) => v.toFixed(1);
+                } else if (bio.unit === 'mmol/L' || bio.unit === 'mmol/mol') {
+                    if (bio.name.includes('Triglycerid') || bio.name.includes('Glukos')) {
+                        step = '0.01';
+                        formatFunc = (v) => v.toFixed(2);
+                    } else {
+                        step = '0.1';
+                        formatFunc = (v) => v.toFixed(1);
+                    }
+                }
+                
+                // Create labels without yellow zone
+                let labels = { red: '', green: '' };
+                if (ranges) {
+                    const formatMin = (v) => {
+                        if (bio.unit.includes('x10') || bio.unit === 'g/L' || bio.unit === 'µg/L' || bio.unit === 'µmol/L' || bio.unit === 'pmol/L' || bio.unit === 'nmol/L' || bio.unit === 'mIE/L' || bio.unit === 'fL' || bio.unit === 'pg') {
+                            return Math.round(v).toString();
+                        }
+                        if (bio.unit === 'Kvot') {
+                            return v.toFixed(1);
+                        }
+                        return v.toFixed(1);
+                    };
+                    
+                    if (ranges.reverse) {
+                        // For "< value" format
+                        labels.red = `Röd: Över ${formatMin(max)} ${bio.unit}`;
+                        labels.green = `Grön: Under ${formatMin(max)} ${bio.unit} (Referensintervall: < ${formatMin(max)} ${bio.unit})`;
+                    } else {
+                        // For range format
+                        labels.red = `Röd: Under ${formatMin(min)} eller över ${formatMin(max)} ${bio.unit}`;
+                        labels.green = `Grön: Mellan ${formatMin(min)}-${formatMin(max)} ${bio.unit} (Referensintervall)`;
+                    }
+                }
+                
+                return {
+                    name: bio.name,
+                    unit: bio.unit,
+                    value: defaultValue,
+                    ranges: ranges,
+                    explanation: getDefaultExplanation(bio.name),
+                    reverse: ranges ? ranges.reverse : false,
+                    step: step,
+                    formatFunc: formatFunc,
+                    labels: labels
+                };
+            });
+            
+            // Sort biomarkers alphabetically by name
+            // Special handling: fP- biomarkers should come after P- biomarkers
+            biomarkers.sort((a, b) => {
+                const nameA = a.name;
+                const nameB = b.name;
+                
+                // Check if names start with fP- or P-
+                const aIsFP = nameA.startsWith('fP–');
+                const bIsFP = nameB.startsWith('fP–');
+                const aIsP = nameA.startsWith('P–');
+                const bIsP = nameB.startsWith('P–');
+                
+                // If one is fP- and the other is P-, put P- first
+                if (aIsFP && bIsP) return 1;
+                if (aIsP && bIsFP) return -1;
+                
+                // Otherwise use normal alphabetical sort
+                return nameA.localeCompare(nameB);
+            });
+            
+            console.log(`Final biomarkers to display: ${biomarkers.length}`);
+            console.log('Final biomarker names:', biomarkers.map(b => b.name).sort());
+            
+            // Hide selection page and show biomarker page
+            document.getElementById('selectionPage').style.display = 'none';
+            document.getElementById('biomarkerPage').style.display = 'block';
+            
+            // Initialize biomarkers display
+            const container = document.querySelector('#biomarkerPage .container');
+            container.innerHTML = '';
+            biomarkers.forEach((bio, index) => {
+                container.appendChild(createBiomarkerElement(bio, index));
+            });
+        }
+
+        function calculatePosition(value, ranges, reverse, referenceMin, referenceMax) {
+            if (!ranges) return 50;
+            
+            // Define visual scale: green zone is 30-70% of the bar (middle 40%)
+            const greenStartPercent = 30;
+            const greenEndPercent = 70;
+            const greenWidthPercent = 40;
+            
+            if (reverse) {
+                // For "< value" format (e.g., PSA < 3.0)
+                // Green zone represents 0 to max, positioned at 0-70%
+                if (value >= ranges.red.min) {
+                    // Red zone (over limit) - position in red area (70-100%)
+                    const redStart = referenceMax || ranges.red.min;
+                    const redRange = (ranges.red.max - redStart) || 1;
+                    const positionInRed = Math.min(100, greenEndPercent + ((value - redStart) / redRange) * 30);
+                    return positionInRed;
+                } else {
+                    // Green zone (within limit) - position in green area (0-70%)
+                    const greenRange = ranges.green.max;
+                    const positionInGreen = (value / greenRange) * greenEndPercent;
+                    return Math.max(0, Math.min(greenEndPercent, positionInGreen));
+                }
+            } else {
+                // For range format (e.g., 27-42)
+                // Need to calculate position based on actual value relative to reference range
+                const refMin = referenceMin || ranges.green.min;
+                const refMax = referenceMax || ranges.green.max;
+                const refRange = refMax - refMin;
+                
+                if (value >= ranges.green.min && value <= ranges.green.max) {
+                    // Green zone - position in middle 40% based on value
+                    const positionInRange = (value - refMin) / refRange;
+                    const positionInGreen = greenStartPercent + (positionInRange * greenWidthPercent);
+                    return Math.max(greenStartPercent, Math.min(greenEndPercent, positionInGreen));
+                } else if (value < ranges.green.min) {
+                    // Red zone (below range) - position in left red area (0-30%)
+                    const belowRange = ranges.green.min;
+                    const positionInRed = (value / belowRange) * greenStartPercent;
+                    return Math.max(0, Math.min(greenStartPercent, positionInRed));
+                } else {
+                    // Red zone (above range) - position in right red area (70-100%)
+                    const aboveRange = ranges.green.max;
+                    const maxDisplayValue = Math.max(value, refMax * 1.5); // Extend scale
+                    const positionInRed = greenEndPercent + ((value - aboveRange) / (maxDisplayValue - aboveRange)) * 30;
+                    return Math.max(greenEndPercent, Math.min(100, positionInRed));
+                }
+            }
+        }
+
+        function getIndicatorColor(value, ranges, reverse) {
+            if (!ranges) return 'var(--accent)';
+            
+            if (reverse) {
+                // For "< value" format
+                if (ranges.red && value >= ranges.red.min) return 'var(--danger)'; // Red (over limit)
+                if (ranges.green && value >= ranges.green.min && value <= ranges.green.max) return 'var(--accent)'; // Green (within limit)
+                return 'var(--danger)'; // Default to red
+            } else {
+                // For range format
+                if (ranges.green && value >= ranges.green.min && value <= ranges.green.max) return 'var(--accent)'; // Green (within range)
+                if (ranges.redLower && value >= ranges.redLower.min && value <= ranges.redLower.max) return 'var(--danger)'; // Red (below range)
+                if (ranges.redUpper && value >= ranges.redUpper.min) return 'var(--danger)'; // Red (above range)
+                return 'var(--danger)'; // Default to red
+            }
+        }
+
+        function createBiomarkerElement(biomarker, index) {
+            const element = document.createElement('div');
+            element.className = 'biomarker';
+            
+            // Get reference values for position calculation
+            const refMin = biomarker.ranges && biomarker.ranges.green ? biomarker.ranges.green.min : null;
+            const refMax = biomarker.ranges && biomarker.ranges.green ? biomarker.ranges.green.max : null;
+            
+            const position = biomarker.ranges ? calculatePosition(biomarker.value, biomarker.ranges, biomarker.reverse, refMin, refMax) : 50;
+            const indicatorColor = biomarker.ranges ? getIndicatorColor(biomarker.value, biomarker.ranges, biomarker.reverse) : 'var(--accent)';
+            
+            // Use originalValueStr if available (from import), otherwise format normally
+            const displayValue = biomarker.originalValueStr !== undefined ? biomarker.originalValueStr : (biomarker.formatFunc ? biomarker.formatFunc(biomarker.value) : biomarker.value.toFixed(1));
+            
+            // Create dynamic range bar - green zone is always 30-70% (middle 40%)
+            const greenStartPercent = biomarker.ranges && biomarker.ranges.reverse ? 0 : 30;
+            const greenWidthPercent = biomarker.ranges && biomarker.ranges.reverse ? 70 : 40;
+            const greenZoneEnd = greenStartPercent + greenWidthPercent;
+            
+            // Create smooth continuous gradient with blending colors
+            // Using orange/yellow intermediate colors for smooth transitions
+            const transitionWidth = 10; // Width of transition zone in percentage
+            const rangeBarStyle = `
+                background: linear-gradient(to right,
+                    var(--danger) 0%,
+                    var(--danger) ${Math.max(0, greenStartPercent - transitionWidth)}%,
+                    #ffa085 ${greenStartPercent - transitionWidth * 0.6}%,
+                    #ffcc7a ${greenStartPercent - transitionWidth * 0.3}%,
+                    #ffe066 ${greenStartPercent}%,
+                    var(--accent) ${greenStartPercent + transitionWidth * 0.3}%,
+                    var(--accent) ${greenZoneEnd - transitionWidth * 0.3}%,
+                    #ffe066 ${greenZoneEnd}%,
+                    #ffcc7a ${greenZoneEnd + transitionWidth * 0.3}%,
+                    #ffa085 ${greenZoneEnd + transitionWidth * 0.6}%,
+                    var(--danger) ${Math.min(100, greenZoneEnd + transitionWidth)}%,
+                    var(--danger) 100%);
+            `;
+            
+            // Check if this is a custom biomarker (has noteInput instead of explanation)
+            const hasNoteInput = biomarker.hasNoteInput !== undefined ? biomarker.hasNoteInput : false;
+            
+            element.innerHTML = `
+                <button class="biomarker-remove" aria-label="Ta bort biomarker" title="Ta bort detta prov">×</button>
+                <h3>${biomarker.name}</h3>
+                <input type="number" 
+                       class="value-input" 
+                       value="${biomarker.inputValue !== undefined ? biomarker.inputValue : (biomarker.originalValueStr !== undefined ? biomarker.originalValueStr : biomarker.value)}"
+                       step="${biomarker.step || '0.1'}"
+                       data-index="${index}"
+                       data-ref-min="${refMin || ''}"
+                       data-ref-max="${refMax || ''}">
+                <span class="unit">${biomarker.unit}</span>
+                <div class="range-bar" style="${rangeBarStyle}">
+                    <div class="indicator" style="left: ${position}%; background: ${indicatorColor}">
+                        ${biomarker.inputValue !== undefined ? biomarker.inputValue : displayValue}
+                    </div>
+                </div>
+                <div class="range-labels">
+                    <span>${biomarker.labels.red || ''}</span>
+                    <span>${biomarker.labels.green || ''}</span>
+                </div>
+                ${hasNoteInput ? 
+                    `<textarea class="biomarker-note" placeholder="Skriv en kort notering här..." data-index="${index}">${biomarker.note || ''}</textarea>` :
+                    `<p class="explanation">${biomarker.explanation || ''}</p>`
+                }
+            `;
+            
+            // Initialize textarea height if it's a note input
+            if (hasNoteInput) {
+                const noteTextarea = element.querySelector('.biomarker-note');
+                if (noteTextarea) {
+                    // Set initial height based on content
+                    noteTextarea.style.height = 'auto';
+                    noteTextarea.style.height = `${noteTextarea.scrollHeight}px`;
+                }
+            }
+            
+            // Add event listener for remove button
+            const removeButton = element.querySelector('.biomarker-remove');
+            removeButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                const biomarkerIndex = parseInt(e.target.closest('.biomarker').querySelector('.value-input').dataset.index);
+                
+                element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(100%)';
+                
+                setTimeout(() => {
+                    element.remove();
+                    // Remove from biomarkers array
+                    if (biomarkerIndex >= 0 && biomarkerIndex < biomarkers.length) {
+                        biomarkers.splice(biomarkerIndex, 1);
+                    }
+                    // Update indices for remaining biomarkers
+                    updateBiomarkerIndices();
+                }, 300);
+            });
+            
+            return element;
+        }
+
+        // Function to update indices after removing a biomarker
+        function updateBiomarkerIndices() {
+            const biomarkerElements = document.querySelectorAll('.biomarker');
+            biomarkerElements.forEach((element, newIndex) => {
+                const input = element.querySelector('.value-input');
+                if (input) {
+                    input.dataset.index = newIndex.toString();
+                }
+                const noteTextarea = element.querySelector('.biomarker-note');
+                if (noteTextarea) {
+                    noteTextarea.dataset.index = newIndex.toString();
+                }
+            });
+        }
+
+        // Update the input event listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('#biomarkerPage .container');
+            if (container) {
+                container.addEventListener('input', e => {
+                    if (e.target.matches('.value-input')) {
+                        const index = parseInt(e.target.dataset.index);
+                        const biomarker = biomarkers[index];
+                        if (!biomarker) return;
+                        
+                        const newValue = parseFloat(e.target.value);
+                        const indicator = e.target.closest('.biomarker').querySelector('.indicator');
+                        const refMin = parseFloat(e.target.dataset.refMin) || null;
+                        const refMax = parseFloat(e.target.dataset.refMax) || null;
+                        
+                        // Update biomarker value in array
+                        biomarker.value = newValue;
+                        if (biomarker.inputValue !== undefined) {
+                            biomarker.inputValue = e.target.value;
+                        }
+                        
+                        if (biomarker.ranges) {
+                            const position = calculatePosition(newValue, biomarker.ranges, biomarker.reverse, refMin, refMax);
+                            const indicatorColor = getIndicatorColor(newValue, biomarker.ranges, biomarker.reverse);
+                            indicator.style.left = `${position}%`;
+                            indicator.style.background = indicatorColor;
+                        }
+                        
+                        // Use the exact value from input field (preserve decimal places)
+                        // This ensures indicator matches input field exactly
+                        indicator.textContent = e.target.value;
+                    } else if (e.target.matches('.biomarker-note')) {
+                        // Update biomarker note in array
+                        const index = parseInt(e.target.dataset.index);
+                        const biomarker = biomarkers[index];
+                        if (biomarker) {
+                            biomarker.note = e.target.value;
+                        }
+                        
+                        // Auto-expand textarea
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                    }
+                });
+            }
+        });
+
+        // Date input initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('analysis-date');
+            if (dateInput) {
+                dateInput.valueAsDate = new Date();
+            }
+        });
+
+        // Comments box functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const tolkatAvDropdown = document.getElementById("tolkat-av");
+            const otherInputContainer = document.getElementById("other-input-container");
+            
+            if (tolkatAvDropdown) {
+                tolkatAvDropdown.addEventListener("change", (event) => {
+                    if (otherInputContainer) {
+                        otherInputContainer.style.display = event.target.value === "Other" ? "block" : "none";
+                    }
+                });
+            }
+        });
+
+        // Auto-expand textarea
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.querySelector('.comments-box textarea');
+            if (textarea) {
+                textarea.addEventListener('input', () => {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = `${textarea.scrollHeight}px`;
+                });
+            }
+        });
+
+        function exportToExcel() {
+            try {
+                const date = document.getElementById('analysis-date').value;
+                const name = document.getElementById('patient-name').value.trim();
+                const personnummer = document.getElementById('patient-id').value.trim();
+
+                if (!date || !name || !personnummer) {
+                    alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                    return;
+                }
+
+                const sanitizedDate = date.replace(/-/g, '');
+                const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+                const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+                const filename = `Blodprover_Alla_${sanitizedDate}_${sanitizedName}_${sanitizedPersonnummer}.xlsx`;
+
+                const comment = document.querySelector('.comments-box textarea').value || "Ingen kommentar";
+                const dropdown = document.getElementById("tolkat-av");
+                let interpretedBy = dropdown.value;
+                if (interpretedBy === "Other") {
+                    const otherInput = document.getElementById("other-input").value.trim();
+                    interpretedBy = otherInput || "Okänt namn";
+                }
+
+                const biomarkerInputs = document.querySelectorAll('.value-input');
+                const biomarkerNames = biomarkers.map(b => b.name);
+                const biomarkerValues = Array.from(biomarkerInputs).map(input => parseFloat(input.value));
+
+                const headers = [
+                    'Datum',
+                    'Namn',
+                    'Personnummer',
+                    ...biomarkerNames,
+                    'Tolkning av resultat',
+                    'Tolkat av'
+                ];
+                const values = [
+                    date,
+                    name,
+                    personnummer,
+                    ...biomarkerValues,
+                    comment,
+                    interpretedBy
+                ];
+
+                const wsData = [headers, values];
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = headers.map(() => ({ wch: 20 }));
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Resultat");
+                wb.Props = {
+                    Title: "Resultat Blodprover - Alla Prover",
+                    Subject: "Blodprovsanalys",
+                    Author: "SENTION",
+                    CreatedDate: new Date()
+                };
+
+                XLSX.writeFile(wb, filename);
+            } catch (error) {
+                console.error("An error occurred during the export process:", error);
+                alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
+            }
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        alert("Excel-filen verkar vara tom eller saknar data.");
+                        return;
+                    }
+
+                    // Parse headers (first row)
+                    const headers = jsonData[0].map(h => String(h || '').trim());
+                    
+                    // Find column indices
+                    const nameColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('analys') || h.toLowerCase().includes('undersökning') || h.toLowerCase().includes('namn')
+                    );
+                    const dateColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('datum') || h.toLowerCase().includes('date')
+                    );
+                    const resultColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('resultat') || h.toLowerCase().includes('värde') || h.toLowerCase().includes('value')
+                    );
+                    const unitColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('enhet') || h.toLowerCase().includes('unit')
+                    );
+                    const refRangeColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('referensintervall') || h.toLowerCase().includes('referens') || h.toLowerCase().includes('reference')
+                    );
+
+                    if (nameColIndex === -1 || resultColIndex === -1) {
+                        alert("Kunde inte hitta nödvändiga kolumner i Excel-filen. Förväntade kolumner: 'Analys/Undersökning' och 'Resultat'.");
+                        return;
+                    }
+
+                    // Normalize biomarker names for matching
+                    function normalizeName(name) {
+                        if (!name) return '';
+                        let normalized = String(name)
+                            .replace(/[–\-]/g, '-')  // Normalize dashes
+                            .replace(/\s+/g, ' ')     // Normalize spaces
+                            .replace(/\s*,\s*/g, ',') // Normalize commas
+                            .replace(/\s*\/\s*/g, '/') // Normalize slashes
+                            .trim()
+                            .toLowerCase();
+                        
+                        // Handle special cases - order matters!
+                        // First handle Triglycerid variations
+                        if (normalized.includes('triglycerid')) {
+                            // P(fPt)-Triglycerid, P(fpt)-Triglycerid, etc. -> fP-Triglycerid
+                            normalized = normalized.replace(/^p\([^)]*\)-triglycerid$/gi, 'fp-triglycerid');
+                            // fp-triglycerid, fP-triglycerid -> fp-triglycerid
+                            normalized = normalized.replace(/^fp-triglycerid$/gi, 'fp-triglycerid');
+                        }
+                        
+                        // Handle LDL/HDL kvot variations
+                        if (normalized.includes('ldl') && normalized.includes('hdl') && (normalized.includes('kv') || normalized.includes('kvot'))) {
+                            // P-LDL-kol/HDL-kol kv, P-LDL-kol/HDL-kvot, etc. -> p-ldl-kol/hdl-kvot
+                            normalized = normalized.replace(/ldl.*kol.*hdl.*kol.*kv/gi, 'ldl-kol/hdl-kvot');
+                            normalized = normalized.replace(/ldl.*kol.*hdl.*kvot/gi, 'ldl-kol/hdl-kvot');
+                            normalized = normalized.replace(/ldl.*kol.*hdl.*kv/gi, 'ldl-kol/hdl-kvot');
+                        }
+                        
+                        // Other special cases
+                        normalized = normalized
+                            .replace(/\(fpt\)/gi, 'faste')
+                            .replace(/\(ft4\)/gi, 'fritt (ft4)')
+                            .replace(/t4,\s*fritt/gi, 't4, fritt (ft4)')
+                            .replace(/tyrotropin.*tsh/gi, 'tyrotropin (tsh)')
+                            .replace(/^tsh$/gi, 'tyrotropin (tsh)')
+                            .replace(/psa/gi, 'psa')
+                            .replace(/kvot/gi, 'kvot')
+                            .replace(/kol,\s*beräknat/gi, 'kol, beräknat')
+                            .replace(/non\s*[-–]?\s*hdl/gi, 'non-hdl')
+                            .replace(/non\s*hdl/gi, 'non-hdl')
+                            .replace(/glukos$/gi, 'glukos (faste)')
+                            .replace(/^p-glukos$/gi, 'fp-glukos (faste)')
+                            .replace(/kobalamin$/gi, 'kobalamin (b12)')
+                            .replace(/b12$/gi, 'kobalamin (b12)')
+                            .replace(/^25-hydroxivitamind$/gi, '25-hydroxivitamind');
+                        
+                        return normalized;
+                    }
+
+                    // Create a map of normalized biomarker names to their full biomarker objects
+                    const biomarkerMap = new Map();
+                    biomarkers.forEach(bio => {
+                        const normalized = normalizeName(bio.name);
+                        biomarkerMap.set(normalized, bio);
+                    });
+
+                    let dateSet = false;
+                    const importedBiomarkers = [];
+
+                    // Process data rows (skip header row)
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (!row || row.length === 0) continue;
+
+                        const biomarkerName = String(row[nameColIndex] || '').trim();
+                        const resultValue = row[resultColIndex];
+                        const dateValue = dateColIndex >= 0 ? row[dateColIndex] : null;
+                        const refRangeValue = refRangeColIndex >= 0 ? String(row[refRangeColIndex] || '').trim() : '';
+                        const unitValue = unitColIndex >= 0 ? String(row[unitColIndex] || '').trim() : '';
+
+                        if (!biomarkerName || resultValue === undefined || resultValue === null || resultValue === '') {
+                            continue;
+                        }
+
+                        // Set date if available (use first date found)
+                        if (!dateSet && dateValue && dateColIndex >= 0) {
+                            try {
+                                let dateStr = String(dateValue);
+                                // Handle Excel date serial numbers
+                                if (typeof dateValue === 'number') {
+                                    const excelDate = XLSX.SSF.parse_date_code(dateValue);
+                                    if (excelDate) {
+                                        dateStr = `${excelDate.y}-${String(excelDate.m).padStart(2, '0')}-${String(excelDate.d).padStart(2, '0')}`;
+                                    }
+                                } else {
+                                    // Try to parse date string
+                                    const date = new Date(dateValue);
+                                    if (!isNaN(date.getTime())) {
+                                        dateStr = date.toISOString().split('T')[0];
+                                    }
+                                }
+                                document.getElementById('analysis-date').value = dateStr;
+                                dateSet = true;
+                            } catch (e) {
+                                console.warn('Could not parse date:', dateValue);
+                            }
+                        }
+
+                        // Normalize and match biomarker name
+                        const normalizedName = normalizeName(biomarkerName);
+                        let matchedBiomarker = null;
+
+                        // Try exact match first
+                        if (biomarkerMap.has(normalizedName)) {
+                            matchedBiomarker = biomarkerMap.get(normalizedName);
+                        } else {
+                            // Try fuzzy matching - find closest match
+                            for (const [norm, bio] of biomarkerMap.entries()) {
+                                if (norm.includes(normalizedName) || normalizedName.includes(norm)) {
+                                    matchedBiomarker = bio;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Get the raw value from Excel and preserve exact decimal places
+                        let rawValue = resultValue;
+                        let originalValueStr = null;
+                        
+                        // Preserve the original string representation from Excel
+                        if (typeof rawValue === 'number') {
+                            originalValueStr = String(rawValue);
+                        } else {
+                            originalValueStr = String(rawValue).trim();
+                            originalValueStr = originalValueStr.replace(',', '.');
+                        }
+                        
+                        // Convert to number for calculations
+                        const numValue = parseFloat(originalValueStr);
+                        
+                        if (isNaN(numValue)) {
+                            console.warn(`Could not parse value for ${biomarkerName}: ${resultValue}`);
+                            continue;
+                        }
+
+                        if (matchedBiomarker) {
+                            // Use existing biomarker with matched information
+                            const importedBio = {
+                                ...matchedBiomarker,
+                                value: numValue,
+                                originalValueStr: originalValueStr,
+                                inputValue: originalValueStr // Preserve exact decimal places for display
+                            };
+                            importedBiomarkers.push(importedBio);
+                        } else {
+                            // Create new biomarker from Excel data
+                            // Parse reference range from Excel
+                            let parsedRefRange = null;
+                            if (refRangeValue) {
+                                parsedRefRange = parseValue(refRangeValue);
+                            }
+                            
+                            const ranges = parsedRefRange ? createRanges(parsedRefRange, parsedRefRange.isLessThan) : null;
+                            const { min, max, isLessThan } = parsedRefRange || { min: null, max: null, isLessThan: false };
+                            
+                            // Determine step and format based on unit
+                            let step = '0.1';
+                            let formatFunc = (v) => v.toFixed(1);
+                            
+                            if (unitValue.includes('x10') || unitValue === 'g/L' || unitValue === 'µg/L' || unitValue === 'µmol/L' || unitValue === 'pmol/L' || unitValue === 'nmol/L' || unitValue === 'mIE/L' || unitValue === 'fL' || unitValue === 'pg') {
+                                step = '1';
+                                formatFunc = (v) => Math.round(v);
+                            } else if (unitValue === 'Kvot') {
+                                step = '0.1';
+                                formatFunc = (v) => v.toFixed(1);
+                            } else if (unitValue === 'mmol/L' || unitValue === 'mmol/mol') {
+                                step = '0.01';
+                                formatFunc = (v) => v.toFixed(2);
+                            }
+                            
+                            // Create labels
+                            let labels = { red: '', green: '' };
+                            if (ranges) {
+                                const formatMin = (v) => {
+                                    if (unitValue.includes('x10') || unitValue === 'g/L' || unitValue === 'µg/L' || unitValue === 'µmol/L' || unitValue === 'pmol/L' || unitValue === 'nmol/L' || unitValue === 'mIE/L' || unitValue === 'fL' || unitValue === 'pg') {
+                                        return Math.round(v).toString();
+                                    }
+                                    if (unitValue === 'Kvot') {
+                                        return v.toFixed(1);
+                                    }
+                                    return v.toFixed(1);
+                                };
+                                
+                                if (ranges.reverse) {
+                                    labels.red = `Röd: Över ${formatMin(max)} ${unitValue}`;
+                                    labels.green = `Grön: Under ${formatMin(max)} ${unitValue} (Referensintervall: < ${formatMin(max)} ${unitValue})`;
+                                } else {
+                                    labels.red = `Röd: Under ${formatMin(min)} eller över ${formatMin(max)} ${unitValue}`;
+                                    labels.green = `Grön: Mellan ${formatMin(min)}-${formatMin(max)} ${unitValue} (Referensintervall)`;
+                                }
+                            }
+                            
+                            const newBiomarker = {
+                                name: biomarkerName, // Use exact name from Excel
+                                unit: unitValue || '',
+                                value: numValue,
+                                originalValueStr: originalValueStr,
+                                inputValue: originalValueStr, // Preserve exact decimal places for display
+                                ranges: ranges,
+                                explanation: '', // No explanation for new biomarkers
+                                reverse: ranges ? ranges.reverse : false,
+                                step: step,
+                                formatFunc: formatFunc,
+                                labels: labels,
+                                hasNoteInput: true, // Use input field for notes
+                                note: '' // Initial empty note
+                            };
+                            
+                            importedBiomarkers.push(newBiomarker);
+                        }
+                    }
+
+                    // Clear container and create new elements
+                    const container = document.querySelector('#biomarkerPage .container');
+                    container.innerHTML = '';
+                    
+                    // Update biomarkers array
+                    biomarkers = importedBiomarkers; // Keep all properties including inputValue
+                    
+                    // Create and append biomarker elements
+                    biomarkers.forEach((bio, index) => {
+                        container.appendChild(createBiomarkerElement(bio, index));
+                    });
+
+                    // Reset file input
+                    event.target.value = '';
+
+                    if (importedBiomarkers.length > 0) {
+                        alert(`Importerade ${importedBiomarkers.length} blodprovsvärden från Excel-filen!`);
+                    } else {
+                        alert("Inga värden kunde importeras. Kontrollera att Excel-filen innehåller korrekt data.");
+                    }
+                } catch (error) {
+                    console.error("Error importing Excel file:", error);
+                    alert("Ett fel inträffade vid importen. Kontrollera att filen är korrekt formaterad.");
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportAsJPEG() {
+            const element = document.body;
+            const buttons = document.querySelectorAll('.export-button');
+            const textarea = document.querySelector('.comments-box textarea');
+            const dropdown = document.getElementById('tolkat-av');
+            const commentsBox = document.querySelector('.comments-box');
+            const hideCommentsCheckbox = document.getElementById('hide-comments-export');
+
+            const date = document.getElementById('analysis-date').value;
+            const name = document.getElementById('patient-name').value.trim();
+            const personnummer = document.getElementById('patient-id').value.trim();
+
+            if (!date || !name || !personnummer) {
+                alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                return;
+            }
+
+            // Scroll to top before capturing to ensure we start from the beginning
+            window.scrollTo(0, 0);
+
+            const nameInput = document.getElementById('patient-name');
+            const personnummerInput = document.getElementById('patient-id');
+
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = name;
+            nameDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(nameInput).padding};
+                border: ${window.getComputedStyle(nameInput).border};
+                border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+                width: auto;
+                min-width: ${nameInput.offsetWidth}px;
+                background: ${window.getComputedStyle(nameInput).backgroundColor};
+                color: ${window.getComputedStyle(nameInput).color};
+                text-align: left;
+            `;
+            nameInput.style.display = 'none';
+            nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+            const personnummerDiv = document.createElement('div');
+            personnummerDiv.textContent = personnummer;
+            personnummerDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(personnummerInput).padding};
+                border: ${window.getComputedStyle(personnummerInput).border};
+                border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+                width: auto;
+                min-width: ${personnummerInput.offsetWidth}px;
+                background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+                color: ${window.getComputedStyle(personnummerInput).color};
+                text-align: left;
+            `;
+            personnummerInput.style.display = 'none';
+            personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+            const formattedDate = date.replace(/-/g, '');
+            const filename = `Blodprover_Alla_${formattedDate}_${name}_${personnummer}.jpeg`;
+
+            buttons.forEach(button => button.classList.add('hide-on-export'));
+            
+            // Ensure all textarea note fields have correct height before export
+            const noteTextareas = document.querySelectorAll('.biomarker-note');
+            const noteTextareaDivs = [];
+            noteTextareas.forEach(textarea => {
+                // Ensure height is correct
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+                
+                // Create a div to replace the textarea for export
+                const noteDiv = document.createElement('div');
+                noteDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+                noteDiv.style.cssText = `
+                    display: block;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    font-family: ${window.getComputedStyle(textarea).fontFamily};
+                    font-size: ${window.getComputedStyle(textarea).fontSize};
+                    line-height: ${window.getComputedStyle(textarea).lineHeight};
+                    padding: ${window.getComputedStyle(textarea).padding};
+                    border: ${window.getComputedStyle(textarea).border};
+                    border-radius: ${window.getComputedStyle(textarea).borderRadius};
+                    width: ${textarea.offsetWidth}px;
+                    min-height: ${textarea.offsetHeight}px;
+                    background: ${window.getComputedStyle(textarea).backgroundColor};
+                    color: ${window.getComputedStyle(textarea).color};
+                    margin-top: ${window.getComputedStyle(textarea).marginTop};
+                    margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+                `;
+                textarea.style.display = 'none';
+                textarea.parentNode.insertBefore(noteDiv, textarea);
+                noteTextareaDivs.push({ textarea, noteDiv });
+            });
+            
+            // Hide comments box if checkbox is checked
+            const commentsBoxOriginalDisplay = commentsBox.style.display;
+            if (hideCommentsCheckbox && hideCommentsCheckbox.checked) {
+                commentsBox.style.display = 'none';
+            }
+
+            const dropdownValue = dropdown.options[dropdown.selectedIndex].text;
+            const dropdownDiv = document.createElement('div');
+            dropdownDiv.textContent = dropdownValue;
+            dropdownDiv.style.cssText = `
+                display: block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(dropdown).padding};
+                border: ${window.getComputedStyle(dropdown).border};
+                border-radius: ${window.getComputedStyle(dropdown).borderRadius};
+                width: ${dropdown.offsetWidth}px;
+                background: ${window.getComputedStyle(dropdown).backgroundColor};
+                color: ${window.getComputedStyle(dropdown).color};
+                text-align: left;
+                height: auto;
+            `;
+            dropdown.style.display = 'none';
+            dropdown.parentNode.insertBefore(dropdownDiv, dropdown);
+
+            const textareaDiv = document.createElement('div');
+            textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+            textareaDiv.style.cssText = `
+                display: block;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(textarea).padding};
+                border: ${window.getComputedStyle(textarea).border};
+                border-radius: ${window.getComputedStyle(textarea).borderRadius};
+                width: ${textarea.offsetWidth}px;
+                background: ${window.getComputedStyle(textarea).backgroundColor};
+                color: ${window.getComputedStyle(textarea).color};
+                margin-top: ${window.getComputedStyle(textarea).marginTop};
+                margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+            `;
+            textarea.style.display = 'none';
+            textarea.parentNode.insertBefore(textareaDiv, textarea);
+
+            // Wait a moment for DOM to update and scroll to settle before capturing
+            setTimeout(() => {
+                // Calculate the full height of the content
+                const fullHeight = Math.max(
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.clientHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
+                );
+                
+                const fullWidth = Math.max(
+                    document.body.scrollWidth,
+                    document.body.offsetWidth,
+                    document.documentElement.clientWidth,
+                    document.documentElement.scrollWidth,
+                    document.documentElement.offsetWidth
+                );
+
+                html2canvas(element, { 
+                    scale: 2, 
+                    useCORS: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: fullWidth,
+                    windowHeight: fullHeight,
+                    backgroundColor: '#F0EEEC',
+                    allowTaint: false
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = canvas.toDataURL('image/jpeg', 1.0);
+                    link.click();
+
+                    dropdown.style.display = 'block';
+                    dropdownDiv.remove();
+                    textarea.style.display = 'block';
+                    textareaDiv.remove();
+                    nameInput.style.display = 'block';
+                    nameDiv.remove();
+                    personnummerInput.style.display = 'block';
+                    personnummerDiv.remove();
+                    
+                    // Restore note textareas
+                    noteTextareaDivs.forEach(({ textarea, noteDiv }) => {
+                        textarea.style.display = 'block';
+                        noteDiv.remove();
+                    });
+                    
+                    // Restore comments box display
+                    commentsBox.style.display = commentsBoxOriginalDisplay || '';
+
+                    buttons.forEach(button => button.classList.remove('hide-on-export'));
+                }).catch(error => {
+                    console.error("An error occurred while exporting the page as JPEG:", error);
+                    alert("Ett fel inträffade vid exporten. Kontrollera konsolen för mer information.");
+
+                    dropdown.style.display = 'block';
+                    dropdownDiv.remove();
+                    textarea.style.display = 'block';
+                    textareaDiv.remove();
+                    nameInput.style.display = 'block';
+                    nameDiv.remove();
+                    personnummerInput.style.display = 'block';
+                    personnummerDiv.remove();
+                    
+                    // Restore note textareas
+                    noteTextareaDivs.forEach(({ textarea, noteDiv }) => {
+                        textarea.style.display = 'block';
+                        noteDiv.remove();
+                    });
+                    
+                    // Restore comments box display
+                    commentsBox.style.display = commentsBoxOriginalDisplay || '';
+
+                    buttons.forEach(button => button.classList.remove('hide-on-export'));
+                });
+            }, 300);
+        }
+
+        function exportAsJPEGSplit() {
+            const date = document.getElementById('analysis-date').value;
+            const name = document.getElementById('patient-name').value.trim();
+            const personnummer = document.getElementById('patient-id').value.trim();
+
+            if (!date || !name || !personnummer) {
+                alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                return;
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+
+            const buttons = document.querySelectorAll('.export-button');
+            const nameInput = document.getElementById('patient-name');
+            const personnummerInput = document.getElementById('patient-id');
+            const header = document.querySelector('.header');
+            const inputFields = document.querySelector('.input-fields');
+            const biomarkers = Array.from(document.querySelectorAll('.biomarker'));
+            const footerLogo = document.querySelector('.footer-logo');
+
+            // Hide buttons
+            buttons.forEach(button => button.classList.add('hide-on-export'));
+
+            // Prepare name and personnummer divs
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = name;
+            nameDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(nameInput).padding};
+                border: ${window.getComputedStyle(nameInput).border};
+                border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+                width: auto;
+                min-width: ${nameInput.offsetWidth}px;
+                background: ${window.getComputedStyle(nameInput).backgroundColor};
+                color: ${window.getComputedStyle(nameInput).color};
+                text-align: left;
+            `;
+            nameInput.style.display = 'none';
+            nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+            const personnummerDiv = document.createElement('div');
+            personnummerDiv.textContent = personnummer;
+            personnummerDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(personnummerInput).padding};
+                border: ${window.getComputedStyle(personnummerInput).border};
+                border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+                width: auto;
+                min-width: ${personnummerInput.offsetWidth}px;
+                background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+                color: ${window.getComputedStyle(personnummerInput).color};
+                text-align: left;
+            `;
+            personnummerInput.style.display = 'none';
+            personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+            // Split biomarkers into groups of 4
+            const maxPerImage = 4;
+            const biomarkerGroups = [];
+            for (let i = 0; i < biomarkers.length; i += maxPerImage) {
+                biomarkerGroups.push(biomarkers.slice(i, i + maxPerImage));
+            }
+
+            if (biomarkerGroups.length === 0) {
+                alert("Inga biomarkörer att exportera.");
+                buttons.forEach(button => button.classList.remove('hide-on-export'));
+                nameInput.style.display = 'block';
+                nameDiv.remove();
+                personnummerInput.style.display = 'block';
+                personnummerDiv.remove();
+                return;
+            }
+
+            // Process each group
+            let currentGroup = 0;
+            const formattedDate = date.replace(/-/g, '');
+            
+            function processNextGroup() {
+                if (currentGroup >= biomarkerGroups.length) {
+                    // All done, restore everything
+                    buttons.forEach(button => button.classList.remove('hide-on-export'));
+                    nameInput.style.display = 'block';
+                    nameDiv.remove();
+                    personnummerInput.style.display = 'block';
+                    personnummerDiv.remove();
+                    return;
+                }
+
+                const group = biomarkerGroups[currentGroup];
+                
+                // Create a temporary container for this group
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    position: absolute;
+                    left: -9999px;
+                    width: ${document.body.offsetWidth}px;
+                    background: #F0EEEC;
+                    padding: 1rem;
+                    min-height: 100vh;
+                `;
+
+                // Clone header and input fields (only for first image)
+                if (currentGroup === 0) {
+                    const headerClone = header.cloneNode(true);
+                    tempContainer.appendChild(headerClone);
+                    
+                    // Clone input fields container
+                    const inputFieldsContainer = document.createElement('div');
+                    inputFieldsContainer.className = 'input-fields';
+                    inputFieldsContainer.style.cssText = `
+                        max-width: 1200px;
+                        margin: 1.5rem auto;
+                        padding: 1rem;
+                        background: #ffffff;
+                        border-radius: 15px;
+                        display: flex;
+                        gap: 1rem;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                    `;
+                    
+                    // Create divs for each input field
+                    const nameDivClone = document.createElement('div');
+                    nameDivClone.textContent = name;
+                    nameDivClone.style.cssText = `
+                        display: inline-block;
+                        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                        font-size: 0.9rem;
+                        line-height: 1.2rem;
+                        padding: 0.8rem;
+                        border: 1px solid #ccc;
+                        border-radius: 7px;
+                        width: auto;
+                        min-width: 150px;
+                        background: white;
+                        color: #000000;
+                        text-align: left;
+                    `;
+                    inputFieldsContainer.appendChild(nameDivClone);
+                    
+                    const personnummerDivClone = document.createElement('div');
+                    personnummerDivClone.textContent = personnummer;
+                    personnummerDivClone.style.cssText = `
+                        display: inline-block;
+                        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                        font-size: 0.9rem;
+                        line-height: 1.2rem;
+                        padding: 0.8rem;
+                        border: 1px solid #ccc;
+                        border-radius: 7px;
+                        width: auto;
+                        min-width: 160px;
+                        background: white;
+                        color: #000000;
+                        text-align: left;
+                    `;
+                    inputFieldsContainer.appendChild(personnummerDivClone);
+                    
+                    const dateInput = document.getElementById('analysis-date');
+                    const dateDivClone = document.createElement('div');
+                    dateDivClone.textContent = date;
+                    dateDivClone.style.cssText = `
+                        display: inline-block;
+                        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                        font-size: 0.9rem;
+                        line-height: 1.2rem;
+                        padding: 0.8rem;
+                        border: 1px solid #ccc;
+                        border-radius: 7px;
+                        width: auto;
+                        min-width: 180px;
+                        background: white;
+                        color: #000000;
+                        text-align: left;
+                    `;
+                    inputFieldsContainer.appendChild(dateDivClone);
+                    
+                    tempContainer.appendChild(inputFieldsContainer);
+                }
+
+                // Clone biomarkers in this group
+                group.forEach(biomarker => {
+                    const biomarkerClone = biomarker.cloneNode(true);
+                    
+                    // Hide remove button
+                    const removeButton = biomarkerClone.querySelector('.biomarker-remove');
+                    if (removeButton) {
+                        removeButton.style.display = 'none';
+                    }
+                    
+                    // Replace inputs with divs
+                    const valueInput = biomarkerClone.querySelector('.value-input');
+                    if (valueInput) {
+                        const valueDiv = document.createElement('div');
+                        valueDiv.textContent = valueInput.value;
+                        valueDiv.style.cssText = `
+                            display: inline-block;
+                            font-family: inherit;
+                            font-size: inherit;
+                            line-height: inherit;
+                            padding: ${window.getComputedStyle(valueInput).padding};
+                            border: ${window.getComputedStyle(valueInput).border};
+                            border-radius: ${window.getComputedStyle(valueInput).borderRadius};
+                            width: auto;
+                            background: ${window.getComputedStyle(valueInput).backgroundColor};
+                            color: ${window.getComputedStyle(valueInput).color};
+                            font-weight: bold;
+                        `;
+                        valueInput.parentNode.replaceChild(valueDiv, valueInput);
+                    }
+                    
+                    // Replace note textareas with divs
+                    const noteTextarea = biomarkerClone.querySelector('.biomarker-note');
+                    if (noteTextarea) {
+                        const noteDiv = document.createElement('div');
+                        noteDiv.innerHTML = noteTextarea.value.replace(/\n/g, '<br>');
+                        noteDiv.style.cssText = `
+                            display: block;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                            font-family: ${window.getComputedStyle(noteTextarea).fontFamily};
+                            font-size: ${window.getComputedStyle(noteTextarea).fontSize};
+                            line-height: ${window.getComputedStyle(noteTextarea).lineHeight};
+                            padding: ${window.getComputedStyle(noteTextarea).padding};
+                            border: ${window.getComputedStyle(noteTextarea).border};
+                            border-radius: ${window.getComputedStyle(noteTextarea).borderRadius};
+                            width: ${noteTextarea.offsetWidth}px;
+                            min-height: ${noteTextarea.scrollHeight}px;
+                            background: ${window.getComputedStyle(noteTextarea).backgroundColor};
+                            color: ${window.getComputedStyle(noteTextarea).color};
+                            margin-top: ${window.getComputedStyle(noteTextarea).marginTop};
+                            margin-bottom: ${window.getComputedStyle(noteTextarea).marginBottom};
+                        `;
+                        noteTextarea.parentNode.replaceChild(noteDiv, noteTextarea);
+                    }
+                    
+                    tempContainer.appendChild(biomarkerClone);
+                });
+
+                // Clone footer logo and add footer text
+                const footerClone = footerLogo.cloneNode(true);
+                footerClone.style.cssText = `
+                    position: relative;
+                    margin-left: auto;
+                    margin-right: 20px;
+                    margin-top: 2rem;
+                    display: flex;
+                    justify-content: flex-end;
+                `;
+                
+                // Create footer text container
+                const footerTextContainer = document.createElement('div');
+                footerTextContainer.style.cssText = `
+                    position: relative;
+                    margin-top: 2rem;
+                    margin-bottom: 20px;
+                    margin-left: 20px;
+                    font-size: 20px !important;
+                    font-weight: normal !important;
+                    line-height: 1.5 !important;
+                    color: #666666 !important;
+                    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+                `;
+                
+                const tolkatAvDropdown = document.getElementById("tolkat-av");
+                const tolkatAv = tolkatAvDropdown ? tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text : "Okänt";
+                const footerText = `${name} | ${personnummer} | Blodprover ${date} | Tolkat av: ${tolkatAv} | Sida ${currentGroup + 1} av ${biomarkerGroups.length}`;
+                footerTextContainer.textContent = footerText;
+                
+                tempContainer.appendChild(footerClone);
+                tempContainer.appendChild(footerTextContainer);
+
+                document.body.appendChild(tempContainer);
+
+                // Wait for DOM to update, then capture
+                setTimeout(() => {
+                    html2canvas(tempContainer, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        scrollX: 0,
+                        scrollY: 0,
+                        backgroundColor: '#F0EEEC',
+                        allowTaint: false
+                    }).then(canvas => {
+                        const filename = `Blodprover_${formattedDate}_${name}_${personnummer}_${currentGroup + 1}.jpeg`;
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = canvas.toDataURL('image/jpeg', 1.0);
+                        link.click();
+
+                        // Remove temporary container
+                        document.body.removeChild(tempContainer);
+
+                        // Process next group
+                        currentGroup++;
+                        setTimeout(processNextGroup, 500); // Small delay between downloads
+                    }).catch(error => {
+                        console.error("Error exporting image:", error);
+                        document.body.removeChild(tempContainer);
+                        buttons.forEach(button => button.classList.remove('hide-on-export'));
+                        nameInput.style.display = 'block';
+                        nameDiv.remove();
+                        personnummerInput.style.display = 'block';
+                        personnummerDiv.remove();
+                        alert("Ett fel inträffade vid exporten av bild " + (currentGroup + 1) + ".");
+                    });
+                }, 300);
+            }
+
+            // Start processing
+            processNextGroup();
+        }
+
+        function exportAsPDF() {
+            const { jsPDF } = window.jspdf;
+            
+            const date = document.getElementById('analysis-date').value;
+            const name = document.getElementById('patient-name').value.trim();
+            const personnummer = document.getElementById('patient-id').value.trim();
+
+            if (!date || !name || !personnummer) {
+                alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+                return;
+            }
+
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.innerText = 'Skapar PDF, var god vänta...';
+            loadingIndicator.style.position = 'fixed';
+            loadingIndicator.style.top = '50%';
+            loadingIndicator.style.left = '50%';
+            loadingIndicator.style.transform = 'translate(-50%, -50%)';
+            loadingIndicator.style.background = 'rgba(255, 255, 255, 0.9)';
+            loadingIndicator.style.padding = '20px';
+            loadingIndicator.style.borderRadius = '8px';
+            loadingIndicator.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            loadingIndicator.style.zIndex = '9999';
+            document.body.appendChild(loadingIndicator);
+            
+            const formattedDate = date.replace(/-/g, '');
+            const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+            const sanitizedPersonnummer = personnummer.replace(/[^a-zA-Z0-9]/g, '');
+            const filename = `Blodprover_Alla_${formattedDate}_${sanitizedName}_${sanitizedPersonnummer}.pdf`;
+
+            const buttons = document.querySelectorAll('.export-button');
+            const textarea = document.querySelector('.comments-box textarea');
+            const dropdown = document.getElementById('tolkat-av');
+            const nameInput = document.getElementById('patient-name');
+            const personnummerInput = document.getElementById('patient-id');
+            const commentsBox = document.querySelector('.comments-box');
+            const hideCommentsCheckbox = document.getElementById('hide-comments-export');
+
+            buttons.forEach(button => button.classList.add('hide-on-export'));
+            
+            // Hide comments box if checkbox is checked
+            const commentsBoxOriginalDisplay = commentsBox.style.display;
+            if (hideCommentsCheckbox && hideCommentsCheckbox.checked) {
+                commentsBox.style.display = 'none';
+            }
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = name;
+            nameDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(nameInput).padding};
+                border: ${window.getComputedStyle(nameInput).border};
+                border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+                width: auto;
+                min-width: ${nameInput.offsetWidth}px;
+                background: ${window.getComputedStyle(nameInput).backgroundColor};
+                color: ${window.getComputedStyle(nameInput).color};
+                text-align: left;
+            `;
+            nameInput.style.display = 'none';
+            nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+            const personnummerDiv = document.createElement('div');
+            personnummerDiv.textContent = personnummer;
+            personnummerDiv.style.cssText = `
+                display: inline-block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(personnummerInput).padding};
+                border: ${window.getComputedStyle(personnummerInput).border};
+                border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+                width: auto;
+                min-width: ${personnummerInput.offsetWidth}px;
+                background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+                color: ${window.getComputedStyle(personnummerInput).color};
+                text-align: left;
+            `;
+            personnummerInput.style.display = 'none';
+            personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+            const dropdownValue = dropdown.options[dropdown.selectedIndex].text;
+            const dropdownDiv = document.createElement('div');
+            dropdownDiv.textContent = dropdownValue;
+            dropdownDiv.style.cssText = `
+                display: block;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(dropdown).padding};
+                border: ${window.getComputedStyle(dropdown).border};
+                border-radius: ${window.getComputedStyle(dropdown).borderRadius};
+                width: ${dropdown.offsetWidth}px;
+                background: ${window.getComputedStyle(dropdown).backgroundColor};
+                color: ${window.getComputedStyle(dropdown).color};
+                text-align: left;
+                height: auto;
+            `;
+            dropdown.style.display = 'none';
+            dropdown.parentNode.insertBefore(dropdownDiv, dropdown);
+
+            const textareaDiv = document.createElement('div');
+            textareaDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
+            textareaDiv.style.cssText = `
+                display: block;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                padding: ${window.getComputedStyle(textarea).padding};
+                border: ${window.getComputedStyle(textarea).border};
+                border-radius: ${window.getComputedStyle(textarea).borderRadius};
+                width: ${textarea.offsetWidth}px;
+                background: ${window.getComputedStyle(textarea).backgroundColor};
+                color: ${window.getComputedStyle(textarea).color};
+                margin-top: ${window.getComputedStyle(textarea).marginTop};
+                margin-bottom: ${window.getComputedStyle(textarea).marginBottom};
+            `;
+            textarea.style.display = 'none';
+            textarea.parentNode.insertBefore(textareaDiv, textarea);
+
+            const pdf = new jsPDF('p', 'pt', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            
+            pdf.setFillColor(240, 238, 236);
+            pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+            
+            const header = document.querySelector('.header');
+            const inputFields = document.querySelector('.input-fields');
+            const biomarkers = document.querySelectorAll('.biomarker');
+            
+            // Load logo image early so we can use it for footer on all pages
+            const logoImg = new Image();
+            logoImg.src = 'https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png';
+            
+            // Helper function to add footer to current page
+            const addFooterToPage = (pdf, logoImg, name, personnummer, date, currentPage, totalPages) => {
+                const logoWidth = 60;
+                const logoHeight = logoWidth * (logoImg.height / logoImg.width);
+                const logoX = pageWidth - logoWidth - 20;
+                const logoY = pageHeight - logoHeight - 20;
+                
+                pdf.addImage(
+                    logoImg,
+                    'PNG',
+                    logoX,
+                    logoY,
+                    logoWidth,
+                    logoHeight
+                );
+                
+                const tolkatAvDropdown = document.getElementById("tolkat-av");
+                const tolkatAv = tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text;
+                const footerText = `${name} | ${personnummer} | Blodprover ${date} | Tolkat av: ${tolkatAv} | Sida ${currentPage} av ${totalPages}`;
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text(footerText, 20, pageHeight - 10);
+            };
+            
+            // Wait for logo to load before proceeding
+            logoImg.onload = function() {
+                const header = document.querySelector('.header');
+                const inputFields = document.querySelector('.input-fields');
+                const biomarkers = document.querySelectorAll('.biomarker');
+                const commentsBoxElement = document.querySelector('.comments-box');
+                
+                html2canvas(header, { 
+                scale: 3,
+                useCORS: true, 
+                backgroundColor: '#ffffff' 
+            }).then(headerCanvas => {
+                const headerImgData = headerCanvas.toDataURL('image/jpeg', 0.95);
+                const headerImgWidth = pageWidth - 40;
+                const headerImgHeight = headerCanvas.height * headerImgWidth / headerCanvas.width;
+                
+                pdf.addImage(
+                    headerImgData,
+                    'JPEG',
+                    20,
+                    20,
+                    headerImgWidth,
+                    headerImgHeight
+                );
+                
+                return html2canvas(inputFields, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            }).then(inputFieldsCanvas => {
+                const inputImgData = inputFieldsCanvas.toDataURL('image/jpeg', 0.95);
+                const inputImgWidth = pageWidth - 40;
+                const inputImgHeight = inputFieldsCanvas.height * inputImgWidth / inputFieldsCanvas.width;
+                
+                let yPos = 50;
+                
+                pdf.addImage(
+                    inputImgData,
+                    'JPEG',
+                    20,
+                    yPos,
+                    inputImgWidth,
+                    inputImgHeight
+                );
+                
+                yPos += inputImgHeight + 20;
+                
+                // Calculate total pages first
+                let totalPages = 1; // Start with 1 for header/input page
+                let testYPos = yPos;
+                const biomarkerPromises = Array.from(biomarkers).map(biomarker => 
+                    html2canvas(biomarker, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+                );
+                
+                return Promise.all([Promise.all(biomarkerPromises), yPos, totalPages]);
+            }).then(([biomarkerCanvases, yPos, initialTotalPages]) => {
+                // Recalculate total pages with actual canvas heights
+                let totalPages = 1; // Start with 1 for header/input page
+                let testYPos = yPos;
+                for (let i = 0; i < biomarkerCanvases.length; i++) {
+                    const canvas = biomarkerCanvases[i];
+                    const imgHeight = (canvas.height * (pageWidth - 40)) / canvas.width;
+                    if (testYPos + imgHeight > pageHeight - 80) {
+                        totalPages++;
+                        testYPos = 20;
+                    }
+                    testYPos += imgHeight + 20;
+                }
+                // Add one more page if comments box is included and doesn't fit
+                if (!hideCommentsCheckbox || !hideCommentsCheckbox.checked) {
+                    const commentsBoxElement = document.querySelector('.comments-box');
+                    if (commentsBoxElement) {
+                        const commentsHeight = commentsBoxElement.offsetHeight;
+                        const commentsImgHeight = (commentsHeight * (pageWidth - 40)) / commentsBoxElement.offsetWidth;
+                        if (testYPos + commentsImgHeight > pageHeight - 80) {
+                            totalPages++;
+                        }
+                    }
+                }
+                
+                let currentYPos = yPos;
+                let currentPage = 1;
+                
+                // Add footer to first page
+                addFooterToPage(pdf, logoImg, name, personnummer, date, currentPage, totalPages);
+                
+                for (let i = 0; i < biomarkerCanvases.length; i++) {
+                    const canvas = biomarkerCanvases[i];
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgWidth = pageWidth - 40;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    if (currentYPos + imgHeight > pageHeight - 80) { // Leave space for footer
+                        // Add footer to current page before adding new page
+                        addFooterToPage(pdf, logoImg, name, personnummer, date, currentPage, totalPages);
+                        
+                        pdf.addPage();
+                        pdf.setFillColor(240, 238, 236);
+                        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                        currentYPos = 20;
+                        currentPage++;
+                    }
+                    
+                    pdf.addImage(
+                        imgData,
+                        'JPEG',
+                        20,
+                        currentYPos,
+                        imgWidth,
+                        imgHeight
+                    );
+                    
+                    currentYPos += imgHeight + 20;
+                }
+                
+                return Promise.all([html2canvas(commentsBoxElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }), currentYPos, currentPage, totalPages]);
+            }).then(([commentsCanvas, yPos, currentPage, totalPages]) => {
+                // Check if comments box should be included
+                if (hideCommentsCheckbox && hideCommentsCheckbox.checked) {
+                    // Skip comments box, just add footer to last page
+                    addFooterToPage(pdf, logoImg, name, personnummer, date, currentPage, totalPages);
+                    
+                    pdf.save(filename);
+                    
+                    document.body.removeChild(loadingIndicator);
+                    
+                    nameInput.style.display = 'block';
+                    nameDiv.remove();
+                    personnummerInput.style.display = 'block';
+                    personnummerDiv.remove();
+                    dropdown.style.display = 'block';
+                    dropdownDiv.remove();
+                    textarea.style.display = 'block';
+                    textareaDiv.remove();
+                    
+                    buttons.forEach(button => button.classList.remove('hide-on-export'));
+                    commentsBox.style.display = commentsBoxOriginalDisplay || '';
+                    return;
+                }
+                
+                const commentsImgData = commentsCanvas.toDataURL('image/jpeg', 0.95);
+                const commentsImgWidth = pageWidth - 40;
+                const commentsImgHeight = commentsCanvas.height * commentsImgWidth / commentsCanvas.width;
+                
+                let currentYPos = yPos;
+                
+                if (currentYPos + commentsImgHeight > pageHeight - 80) { // Leave space for footer
+                    // Add footer to current page before adding new page
+                    addFooterToPage(pdf, logoImg, name, personnummer, date, currentPage, totalPages);
+                    
+                    pdf.addPage();
+                    pdf.setFillColor(240, 238, 236);
+                    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                    currentYPos = 20;
+                    currentPage++;
+                }
+                
+                pdf.addImage(
+                    commentsImgData,
+                    'JPEG',
+                    20,
+                    currentYPos,
+                    commentsImgWidth,
+                    commentsImgHeight
+                );
+                
+                // Add footer to last page
+                addFooterToPage(pdf, logoImg, name, personnummer, date, currentPage, totalPages);
+                
+                pdf.save(filename);
+                
+                document.body.removeChild(loadingIndicator);
+                
+                nameInput.style.display = 'block';
+                nameDiv.remove();
+                personnummerInput.style.display = 'block';
+                personnummerDiv.remove();
+                dropdown.style.display = 'block';
+                dropdownDiv.remove();
+                textarea.style.display = 'block';
+                textareaDiv.remove();
+                
+                buttons.forEach(button => button.classList.remove('hide-on-export'));
+                commentsBox.style.display = commentsBoxOriginalDisplay || '';
+            }).catch(error => {
+                console.error("Ett fel inträffade vid PDF-exporten:", error);
+                alert("Ett fel inträffade vid PDF-exporten. Kontrollera konsolen för mer information.");
+                
+                if (document.body.contains(loadingIndicator)) {
+                    document.body.removeChild(loadingIndicator);
+                }
+                
+                nameInput.style.display = 'block';
+                if (nameDiv) nameDiv.remove();
+                personnummerInput.style.display = 'block';
+                if (personnummerDiv) personnummerDiv.remove();
+                dropdown.style.display = 'block';
+                if (dropdownDiv) dropdownDiv.remove();
+                textarea.style.display = 'block';
+                if (textareaDiv) textareaDiv.remove();
+                
+                buttons.forEach(button => button.classList.remove('hide-on-export'));
+                commentsBox.style.display = commentsBoxOriginalDisplay || '';
+            });
+            };
+        }
+
+        const nameInput = document.getElementById('patient-name');
+        if (nameInput) {
+            nameInput.addEventListener('input', function () {
+                const tempSpan = document.createElement('span');
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.style.position = 'absolute';
+                tempSpan.style.whiteSpace = 'nowrap';
+                tempSpan.style.fontSize = window.getComputedStyle(this).fontSize;
+                tempSpan.style.fontFamily = window.getComputedStyle(this).fontFamily;
+                tempSpan.textContent = this.value || this.placeholder;
+
+                document.body.appendChild(tempSpan);
+                const newWidth = Math.max(tempSpan.offsetWidth + 40, 200); // Minimum 200px width
+                this.style.width = `${newWidth}px`;
+                document.body.removeChild(tempSpan);
+            });
+        }
+    </script>
+</body>
+</html>
+

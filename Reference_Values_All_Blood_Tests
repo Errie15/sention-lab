@@ -1,0 +1,46 @@
+Variable	Type	Value Alternatives (Protocol etc.)	Unit	Age specific reference values (if specified)	Ref (Male min–max)	Ref (Female min–max)
+Protocol	alphanum	"• Sention analys av Blodvärden (Swe) 
+• Sention Blood Test Analysis (Eng)"	–	–	–	–
+Patient name	String	–	–	–	–	–
+Patient surname	String	–	–	–	–	–
+Patient ID	String	yyyymmdd-xxxx	–	–	–	–
+Test date	UTC Date		–	–	–	–
+B–Erytrocyter	Numeric		x10^12/L		4,2 – 5,7	3,9 – 5,2
+B–EVF	Numeric		% (fraktion)		0,39 – 0,50	0,35 – 0,46
+B–HbA1c (IFCC)	Numeric		mmol/mol	<50 years	27 – 42	27 – 42
+B–HbA1c (IFCC)	Numeric		mmol/mol	≥50 years	31 – 46	31 – 46
+B–Hemoglobin	Numeric		g/L		134 – 170	117 – 153
+B–Leukocyter	Numeric		x10^9/L		3,5 – 8,8	3,5 – 8,8
+B–MCV	Numeric		fL		82 – 98	82 – 98
+B–Trombocyter	Numeric		x10^9/L		145 – 348	165 – 387
+Erc(B)–MCH	Numeric		pg		27 – 33	27 – 33
+fP–Glukos (faste)	Numeric		mmol/L		4,2 – 6,0	4,2 – 6,0
+P–ALAT	Numeric		µkat/L		<1,11	<0,76
+P–ASAT	Numeric		µkat/L		<0,76	<0,61
+P–ALP	Numeric		µkat/L		0,70 – 1,9	0,70 – 1,9
+P–Ferritin	Numeric		µg/L		20 – 375	7 – 120
+P–HDL–kolesterol	Numeric		mmol/L		0,8 – 2,1	1,0 – 2,7
+P–Järn	Numeric		µmol/L		9 – 34	9 – 34
+P–Kalium	Numeric		mmol/L		3,5 – 4,4	3,5 – 4,4
+P–Kolesterol	Numeric		mmol/L	18 – 30 years	2,9 – 6,1	2,9 – 6,1
+P–Kolesterol	Numeric		mmol/L	31 – 50 years	3,3 – 6,9	3,3 – 6,9
+P–Kolesterol	Numeric		mmol/L	> 50 years	3,9 – 7,8	3,9 – 7,8
+P–Kreatinin	Numeric		µmol/L		60 – 105	45 – 90
+P–LDL–kol, beräknat	Numeric		mmol/L	18 – 30 years	1,2– 4,3	1,2– 4,3
+P–LDL–kol, beräknat	Numeric		mmol/L	31 – 50 years	1,4 – 4,7	1,4 – 4,7
+P–LDL–kol, beräknat	Numeric		mmol/L	> 50 years	2,0 – 5,3	2,0 – 5,3
+P–LDL–kol/HDL–kvot	Numeric		Kvot		< 5	< 5
+P–Magnesium	Numeric		mmol/L		0,70 – 0,95	0,70 – 0,95
+P–Natrium	Numeric		mmol/L		137 – 145	137 – 145
+P–non–HDL–kolesterol	Numeric		mmol/L	18 – 29 years	1,7–5,0	1,6–4,7
+P–non–HDL–kolesterol	Numeric		mmol/L	30 – 49 years	2,0–6,1	1,9–5,1
+P–non–HDL–kolesterol	Numeric		mmol/L	≥50 years	2,5–6,2	2,4–6,2
+P–PSA	Numeric		µg/L	< 70 years	< 3,0	–
+P–PSA	Numeric		µg/L	70–80 years	< 5,0	–
+P–PSA	Numeric		µg/L	> 80	7,0	–
+P–T4, fritt (FT4)	Numeric		pmol/L		10 – 22	10 – 22
+P–Tyrotropin (TSH)	Numeric		mIE/L		0,4 – 4,0	0,4 – 4,0
+fP–Triglycerid	Numeric		mmol/L		0,45 – 2,6	0,45 – 2,6
+S–25–hydroxiVitaminD	Numeric		nmol/L		50 – 178	50 – 178
+S–Kobalamin (B12)	Numeric		pmol/L		175 – 700	175 – 700
+S–Zink	Numeric		µmol/L		8 – 17	8 – 17

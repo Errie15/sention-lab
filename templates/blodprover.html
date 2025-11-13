@@ -448,11 +448,28 @@
                 <label for="analysis-date">Datum</label>
             </div>
 </div>
+        
+        <div style="text-align: center; margin: 1rem 0 2rem 0; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;" onchange="importFromExcel(event)">
+            <button class="export-button" onclick="document.getElementById('excel-file-input').click()" style="background: var(--primary);">
+                Importera
+            </button>
+            <button class="export-button" onclick="exportToExcel()">Exportera</button>
+            <button class="export-button" onclick="exportAsPDF()">PDF</button>
+            <button class="export-button" onclick="exportAsJPEG()">JPEG</button>
+            <button class="export-button" onclick="exportAsJPEGSplit()">JPEG Split</button>
+        </div>
     
         <main class="container"></main>
     
         <div class="comments-box">
-            <h3>Tolkning av resultat</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">Tolkning av resultat</h3>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: var(--dark);">
+                    <input type="checkbox" id="hide-comments-export" style="width: 18px; height: 18px; cursor: pointer;">
+                    Dölj vid JPEG-export
+                </label>
+            </div>
             <textarea placeholder="Skriv din tolkning här"></textarea>
             <div style="margin-top: 1rem;">
                 <h4 style="font-size: 1.2rem;">Tolkat av</h4>
@@ -467,10 +484,6 @@
                 </div>
             </div>
         </div>
-    
-        <button class="export-button" onclick="exportToExcel()">Exportera till Excel</button>
-        <button class="export-button" onclick="exportAsPDF()">Exportera som PDF</button>
-        <button class="export-button" onclick="exportAsJPEG()">Exportera som JPEG</button>
         <div class="footer-logo">
             <img src="https://i.postimg.cc/FRwbMSBN/SENTION-logo-Black-Transparent-BG.png" alt="Företagslogo">
         </div>
@@ -1238,6 +1251,296 @@ container.addEventListener('input', e => {
             textarea.style.height = `${textarea.scrollHeight}px`;
         });
 
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        alert("Excel-filen verkar vara tom eller saknar data.");
+                        return;
+                    }
+
+                    // Parse headers (first row)
+                    const headers = jsonData[0].map(h => String(h || '').trim());
+                    
+                    // Find column indices
+                    const nameColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('analys') || h.toLowerCase().includes('undersökning') || h.toLowerCase().includes('namn')
+                    );
+                    const dateColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('datum') || h.toLowerCase().includes('date')
+                    );
+                    const resultColIndex = headers.findIndex(h => 
+                        h.toLowerCase().includes('resultat') || h.toLowerCase().includes('värde') || h.toLowerCase().includes('value')
+                    );
+
+                    if (nameColIndex === -1 || resultColIndex === -1) {
+                        alert("Kunde inte hitta nödvändiga kolumner i Excel-filen. Förväntade kolumner: 'Analys/Undersökning' och 'Resultat'.");
+                        return;
+                    }
+
+                    // Normalize biomarker names for matching
+                    function normalizeName(name) {
+                        if (!name) return '';
+                        let normalized = String(name)
+                            .replace(/[–\-]/g, '-')  // Normalize dashes
+                            .replace(/\s+/g, ' ')     // Normalize spaces
+                            .replace(/\s*,\s*/g, ',') // Normalize commas
+                            .replace(/\s*\/\s*/g, '/') // Normalize slashes
+                            .trim()
+                            .toLowerCase();
+                        
+                        // Handle special cases - order matters! More specific matches first
+                        
+                        // Triglycerider - handle P(fPt)-Triglycerid variations first
+                        if (normalized.includes('triglycerid')) {
+                            // P(fPt)-Triglycerid, P(fpt)-Triglycerid, etc. -> fp-triglycerider (tg)
+                            normalized = normalized.replace(/^p\([^)]*\)-triglycerid$/gi, 'fp-triglycerider (tg)');
+                            // fp-triglycerider, fP-triglycerider -> fp-triglycerider (tg)
+                            normalized = normalized.replace(/^fp-triglycerider.*tg/gi, 'fp-triglycerider (tg)');
+                            normalized = normalized.replace(/^fp-triglycerider$/gi, 'fp-triglycerider (tg)');
+                            normalized = normalized.replace(/^fp-triglycerid$/gi, 'fp-triglycerider (tg)');
+                            normalized = normalized.replace(/triglycerider$/gi, 'fp-triglycerider (tg)');
+                            normalized = normalized.replace(/triglycerid$/gi, 'fp-triglycerider (tg)');
+                        }
+                        
+                        // HDL - must NOT match "non HDL"
+                        if (normalized.includes('hdl') && !normalized.includes('non')) {
+                            // P-HDL-kolesterol -> p- hdl-kolesterol
+                            normalized = normalized.replace(/^p-.*hdl.*kolesterol/gi, 'p- hdl-kolesterol');
+                            normalized = normalized.replace(/^p-hdl-kolesterol/gi, 'p- hdl-kolesterol');
+                            normalized = normalized.replace(/hdl.*kolesterol$/gi, 'p- hdl-kolesterol');
+                            normalized = normalized.replace(/^hdl$/gi, 'p- hdl-kolesterol');
+                        }
+                        
+                        // LDL - handle "P-LDL-kol, beräknat" variations
+                        if (normalized.includes('ldl')) {
+                            // P-LDL-kol, beräknat -> p- ldl-kolesterol
+                            normalized = normalized.replace(/^p-.*ldl.*kol.*beräknat/gi, 'p- ldl-kolesterol');
+                            normalized = normalized.replace(/^p-.*ldl.*kol/gi, 'p- ldl-kolesterol');
+                            normalized = normalized.replace(/^p-.*ldl.*kolesterol/gi, 'p- ldl-kolesterol');
+                            normalized = normalized.replace(/ldl.*kolesterol$/gi, 'p- ldl-kolesterol');
+                            normalized = normalized.replace(/ldl.*kol$/gi, 'p- ldl-kolesterol');
+                            normalized = normalized.replace(/^ldl$/gi, 'p- ldl-kolesterol');
+                        }
+                        
+                        // Hemoglobin
+                        if (normalized.includes('hemoglobin')) {
+                            normalized = normalized.replace(/b-hemoglobin.*hb.*g\/l/gi, 'b-hemoglobin (hb) (g/l)');
+                            normalized = normalized.replace(/b-hemoglobin/gi, 'b-hemoglobin (hb) (g/l)');
+                            normalized = normalized.replace(/hemoglobin/gi, 'b-hemoglobin (hb) (g/l)');
+                        }
+                        
+                        // Ferritin
+                        if (normalized.includes('ferritin')) {
+                            normalized = normalized.replace(/p-ferritin/gi, 'p-ferritin');
+                            normalized = normalized.replace(/ferritin/gi, 'p-ferritin');
+                        }
+                        
+                        // Kolesterol - but NOT HDL or LDL (already handled above)
+                        if (normalized.includes('kolesterol') && !normalized.includes('hdl') && !normalized.includes('ldl')) {
+                            normalized = normalized.replace(/p-kolesterol/gi, 'p-kolesterol');
+                            normalized = normalized.replace(/kolesterol$/gi, 'p-kolesterol');
+                        }
+                        
+                        // HbA1c - handle "(IFCC)" variant
+                        if (normalized.includes('hba1c')) {
+                            // Remove (IFCC) or similar variants
+                            normalized = normalized.replace(/\(ifcc\)/gi, '');
+                            normalized = normalized.replace(/\(.*\)/g, ''); // Remove any parentheses content
+                            normalized = normalized.replace(/b-.*hba1c/gi, 'b - hba1c');
+                            normalized = normalized.replace(/hba1c/gi, 'b - hba1c');
+                            // Clean up extra spaces
+                            normalized = normalized.replace(/\s+/g, ' ').trim();
+                        }
+                        
+                        return normalized;
+                    }
+
+                    // Create a map of normalized biomarker names to their display names and indices
+                    const biomarkerMap = new Map();
+                    biomarkers.forEach((bio, index) => {
+                        const normalized = normalizeName(bio.name);
+                        biomarkerMap.set(normalized, { name: bio.name, index: index });
+                    });
+
+                    let importedCount = 0;
+                    let dateSet = false;
+
+                    // Process data rows (skip header row)
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (!row || row.length === 0) continue;
+
+                        const biomarkerName = String(row[nameColIndex] || '').trim();
+                        const resultValue = row[resultColIndex];
+                        const dateValue = dateColIndex >= 0 ? row[dateColIndex] : null;
+
+                        if (!biomarkerName || resultValue === undefined || resultValue === null || resultValue === '') {
+                            continue;
+                        }
+
+                        // Set date if available (use first date found)
+                        if (!dateSet && dateValue && dateColIndex >= 0) {
+                            try {
+                                let dateStr = String(dateValue);
+                                // Handle Excel date serial numbers
+                                if (typeof dateValue === 'number') {
+                                    const excelDate = XLSX.SSF.parse_date_code(dateValue);
+                                    if (excelDate) {
+                                        dateStr = `${excelDate.y}-${String(excelDate.m).padStart(2, '0')}-${String(excelDate.d).padStart(2, '0')}`;
+                                    }
+                                } else {
+                                    // Try to parse date string
+                                    const date = new Date(dateValue);
+                                    if (!isNaN(date.getTime())) {
+                                        dateStr = date.toISOString().split('T')[0];
+                                    }
+                                }
+                                document.getElementById('analysis-date').value = dateStr;
+                                dateSet = true;
+                            } catch (e) {
+                                console.warn('Could not parse date:', dateValue);
+                            }
+                        }
+
+                        // Normalize and match biomarker name
+                        const normalizedName = normalizeName(biomarkerName);
+                        let matched = null;
+
+                        // Try exact match first
+                        if (biomarkerMap.has(normalizedName)) {
+                            matched = biomarkerMap.get(normalizedName);
+                        } else {
+                            // Try fuzzy matching - but be more careful to avoid false matches
+                            // Only match if the normalized name contains key unique identifiers
+                            for (const [norm, bioInfo] of biomarkerMap.entries()) {
+                                // Skip if normalized name contains "non" but the map entry doesn't (or vice versa)
+                                if ((normalizedName.includes('non') && !norm.includes('non')) ||
+                                    (!normalizedName.includes('non') && norm.includes('non'))) {
+                                    continue;
+                                }
+                                
+                                // More specific matching: check if key parts match
+                                if (normalizedName === norm || 
+                                    (normalizedName.includes(norm) && normalizedName.length <= norm.length * 1.5) ||
+                                    (norm.includes(normalizedName) && norm.length <= normalizedName.length * 1.5)) {
+                                    matched = bioInfo;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!matched) {
+                            console.warn(`Could not match biomarker: "${biomarkerName}" (normalized: "${normalizedName}")`);
+                            continue;
+                        }
+
+                        // Find the biomarker element and update its value
+                        const biomarkerElements = document.querySelectorAll('.biomarker');
+                        const biomarkerElement = biomarkerElements[matched.index];
+                        
+                        if (biomarkerElement) {
+                            const input = biomarkerElement.querySelector('.value-input');
+                            if (input) {
+                                // Get the raw value from Excel and preserve exact decimal places
+                                let rawValue = resultValue;
+                                let originalValueStr = null;
+                                
+                                // Preserve the original string representation from Excel
+                                if (typeof rawValue === 'number') {
+                                    // Excel converted it to number - we need to preserve decimal places
+                                    originalValueStr = String(rawValue);
+                                } else {
+                                    // It's a string - use it directly and preserve decimal places
+                                    originalValueStr = String(rawValue).trim();
+                                    // Replace comma with dot for HTML number input compatibility
+                                    originalValueStr = originalValueStr.replace(',', '.');
+                                }
+                                
+                                // Convert to number for calculations
+                                const numValue = parseFloat(originalValueStr);
+                                
+                                // Check if we got a valid number
+                                if (isNaN(numValue)) {
+                                    console.warn(`Could not parse value for ${biomarkerName}: ${resultValue}`);
+                                    continue;
+                                }
+                                
+                                // Use the original string value directly in input field
+                                // This preserves exact decimal places from Excel
+                                input.value = originalValueStr;
+                                
+                                // Get the biomarker from the array
+                                const biomarker = biomarkers[matched.index];
+                                
+                                // Update indicator with the same value (preserve decimals)
+                                const indicator = biomarkerElement.querySelector('.indicator');
+                                if (indicator) {
+                                    // Format based on biomarker index (same logic as input listener)
+                                    let formattedValue;
+                                    if (matched.index === 0 || matched.index === 1 || matched.index === 6) {
+                                        // Hemoglobin, Ferritin, HbA1c - round to whole number
+                                        formattedValue = Math.round(numValue).toString();
+                                    } else if (matched.index === 2) {
+                                        // Triglycerides - 2 decimal places
+                                        formattedValue = numValue.toFixed(2);
+                                    } else {
+                                        // All other biomarkers - 1 decimal place
+                                        formattedValue = numValue.toFixed(1);
+                                    }
+                                    
+                                    indicator.textContent = formattedValue;
+                                    
+                                    // Update position and color based on numeric value
+                                    if (biomarker && biomarker.ranges) {
+                                        const position = calculatePosition(numValue, biomarker.ranges, biomarker.reverse);
+                                        const indicatorColor = getIndicatorColor(numValue, biomarker.ranges, biomarker.reverse);
+                                        indicator.style.left = `${position}%`;
+                                        indicator.style.background = indicatorColor;
+                                    }
+                                }
+                                
+                                // Also update the biomarker value in the array
+                                biomarkers[matched.index].value = numValue;
+                                
+                                importedCount++;
+                            }
+                        }
+                    }
+
+                    // Reset file input
+                    event.target.value = '';
+
+                    if (importedCount > 0) {
+                        alert(`Importerade ${importedCount} blodprovsvärden från Excel-filen!`);
+                    } else {
+                        alert("Inga värden kunde importeras. Kontrollera att biomarker-namnen i Excel-filen matchar de som visas i gränssnittet.");
+                    }
+                } catch (error) {
+                    console.error("Error importing Excel file:", error);
+                    alert("Ett fel inträffade vid importen. Kontrollera att filen är korrekt formaterad.");
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
         function exportToExcel() {
     try {
         // Get patient data
@@ -1319,6 +1622,8 @@ function exportAsJPEG() {
     const buttons = document.querySelectorAll('.export-button'); // Select buttons to hide
     const textarea = document.querySelector('.comments-box textarea'); // The "Tolkning av resultat" textarea
     const dropdown = document.getElementById('tolkat-av'); // The dropdown element
+    const commentsBox = document.querySelector('.comments-box');
+    const hideCommentsCheckbox = document.getElementById('hide-comments-export');
 
     // Get patient data
     const date = document.getElementById('analysis-date').value;
@@ -1382,6 +1687,12 @@ function exportAsJPEG() {
 
     // Hide the buttons during export
     buttons.forEach(button => button.classList.add('hide-on-export'));
+    
+    // Hide comments box if checkbox is checked
+    const commentsBoxOriginalDisplay = commentsBox.style.display;
+    if (hideCommentsCheckbox && hideCommentsCheckbox.checked) {
+        commentsBox.style.display = 'none';
+    }
 
     // Fix dropdown rendering issues by replacing it with a styled div
     const dropdownValue = dropdown.options[dropdown.selectedIndex].text; // Get the selected text
@@ -1464,10 +1775,310 @@ function exportAsJPEG() {
         personnummerInput.style.display = 'block';
         personnummerDiv.remove();
         // NEW CODE ENDS HERE
+        
+        // Restore comments box display
+        commentsBox.style.display = commentsBoxOriginalDisplay || '';
 
         // Show the buttons again
         buttons.forEach(button => button.classList.remove('hide-on-export'));
     });
+}
+
+function exportAsJPEGSplit() {
+    const date = document.getElementById('analysis-date').value;
+    const name = document.getElementById('patient-name').value.trim();
+    const personnummer = document.getElementById('patient-id').value.trim();
+
+    if (!date || !name || !personnummer) {
+        alert("Vänligen fyll i alla fält (Datum, Namn, Personnummer) innan export.");
+        return;
+    }
+
+    // Scroll to top
+    window.scrollTo(0, 0);
+
+    const buttons = document.querySelectorAll('.export-button');
+    const nameInput = document.getElementById('patient-name');
+    const personnummerInput = document.getElementById('patient-id');
+    const header = document.querySelector('.header');
+    const inputFields = document.querySelector('.input-fields');
+    const biomarkers = Array.from(document.querySelectorAll('.biomarker'));
+    const footerLogo = document.querySelector('.footer-logo');
+    const hideCommentsCheckbox = document.getElementById('hide-comments-export');
+
+    // Hide buttons
+    buttons.forEach(button => button.classList.add('hide-on-export'));
+
+    // Prepare name and personnummer divs
+    const nameDiv = document.createElement('div');
+    nameDiv.textContent = name;
+    nameDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(nameInput).padding};
+        border: ${window.getComputedStyle(nameInput).border};
+        border-radius: ${window.getComputedStyle(nameInput).borderRadius};
+        width: auto;
+        min-width: ${nameInput.offsetWidth}px;
+        background: ${window.getComputedStyle(nameInput).backgroundColor};
+        color: ${window.getComputedStyle(nameInput).color};
+        text-align: left;
+    `;
+    nameInput.style.display = 'none';
+    nameInput.parentNode.insertBefore(nameDiv, nameInput);
+
+    const personnummerDiv = document.createElement('div');
+    personnummerDiv.textContent = personnummer;
+    personnummerDiv.style.cssText = `
+        display: inline-block;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        padding: ${window.getComputedStyle(personnummerInput).padding};
+        border: ${window.getComputedStyle(personnummerInput).border};
+        border-radius: ${window.getComputedStyle(personnummerInput).borderRadius};
+        width: auto;
+        min-width: ${personnummerInput.offsetWidth}px;
+        background: ${window.getComputedStyle(personnummerInput).backgroundColor};
+        color: ${window.getComputedStyle(personnummerInput).color};
+        text-align: left;
+    `;
+    personnummerInput.style.display = 'none';
+    personnummerInput.parentNode.insertBefore(personnummerDiv, personnummerInput);
+
+    // Split biomarkers into groups of 4
+    const maxPerImage = 4;
+    const biomarkerGroups = [];
+    for (let i = 0; i < biomarkers.length; i += maxPerImage) {
+        biomarkerGroups.push(biomarkers.slice(i, i + maxPerImage));
+    }
+
+    if (biomarkerGroups.length === 0) {
+        alert("Inga biomarkörer att exportera.");
+        buttons.forEach(button => button.classList.remove('hide-on-export'));
+        nameInput.style.display = 'block';
+        nameDiv.remove();
+        personnummerInput.style.display = 'block';
+        personnummerDiv.remove();
+        return;
+    }
+
+    // Process each group
+    let currentGroup = 0;
+    const formattedDate = date.replace(/-/g, '');
+    
+    function processNextGroup() {
+        if (currentGroup >= biomarkerGroups.length) {
+            // All done, restore everything
+            buttons.forEach(button => button.classList.remove('hide-on-export'));
+            nameInput.style.display = 'block';
+            nameDiv.remove();
+            personnummerInput.style.display = 'block';
+            personnummerDiv.remove();
+            return;
+        }
+
+        const group = biomarkerGroups[currentGroup];
+        
+        // Create a temporary container for this group
+        const tempContainer = document.createElement('div');
+        tempContainer.style.cssText = `
+            position: absolute;
+            left: -9999px;
+            width: ${document.body.offsetWidth}px;
+            background: #F0EEEC;
+            padding: 1rem;
+            min-height: 100vh;
+        `;
+
+        // Clone header and input fields (only for first image)
+        if (currentGroup === 0) {
+            const headerClone = header.cloneNode(true);
+            tempContainer.appendChild(headerClone);
+            
+            // Clone input fields container
+            const inputFieldsContainer = document.createElement('div');
+            inputFieldsContainer.className = 'input-fields';
+            inputFieldsContainer.style.cssText = `
+                max-width: 1200px;
+                margin: 1.5rem auto;
+                padding: 1rem;
+                background: #ffffff;
+                border-radius: 15px;
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            `;
+            
+            // Create divs for each input field
+            const nameDivClone = document.createElement('div');
+            nameDivClone.textContent = name;
+            nameDivClone.style.cssText = `
+                display: inline-block;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.2rem;
+                padding: 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 7px;
+                width: auto;
+                min-width: 150px;
+                background: white;
+                color: #000000;
+                text-align: left;
+            `;
+            inputFieldsContainer.appendChild(nameDivClone);
+            
+            const personnummerDivClone = document.createElement('div');
+            personnummerDivClone.textContent = personnummer;
+            personnummerDivClone.style.cssText = `
+                display: inline-block;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.2rem;
+                padding: 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 7px;
+                width: auto;
+                min-width: 160px;
+                background: white;
+                color: #000000;
+                text-align: left;
+            `;
+            inputFieldsContainer.appendChild(personnummerDivClone);
+            
+            const dateInput = document.getElementById('analysis-date');
+            const dateDivClone = document.createElement('div');
+            dateDivClone.textContent = date;
+            dateDivClone.style.cssText = `
+                display: inline-block;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.2rem;
+                padding: 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 7px;
+                width: auto;
+                min-width: 180px;
+                background: white;
+                color: #000000;
+                text-align: left;
+            `;
+            inputFieldsContainer.appendChild(dateDivClone);
+            
+            tempContainer.appendChild(inputFieldsContainer);
+        }
+
+        // Clone biomarkers in this group
+        group.forEach(biomarker => {
+            const biomarkerClone = biomarker.cloneNode(true);
+            
+            // Hide remove button (if it exists)
+            const removeButton = biomarkerClone.querySelector('.biomarker-remove');
+            if (removeButton) {
+                removeButton.style.display = 'none';
+            }
+            
+            // Replace inputs with divs
+            const valueInput = biomarkerClone.querySelector('.value-input');
+            if (valueInput) {
+                const valueDiv = document.createElement('div');
+                valueDiv.textContent = valueInput.value;
+                valueDiv.style.cssText = `
+                    display: inline-block;
+                    font-family: inherit;
+                    font-size: inherit;
+                    line-height: inherit;
+                    padding: ${window.getComputedStyle(valueInput).padding};
+                    border: ${window.getComputedStyle(valueInput).border};
+                    border-radius: ${window.getComputedStyle(valueInput).borderRadius};
+                    width: auto;
+                    background: ${window.getComputedStyle(valueInput).backgroundColor};
+                    color: ${window.getComputedStyle(valueInput).color};
+                    font-weight: bold;
+                `;
+                valueInput.parentNode.replaceChild(valueDiv, valueInput);
+            }
+            
+            tempContainer.appendChild(biomarkerClone);
+        });
+
+        // Clone footer logo and add footer text
+        const footerClone = footerLogo.cloneNode(true);
+        footerClone.style.cssText = `
+            position: relative;
+            margin-left: auto;
+            margin-right: 20px;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+        `;
+        
+        // Create footer text container
+        const footerTextContainer = document.createElement('div');
+        footerTextContainer.style.cssText = `
+            position: relative;
+            margin-top: 2rem;
+            margin-bottom: 20px;
+            margin-left: 20px;
+            font-size: 20px !important;
+            font-weight: normal !important;
+            line-height: 1.5 !important;
+            color: #666666 !important;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+        `;
+        
+        const tolkatAvDropdown = document.getElementById("tolkat-av");
+        const tolkatAv = tolkatAvDropdown ? tolkatAvDropdown.options[tolkatAvDropdown.selectedIndex].text : "Okänt";
+        const footerText = `${name} | ${personnummer} | Blodprover ${date} | Tolkat av: ${tolkatAv} | Sida ${currentGroup + 1} av ${biomarkerGroups.length}`;
+        footerTextContainer.textContent = footerText;
+        
+        tempContainer.appendChild(footerClone);
+        tempContainer.appendChild(footerTextContainer);
+
+        document.body.appendChild(tempContainer);
+
+        // Wait for DOM to update, then capture
+        setTimeout(() => {
+            html2canvas(tempContainer, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                backgroundColor: '#F0EEEC',
+                allowTaint: false
+            }).then(canvas => {
+                const filename = `Blodprover_${formattedDate}_${name}_${personnummer}_${currentGroup + 1}.jpeg`;
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/jpeg', 1.0);
+                link.click();
+
+                // Remove temporary container
+                document.body.removeChild(tempContainer);
+
+                // Process next group
+                currentGroup++;
+                setTimeout(processNextGroup, 500); // Small delay between downloads
+            }).catch(error => {
+                console.error("Error exporting image:", error);
+                document.body.removeChild(tempContainer);
+                buttons.forEach(button => button.classList.remove('hide-on-export'));
+                nameInput.style.display = 'block';
+                nameDiv.remove();
+                personnummerInput.style.display = 'block';
+                personnummerDiv.remove();
+                alert("Ett fel inträffade vid exporten av bild " + (currentGroup + 1) + ".");
+            });
+        }, 300);
+    }
+
+    // Start processing
+    processNextGroup();
 }
 
 function exportAsPDF() {
