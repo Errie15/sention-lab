@@ -660,7 +660,8 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
             
             if (isLessThan) {
                 // For "< value" format, create ranges where lower is better
-                // Green = within limit, Red = over limit
+                // Green = strictly below limit, Red = at or above limit
+                // Important: value must be < max (not <=) to be green
                 return {
                     green: { min: 0, max: max },
                     red: { min: max, max: Infinity },
@@ -669,11 +670,12 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
             }
             
             if (min !== null && max !== null) {
-                // Green = within reference range, Red = outside reference range
+                // Green = within reference range (inclusive), Red = outside
+                // Important: min and max are INCLUDED in the green zone
                 return {
                     green: { min: min, max: max },
-                    redLower: { min: 0, max: min },
-                    redUpper: { min: max, max: Infinity },
+                    redLower: { min: 0, max: min }, // Below min (exclusive)
+                    redUpper: { min: max, max: Infinity }, // Above max (exclusive)
                     reverse: false
                 };
             }
@@ -1009,13 +1011,9 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                 // Create labels without yellow zone
                 let labels = { red: '', green: '' };
                 if (ranges) {
+                    // Always show exact values with one decimal place - never round!
+                    // This ensures the label matches the actual threshold used for color calculation
                     const formatMin = (v) => {
-                        if (bio.unit.includes('x10') || bio.unit === 'g/L' || bio.unit === 'µg/L' || bio.unit === 'µmol/L' || bio.unit === 'pmol/L' || bio.unit === 'nmol/L' || bio.unit === 'mIE/L' || bio.unit === 'fL' || bio.unit === 'pg') {
-                            return Math.round(v).toString();
-                        }
-                        if (bio.unit === 'Kvot') {
-                            return v.toFixed(1);
-                        }
                         return v.toFixed(1);
                     };
                     
@@ -1088,42 +1086,60 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
             
             if (reverse) {
                 // For "< value" format (e.g., PSA < 3.0)
-                // Green zone represents 0 to max, positioned at 0-70%
-                if (value >= ranges.red.min) {
-                    // Red zone (over limit) - position in red area (70-100%)
-                    const redStart = referenceMax || ranges.red.min;
-                    const redRange = (ranges.red.max - redStart) || 1;
-                    const positionInRed = Math.min(100, greenEndPercent + ((value - redStart) / redRange) * 30);
-                    return positionInRed;
+                // Green zone represents values strictly below limit
+                const limit = ranges.red.min; // The threshold value (e.g., 3 for "< 3")
+                
+                // Values strictly below limit map to 0-70% (green zone)
+                // Values at or above limit map to 70-100% (red zone)
+                
+                if (value < limit) {
+                    // Green zone - smooth positioning based on value
+                    // Position at 70% when approaching limit (but not at it)
+                    const positionInGreen = (value / limit) * greenEndPercent;
+                    return Math.max(0, Math.min(greenEndPercent - 0.1, positionInGreen)); // -0.1 to ensure space before red
                 } else {
-                    // Green zone (within limit) - position in green area (0-70%)
-                    const greenRange = ranges.green.max;
-                    const positionInGreen = (value / greenRange) * greenEndPercent;
-                    return Math.max(0, Math.min(greenEndPercent, positionInGreen));
+                    // Red zone - smooth positioning at or above limit
+                    // Map from limit to (limit * 2) into 70-100% range
+                    const maxDisplayValue = limit * 2;
+                    const valueAboveLimit = Math.max(0, value - limit);
+                    const rangeAboveLimit = maxDisplayValue - limit;
+                    const positionInRed = greenEndPercent + (valueAboveLimit / rangeAboveLimit) * 30;
+                    return Math.min(100, positionInRed);
                 }
             } else {
-                // For range format (e.g., 27-42)
-                // Need to calculate position based on actual value relative to reference range
+                // For range format (e.g., 4-6)
+                // Green zone includes both boundaries (4 and 6 are both green)
                 const refMin = referenceMin || ranges.green.min;
                 const refMax = referenceMax || ranges.green.max;
                 const refRange = refMax - refMin;
                 
-                if (value >= ranges.green.min && value <= ranges.green.max) {
+                // Add small epsilon to handle floating point comparison
+                const epsilon = 0.0001;
+                
+                if (value >= (refMin - epsilon) && value <= (refMax + epsilon)) {
                     // Green zone - position in middle 40% based on value
-                    const positionInRange = (value - refMin) / refRange;
+                    // Clamp value to be within range for position calculation
+                    const clampedValue = Math.max(refMin, Math.min(refMax, value));
+                    const positionInRange = (clampedValue - refMin) / refRange;
                     const positionInGreen = greenStartPercent + (positionInRange * greenWidthPercent);
                     return Math.max(greenStartPercent, Math.min(greenEndPercent, positionInGreen));
-                } else if (value < ranges.green.min) {
-                    // Red zone (below range) - position in left red area (0-30%)
-                    const belowRange = ranges.green.min;
-                    const positionInRed = (value / belowRange) * greenStartPercent;
+                } else if (value < refMin) {
+                    // Red zone (below range) - smooth positioning
+                    // Map from 0 to refMin into 0-30% range
+                    const minDisplayValue = Math.max(0, refMin * 0.5);
+                    if (value <= minDisplayValue) {
+                        return 0;
+                    }
+                    const positionInRed = ((value - minDisplayValue) / (refMin - minDisplayValue)) * greenStartPercent;
                     return Math.max(0, Math.min(greenStartPercent, positionInRed));
                 } else {
-                    // Red zone (above range) - position in right red area (70-100%)
-                    const aboveRange = ranges.green.max;
-                    const maxDisplayValue = Math.max(value, refMax * 1.5); // Extend scale
-                    const positionInRed = greenEndPercent + ((value - aboveRange) / (maxDisplayValue - aboveRange)) * 30;
-                    return Math.max(greenEndPercent, Math.min(100, positionInRed));
+                    // Red zone (above range) - smooth positioning
+                    // Map from refMax to (refMax * 1.5) into 70-100% range
+                    const maxDisplayValue = refMax * 1.5;
+                    const valueAboveMax = value - refMax;
+                    const rangeAboveMax = maxDisplayValue - refMax;
+                    const positionInRed = greenEndPercent + (valueAboveMax / rangeAboveMax) * 30;
+                    return Math.min(100, positionInRed);
                 }
             }
         }
@@ -1131,17 +1147,36 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
         function getIndicatorColor(value, ranges, reverse) {
             if (!ranges) return 'var(--accent)';
             
+            // Small epsilon for floating point comparison tolerance
+            const epsilon = 0.0001;
+            
             if (reverse) {
-                // For "< value" format
-                if (ranges.red && value >= ranges.red.min) return 'var(--danger)'; // Red (over limit)
-                if (ranges.green && value >= ranges.green.min && value <= ranges.green.max) return 'var(--accent)'; // Green (within limit)
-                return 'var(--danger)'; // Default to red
+                // For "< value" format (e.g., "< 3")
+                // Value must be strictly less than the limit to be green
+                const limit = ranges.red.min;
+                if (value < limit) {
+                    return 'var(--accent)'; // Green (below limit, good)
+                } else {
+                    return 'var(--danger)'; // Red (at or above limit, not good)
+                }
             } else {
-                // For range format
-                if (ranges.green && value >= ranges.green.min && value <= ranges.green.max) return 'var(--accent)'; // Green (within range)
-                if (ranges.redLower && value >= ranges.redLower.min && value <= ranges.redLower.max) return 'var(--danger)'; // Red (below range)
-                if (ranges.redUpper && value >= ranges.redUpper.min) return 'var(--danger)'; // Red (above range)
-                return 'var(--danger)'; // Default to red
+                // For range format (e.g., "4-6")
+                // Value must be within range (inclusive of both boundaries) to be green
+                // Both 4 and 6 should be green in the interval 4-6
+                const refMin = ranges.green ? ranges.green.min : null;
+                const refMax = ranges.green ? ranges.green.max : null;
+                
+                if (!refMin || !refMax) {
+                    console.error('ERROR: Missing green range!', ranges);
+                    return 'var(--danger)';
+                }
+                
+                // Use epsilon tolerance to handle floating point precision
+                if (value >= (refMin - epsilon) && value <= (refMax + epsilon)) {
+                    return 'var(--accent)'; // Green (within range, including boundaries)
+                } else {
+                    return 'var(--danger)'; // Red (outside range)
+                }
             }
         }
 
@@ -1631,13 +1666,9 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                             // Create labels
                             let labels = { red: '', green: '' };
                             if (ranges) {
+                                // Always show exact values with one decimal place - never round!
+                                // This ensures the label matches the actual threshold used for color calculation
                                 const formatMin = (v) => {
-                                    if (unitValue.includes('x10') || unitValue === 'g/L' || unitValue === 'µg/L' || unitValue === 'µmol/L' || unitValue === 'pmol/L' || unitValue === 'nmol/L' || unitValue === 'mIE/L' || unitValue === 'fL' || unitValue === 'pg') {
-                                        return Math.round(v).toString();
-                                    }
-                                    if (unitValue === 'Kvot') {
-                                        return v.toFixed(1);
-                                    }
                                     return v.toFixed(1);
                                 };
                                 

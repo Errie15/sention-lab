@@ -1169,16 +1169,6 @@ function createBiomarkerElement(biomarker, index) {
     element.className = 'biomarker';
     const position = calculatePosition(biomarker.value, biomarker.ranges, biomarker.reverse);
     const indicatorColor = getIndicatorColor(biomarker.value, biomarker.ranges, biomarker.reverse);
-    
-    // Format the value based on the biomarker index
-    let formattedValue;
-    if (index === 0 || index === 1 || index === 6) { // Hemoglobin, Ferritin, HbA1c
-        formattedValue = Math.round(biomarker.value);
-    } else if (index === 2) { // Triglycerides
-        formattedValue = biomarker.value.toFixed(2);
-    } else { // All other biomarkers
-        formattedValue = biomarker.value.toFixed(1);
-    }
 
     element.innerHTML = `
         <h3>${biomarker.name}</h3>
@@ -1189,9 +1179,7 @@ function createBiomarkerElement(biomarker, index) {
                data-index="${index}">
         <span class="unit">${biomarker.unit}</span>
         <div class="range-bar">
-            <div class="indicator" style="left: ${position}%; background: ${indicatorColor}">
-                ${formattedValue}
-            </div>
+            <div class="indicator" style="left: ${position}%; background: ${indicatorColor}"></div>
         </div>
         <div class="range-labels">
             <span>${biomarker.labels.red}</span>
@@ -1222,15 +1210,6 @@ container.addEventListener('input', e => {
     const indicatorColor = getIndicatorColor(newValue, biomarker.ranges, biomarker.reverse);
     indicator.style.left = `${position}%`;
     indicator.style.background = indicatorColor;
-    
-    // Format the indicator value based on the biomarker index
-    if (index === 0 || index === 1 || index === 6) { // Hemoglobin, Ferritin, HbA1c
-        indicator.textContent = Math.round(newValue);
-    } else if (index === 2) { // Triglycerides
-        indicator.textContent = newValue.toFixed(2);
-    } else { // All other biomarkers
-        indicator.textContent = newValue.toFixed(1);
-    }
 });
 
         // Date input initialization
@@ -1489,24 +1468,9 @@ container.addEventListener('input', e => {
                                 // Get the biomarker from the array
                                 const biomarker = biomarkers[matched.index];
                                 
-                                // Update indicator with the same value (preserve decimals)
+                                // Update indicator position and color
                                 const indicator = biomarkerElement.querySelector('.indicator');
                                 if (indicator) {
-                                    // Format based on biomarker index (same logic as input listener)
-                                    let formattedValue;
-                                    if (matched.index === 0 || matched.index === 1 || matched.index === 6) {
-                                        // Hemoglobin, Ferritin, HbA1c - round to whole number
-                                        formattedValue = Math.round(numValue).toString();
-                                    } else if (matched.index === 2) {
-                                        // Triglycerides - 2 decimal places
-                                        formattedValue = numValue.toFixed(2);
-                                    } else {
-                                        // All other biomarkers - 1 decimal place
-                                        formattedValue = numValue.toFixed(1);
-                                    }
-                                    
-                                    indicator.textContent = formattedValue;
-                                    
                                     // Update position and color based on numeric value
                                     if (biomarker && biomarker.ranges) {
                                         const position = calculatePosition(numValue, biomarker.ranges, biomarker.reverse);
