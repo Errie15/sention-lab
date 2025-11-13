@@ -216,21 +216,19 @@
         }
 
         .indicator {
-            width: 34px;
-            height: 34px;
+            width: 40px;
+            height: 40px;
             background: #F0EEEC;
             border-radius: 50%;
             position: absolute;
             top: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-            border: 2px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 3px solid white;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.85rem;
+            transition: all 0.3s ease;
         }
 
         .value-input {
@@ -1200,9 +1198,7 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                        data-ref-max="${refMax || ''}">
                 <span class="unit">${biomarker.unit}</span>
                 <div class="range-bar" style="${rangeBarStyle}">
-                    <div class="indicator" style="left: ${position}%; background: ${indicatorColor}">
-                        ${biomarker.inputValue !== undefined ? biomarker.inputValue : displayValue}
-                    </div>
+                    <div class="indicator" style="left: ${position}%; background: ${indicatorColor}"></div>
                 </div>
                 <div class="range-labels">
                     <span>${biomarker.labels.red || ''}</span>
@@ -1290,10 +1286,6 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                             indicator.style.left = `${position}%`;
                             indicator.style.background = indicatorColor;
                         }
-                        
-                        // Use the exact value from input field (preserve decimal places)
-                        // This ensures indicator matches input field exactly
-                        indicator.textContent = e.target.value;
                     } else if (e.target.matches('.biomarker-note')) {
                         // Update biomarker note in array
                         const index = parseInt(e.target.dataset.index);
@@ -1471,10 +1463,12 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                         // Handle special cases - order matters!
                         // First handle Triglycerid variations
                         if (normalized.includes('triglycerid')) {
-                            // P(fPt)-Triglycerid, P(fpt)-Triglycerid, etc. -> fP-Triglycerid
-                            normalized = normalized.replace(/^p\([^)]*\)-triglycerid$/gi, 'fp-triglycerid');
-                            // fp-triglycerid, fP-triglycerid -> fp-triglycerid
-                            normalized = normalized.replace(/^fp-triglycerid$/gi, 'fp-triglycerid');
+                            // P(fPt)-Triglycerid, P(fpt)-Triglycerid, etc. -> fp-triglycerid
+                            normalized = normalized.replace(/p\([^)]*\)-?triglycerid/gi, 'fp-triglycerid');
+                            // fp-triglycerid, fP-triglycerid, P-Triglycerid -> fp-triglycerid
+                            normalized = normalized.replace(/^(fp|p)-?triglycerid$/gi, 'fp-triglycerid');
+                            // Handle without dash: ptriglycerid, fptriglycerid
+                            normalized = normalized.replace(/^(fp|p)triglycerid$/gi, 'fp-triglycerid');
                         }
                         
                         // Handle LDL/HDL kvot variations
@@ -1578,10 +1572,13 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                         
                         // Preserve the original string representation from Excel
                         if (typeof rawValue === 'number') {
+                            // Keep the number as-is, convert to string for display
                             originalValueStr = String(rawValue);
+                        } else if (typeof rawValue === 'string') {
+                            // Handle string values, replace comma with dot
+                            originalValueStr = String(rawValue).trim().replace(',', '.');
                         } else {
-                            originalValueStr = String(rawValue).trim();
-                            originalValueStr = originalValueStr.replace(',', '.');
+                            originalValueStr = String(rawValue).trim().replace(',', '.');
                         }
                         
                         // Convert to number for calculations
@@ -1591,17 +1588,21 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                             console.warn(`Could not parse value for ${biomarkerName}: ${resultValue}`);
                             continue;
                         }
+                        
+                        console.log(`Importing ${biomarkerName}: originalValueStr="${originalValueStr}", numValue=${numValue}`);
 
                         if (matchedBiomarker) {
                             // Use existing biomarker with matched information
+                            console.log(`Matched biomarker: ${biomarkerName} -> ${matchedBiomarker.name}`);
                             const importedBio = {
                                 ...matchedBiomarker,
                                 value: numValue,
                                 originalValueStr: originalValueStr,
-                                inputValue: originalValueStr // Preserve exact decimal places for display
+                                inputValue: originalValueStr // Preserve exact decimal places for display in input field
                             };
                             importedBiomarkers.push(importedBio);
                         } else {
+                            console.log(`No match for: ${biomarkerName}, creating new biomarker`);
                             // Create new biomarker from Excel data
                             // Parse reference range from Excel
                             let parsedRefRange = null;
