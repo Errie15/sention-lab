@@ -165,10 +165,6 @@
 
         .range-bar {
             height: 20px;
-            background: linear-gradient(to right,
-                var(--danger) 0%,
-                var(--warning) 50%,
-                var(--accent) 100%);
             border-radius: 15px; /* Increased border radius */
             margin: 1rem 0;
             position: relative;
@@ -553,9 +549,9 @@ const biomarkerReferences = [
         name: "P- HDL-kolesterol",
         value: 1.2,
         ranges: { 
-            red: { min: 0, max: 0.7 }, 
+            red: { min: 0, max: 0.79 }, 
             yellow: { min: 0.8, max: 1.0 }, 
-            green: { min: 1.11, max: Infinity },
+            green: { min: 1.01, max: Infinity },
         },
         unit: "mmol/L",
         explanation: 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.',
@@ -579,16 +575,18 @@ const biomarkerReferences = [
         name: "B - HbA1c",
         value: 50,
         ranges: { 
-        red: { min: 43, max: Infinity }, 
-        yellow: { min: 38, max: 42.9 }, 
-        green: { min: 27, max: 37 },
+        red: { min: 0, max: 26.9 }, 
+        yellow: { min: 27, max: 30.9 }, 
+        green: { min: 31, max: 37.9 },
+        yellowUpper: { min: 38, max: 42.9 },
+        redUpper: { min: 43, max: Infinity },
         minLimit: 27,
         maxLimit: 42
     },
         unit: "mmol/mol",
         explanation: 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.',
-        labels: { red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" },
-        reverse: true
+        labels: { red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 27-30 eller 38-42 mmol/mol", green: "Grön: Mellan 31-37 mmol/mol" },
+        reverse: false
     }
 ];
 
@@ -655,9 +653,9 @@ function showBiomarkerPage() {
     };
 
     biomarkers[4].ranges = { // HDL
-        red: { min: 0, max: 0.7 }, 
+        red: { min: 0, max: 0.79 }, 
             yellow: { min: 0.8, max: 1.0 }, 
-            green: { min: 1.11, max: Infinity },
+            green: { min: 1.01, max: Infinity },
 
     };
     biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
@@ -679,16 +677,18 @@ function showBiomarkerPage() {
     };
 
     biomarkers[6].ranges = { // HbA1c (< 50 years)
-        red: { min: 43, max: Infinity }, 
-        yellow: { min: 38, max: 42.9 }, 
-        green: { min: 27, max: 37 },
+        red: { min: 0, max: 26.9 }, 
+        yellow: { min: 27, max: 30.9 }, 
+        green: { min: 31, max: 37.9 },
+        yellowUpper: { min: 38, max: 42.9 },
+        redUpper: { min: 43, max: Infinity },
         minLimit: 27,
         maxLimit: 42
 
     };
     biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
     biomarkers[6].labels = {
-        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" 
+        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 27-30 eller 38-42 mmol/mol", green: "Grön: Mellan 31-37 mmol/mol" 
     };
 
     }
@@ -744,9 +744,9 @@ function showBiomarkerPage() {
     };
 
     biomarkers[4].ranges = { // HDL
-            red: { min: 0, max: 0.7 }, 
+            red: { min: 0, max: 0.79 }, 
             yellow: { min: 0.8, max: 1.0 }, 
-            green: { min: 1.11, max: Infinity },
+            green: { min: 1.01, max: Infinity },
 
     };
     biomarkers[4].explanation = 'HDL, eller "det goda kolesterolet", hjälper till att transportera bort överflödigt kolesterol från blodkärlen till levern där det kan brytas ner. Höga nivåer av HDL är förknippade med en minskad risk för hjärt-kärlsjukdom, medan låga nivåer kan innebära en ökad risk. HDL-nivåerna påverkas av livsstilsfaktorer som kost och fysisk aktivitet. Regelbunden träning och en hälsosam kost kan bidra till att höja HDL-nivåerna och därmed minska risken för åderförkalkning och andra hjärt-kärlrelaterade problem.';
@@ -768,17 +768,19 @@ function showBiomarkerPage() {
     };
 
     biomarkers[6].ranges = { // HbA1c (≥ 50 years)
-        red: { min: 47, max: Infinity }, 
-        yellow: { min: 43, max: 46.9 }, 
-        green: { min: 31, max: 41 },
+        red: { min: 0, max: 30.9 }, 
+        yellow: { min: 31, max: 36.9 }, 
+        green: { min: 37, max: 41.9 },
+        yellowUpper: { min: 42, max: 46.9 },
+        redUpper: { min: 47, max: Infinity },
         minLimit: 31,
 
     };
     biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
     biomarkers[6].labels = {
         red: "Röd: Under 31 eller över 46 mmol/mol",
-        yellow: "Gul: Mellan 43-46 mmol/mol",
-        green: "Grön: Mellan 31-42 mmol/mol"
+        yellow: "Gul: Mellan 31-36 eller 42-46 mmol/mol",
+        green: "Grön: Mellan 37-41 mmol/mol"
     };
 
     }
@@ -838,7 +840,7 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     };
 
     biomarkers[4].ranges = { // HDL
-        red: { min: 0, max: 0.9 }, 
+        red: { min: 0, max: 0.99 }, 
             yellow: { min: 1.0, max: 1.1 }, 
             green: { min: 1.11, max: Infinity },
 
@@ -862,16 +864,18 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     };
 
     biomarkers[6].ranges = { // HbA1c (< 50 years)
-        red: { min: 43, max: Infinity }, 
-        yellow: { min: 38, max: 42.9 }, 
-        green: { min: 27, max: 37 },
+        red: { min: 0, max: 26.9 }, 
+        yellow: { min: 27, max: 30.9 }, 
+        green: { min: 31, max: 37.9 },
+        yellowUpper: { min: 38, max: 42.9 },
+        redUpper: { min: 43, max: Infinity },
         minLimit: 27,
         maxLimit: 42
 
     };
     biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
     biomarkers[6].labels = {
-        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 38-42 mmol/mol", green: "Grön: Mellan 27-37 mmol/mol" 
+        red: "Röd: Under 27 eller över 42 mmol/mol", yellow: "Gul: Mellan 27-30 eller 38-42 mmol/mol", green: "Grön: Mellan 31-37 mmol/mol" 
     };
 
     }
@@ -930,7 +934,7 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     };
 
     biomarkers[4].ranges = { // HDL
-        red: { min: 0, max: 0.9 }, 
+        red: { min: 0, max: 0.99 }, 
             yellow: { min: 1.0, max: 1.1 }, 
             green: { min: 1.11, max: Infinity },
 
@@ -958,7 +962,7 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     biomarkers[6].ranges = { // HbA1c <50 år>
         red: { min: 43, max: Infinity }, 
         yellow: { min: 38, max: 42.9 }, 
-        green: { min: 27, max: 37 },
+        green: { min: 27, max: 37.9 },
         minLimit: 27,
         maxLimit: 42
 
@@ -1054,17 +1058,19 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     };
 
     biomarkers[6].ranges = { // HbA1c (≥ 50 years)
-        red: { min: 47, max: Infinity }, 
-        yellow: { min: 43, max: 46.9 }, 
-        green: { min: 31, max: 41 },
+        red: { min: 0, max: 30.9 }, 
+        yellow: { min: 31, max: 36.9 }, 
+        green: { min: 37, max: 41.9 },
+        yellowUpper: { min: 42, max: 46.9 },
+        redUpper: { min: 47, max: Infinity },
         minLimit: 31,
 
     };
     biomarkers[6].explanation = 'HbA1c kallas ibland för långtidsblodsocker och är ett mått på hur många glukosmolekyler som bundits till blodets hemoglobin. Om man har höga blodsockervärden över tid kommer fler glukosmolekyler att bindas till hemoglobinet, vilket gör HbA1c till ett mått på medelvärdet av blodsockret under cirka tre månader. HbA1c är ett viktigt prov vid diabetesutredning och för att få en bild av ämnesomsättningen. Förhöjda nivåer är skadliga för kroppens organ, men det är inte ovanligt att man inte upplever symtom trots ett högt värde.';
     biomarkers[6].labels = {
         red: "Röd: Under 31 eller över 46 mmol/mol",
-        yellow: "Gul: Mellan 43-46 mmol/mol",
-        green: "Grön: Mellan 31-42 mmol/mol"
+        yellow: "Gul: Mellan 31-36 eller 42-46 mmol/mol",
+        green: "Grön: Mellan 37-41 mmol/mol"
     };
 
 }
@@ -1080,95 +1086,267 @@ else if (gender === "female" && ageGroup === "adult") { //31-50 år
     });
 }
 
-function calculatePosition(value, ranges, reverse) {
-    if (reverse) {
-        if (value < ranges.minLimit || value >= ranges.red.min) return 16;
-        if (value >= ranges.yellow.min && value <= ranges.yellow.max) return 50;
-        return 84;
-    } else {
-        if (value <= ranges.red.max || value > ranges.maxLimit) return 16;
-        if ((value > ranges.red.max && value <= ranges.yellow.max) || 
-            (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) return 50;
-        return 84;
-    }
-
+function calculatePosition(value, ranges, reverse, referenceMin, referenceMax) {
+    if (!ranges) return 50;
     
-    // Original logic for other biomarkers
+    const epsilon = 0.0001;
+    
     if (reverse) {
-        if (value >= ranges.red.min) return 16;
-        if (value >= ranges.yellow.min) return 50;
-        return 84;
-    } else {
-        if (value <= ranges.red.max) return 16;
-        if (value <= ranges.yellow.max) return 50;
-        return 84;
-    }
-}
-
-function calculateColor(value, ranges) {
-    if (ranges.reverse) {
-        // För biomarkörer där högre värden är sämre
-        if (value < ranges.minLimit || value >= ranges.red.min) {
-            return 'red';
-        } else if (value >= ranges.yellow.min && value <= ranges.yellow.max) {
-            return 'yellow';
-        } else {
-            return 'green';
+        // For reverse biomarkers (lower is better, e.g., Triglycerides, LDL)
+        // Visual zones: Green 0-70%, Yellow 70-85%, Red 85-100%
+        
+        const greenMax = ranges.green ? ranges.green.max : null;
+        const yellowMax = ranges.yellow ? ranges.yellow.max : null;
+        const redMin = ranges.red ? ranges.red.min : null;
+        
+        if (!greenMax) {
+            console.error('Missing green.max for reverse biomarker');
+            return 50;
+        }
+        
+        // In green zone (optimal)
+        if (value <= (greenMax + epsilon)) {
+            const greenMin = ranges.green.min || 0;
+            const relativePosition = Math.max(0, Math.min(1, (value - greenMin) / (greenMax - greenMin)));
+            return relativePosition * 70;
+        }
+        // In yellow zone (warning)
+        else if (yellowMax && value <= (yellowMax + epsilon)) {
+            const yellowMin = ranges.yellow.min;
+            const relativePosition = Math.max(0, Math.min(1, (value - yellowMin) / (yellowMax - yellowMin)));
+            return 70 + (relativePosition * 15);
+        }
+        // In red zone (danger)
+        else {
+            const maxDisplayValue = redMin ? redMin * 1.3 : yellowMax * 1.3;
+            const valueAboveYellow = value - (yellowMax || greenMax);
+            const rangeAboveYellow = maxDisplayValue - (yellowMax || greenMax);
+            const relativePosition = Math.max(0, Math.min(1, valueAboveYellow / rangeAboveYellow));
+            return 85 + (relativePosition * 15);
         }
     } else {
-        // För biomarkörer där både för höga och för låga värden är dåliga
-        if (value <= ranges.red.max || value > ranges.maxLimit) {
-            return 'red';
-        } else if ((value > ranges.red.max && value <= ranges.yellow.max) || 
-                   (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) {
-            return 'yellow';
-        } else {
-            return 'green';
+        const greenMin = ranges.green ? ranges.green.min : null;
+        const greenMax = ranges.green ? ranges.green.max : null;
+        
+        if (!greenMin || !greenMax) {
+            console.error('Missing green range for normal biomarker');
+            return 50;
         }
-    }
-}
-
-function calculateColor(value, ranges) {
-    if (ranges.reverse) {
-        // För biomarkörer där högre värden är sämre
-        if (value < ranges.minLimit || value >= ranges.red.min) {
-            return 'red';
-        } else if (value >= ranges.yellow.min && value <= ranges.yellow.max) {
-            return 'yellow';
+        
+        // Check if this is a "higher is better" biomarker (like HDL)
+        const hasUpperLimit = greenMax !== Infinity;
+        
+        if (!hasUpperLimit) {
+            // For "higher is better" biomarkers (e.g., HDL)
+            // Visual zones: Red 0-15%, Yellow 15-30%, Green 30-100%
+            
+            // In green zone (optimal)
+            if (value >= (greenMin - epsilon)) {
+                // Map from greenMin to (greenMin * 2) into 30-100% range
+                const maxDisplayValue = greenMin * 2;
+                const relativePosition = Math.min(1, (value - greenMin) / (maxDisplayValue - greenMin));
+                return 30 + (relativePosition * 70);
+            }
+            // In yellow zone
+            else if (ranges.yellow && value >= (ranges.yellow.min - epsilon)) {
+                const yellowMin = ranges.yellow.min;
+                const yellowMax = ranges.yellow.max;
+                const relativePosition = Math.max(0, Math.min(1, (value - yellowMin) / (yellowMax - yellowMin)));
+                return 15 + (relativePosition * 15);
+            }
+            // In red zone (below yellow)
+            else {
+                const minDisplayValue = (ranges.yellow ? ranges.yellow.min : greenMin) * 0.5;
+                const targetMin = ranges.yellow ? ranges.yellow.min : greenMin;
+                const clampedValue = Math.max(minDisplayValue, value);
+                const relativePosition = (clampedValue - minDisplayValue) / (targetMin - minDisplayValue);
+                return Math.max(0, Math.min(15, relativePosition * 15));
+            }
         } else {
-            return 'green';
-        }
-    } else {
-        // För biomarkörer där både för höga och för låga värden är dåliga
-        if (value <= ranges.red.max || value > ranges.maxLimit) {
-            return 'red';
-        } else if ((value > ranges.red.max && value <= ranges.yellow.max) || 
-                   (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) {
-            return 'yellow';
-        } else {
-            return 'green';
+            // For normal biomarkers (range with both low and high limits, e.g., Hemoglobin, HbA1c)
+            // Visual zones: Red 0-15%, Yellow 15-30%, Green 30-70%, Yellow 70-85%, Red 85-100%
+            
+            // In green zone (optimal)
+            if (value >= (greenMin - epsilon) && value <= (greenMax + epsilon)) {
+                const rangeWidth = greenMax - greenMin;
+                const relativePosition = (value - greenMin) / rangeWidth;
+                return 30 + (relativePosition * 40);
+            }
+            // Below green zone (could be yellow or red)
+            else if (value < greenMin) {
+                // Check if there's a yellow zone below green
+                if (ranges.yellow && value >= (ranges.yellow.min - epsilon)) {
+                    const yellowMin = ranges.yellow.min;
+                    const yellowMax = ranges.yellow.max;
+                    const relativePosition = Math.max(0, Math.min(1, (value - yellowMin) / (yellowMax - yellowMin)));
+                    return 15 + (relativePosition * 15);
+                }
+                // In red zone (below yellow or below green if no yellow)
+                else {
+                    const minDisplayValue = (ranges.yellow ? ranges.yellow.min : greenMin) * 0.5;
+                    const targetMin = ranges.yellow ? ranges.yellow.min : greenMin;
+                    const clampedValue = Math.max(minDisplayValue, value);
+                    const relativePosition = (clampedValue - minDisplayValue) / (targetMin - minDisplayValue);
+                    return Math.max(0, Math.min(15, relativePosition * 15));
+                }
+            }
+            // Above green zone (could be yellow or red)
+            else {
+                // Check if there's a yellow zone above green
+                if (ranges.yellowUpper && value <= (ranges.yellowUpper.max + epsilon)) {
+                    const yellowMin = ranges.yellowUpper.min;
+                    const yellowMax = ranges.yellowUpper.max;
+                    const relativePosition = Math.max(0, Math.min(1, (value - yellowMin) / (yellowMax - yellowMin)));
+                    return 70 + (relativePosition * 15);
+                }
+                // In red zone (above yellow or above green if no yellow)
+                else {
+                    const maxDisplayValue = (ranges.yellowUpper ? ranges.yellowUpper.max : greenMax) * 1.5;
+                    const targetMax = ranges.yellowUpper ? ranges.yellowUpper.max : greenMax;
+                    const clampedValue = Math.min(maxDisplayValue, value);
+                    const relativePosition = (clampedValue - targetMax) / (maxDisplayValue - targetMax);
+                    return Math.max(85, Math.min(100, 85 + (relativePosition * 15)));
+                }
+            }
         }
     }
 }
 
 function getIndicatorColor(value, ranges, reverse) {
+    if (!ranges) return 'var(--accent)';
+    
+    // Small epsilon for floating point comparison tolerance
+    const epsilon = 0.0001;
+    
     if (reverse) {
-        if (value < ranges.minLimit || value >= ranges.red.min) return 'var(--danger)';
-        if (value >= ranges.yellow.min && value <= ranges.yellow.max) return 'var(--warning)';
-        return 'var(--accent)';
+        // For "< value" format (e.g., "< 3")
+        // Check yellow zone first if it exists
+        if (ranges.yellow && value >= ranges.yellow.min && value <= ranges.yellow.max) {
+            return 'var(--warning)'; // Yellow zone
+        }
+        
+        // Value must be strictly less than the limit to be green
+        const limit = ranges.red.min;
+        if (value < limit) {
+            return 'var(--accent)'; // Green (below limit, good)
+        } else {
+            return 'var(--danger)'; // Red (at or above limit, not good)
+        }
     } else {
-        if (value <= ranges.red.max || value > ranges.maxLimit) return 'var(--danger)';
-        if ((value > ranges.red.max && value <= ranges.yellow.max) || 
-            (ranges.yellowUpper && value >= ranges.yellowUpper.min && value <= ranges.yellowUpper.max)) return 'var(--warning)';
-        return 'var(--accent)';
+        // For range format with potential yellow zones
+        const refMin = ranges.green ? ranges.green.min : null;
+        const refMax = ranges.green ? ranges.green.max : null;
+        
+        if (!refMin || !refMax) {
+            console.error('ERROR: Missing green range!', ranges);
+            return 'var(--danger)';
+        }
+        
+        // Check if value is within green zone (inclusive of boundaries)
+        if (value >= (refMin - epsilon) && value <= (refMax + epsilon)) {
+            return 'var(--accent)'; // Green (within range, including boundaries)
+        }
+        
+        // Check lower yellow zone
+        if (ranges.yellow && value >= (ranges.yellow.min - epsilon) && value <= (ranges.yellow.max + epsilon)) {
+            return 'var(--warning)'; // Yellow (near lower boundary)
+        }
+        
+        // Check upper yellow zone
+        if (ranges.yellowUpper && value >= (ranges.yellowUpper.min - epsilon) && value <= (ranges.yellowUpper.max + epsilon)) {
+            return 'var(--warning)'; // Yellow (near upper boundary)
+        }
+        
+        // Otherwise it's red
+        return 'var(--danger)'; // Red (outside all zones)
     }
 }
 
 function createBiomarkerElement(biomarker, index) {
     const element = document.createElement('div');
     element.className = 'biomarker';
-    const position = calculatePosition(biomarker.value, biomarker.ranges, biomarker.reverse);
-    const indicatorColor = getIndicatorColor(biomarker.value, biomarker.ranges, biomarker.reverse);
+    
+    // Get reference values for position calculation
+    const refMin = biomarker.ranges && biomarker.ranges.green ? biomarker.ranges.green.min : null;
+    const refMax = biomarker.ranges && biomarker.ranges.green ? biomarker.ranges.green.max : null;
+    
+    const position = biomarker.ranges ? calculatePosition(biomarker.value, biomarker.ranges, biomarker.reverse, refMin, refMax) : 50;
+    const indicatorColor = biomarker.ranges ? getIndicatorColor(biomarker.value, biomarker.ranges, biomarker.reverse) : 'var(--accent)';
+
+    // Create dynamic range bar based on whether it's a reverse biomarker or not
+    let rangeBarStyle;
+    const transitionWidth = 10; // Width of transition zone in percentage
+    
+    if (biomarker.reverse) {
+        // For reverse biomarkers (lower is better): green on left, red on right
+        // Green zone: 0% to 70%, Yellow zone: 70-85%, Red zone: 85-100%
+        const greenEndPercent = 70;
+        const yellowEndPercent = 85;
+        
+        rangeBarStyle = `
+            background: linear-gradient(to right,
+                var(--accent) 0%,
+                var(--accent) ${greenEndPercent - transitionWidth * 0.3}%,
+                #ffe066 ${greenEndPercent}%,
+                #ffcc7a ${greenEndPercent + transitionWidth * 0.3}%,
+                var(--warning) ${greenEndPercent + transitionWidth * 0.5}%,
+                var(--warning) ${yellowEndPercent - transitionWidth * 0.3}%,
+                #ffcc7a ${yellowEndPercent}%,
+                #ffa085 ${yellowEndPercent + transitionWidth * 0.3}%,
+                var(--danger) ${yellowEndPercent + transitionWidth * 0.5}%,
+                var(--danger) 100%);
+        `;
+    } else {
+        // Check if this is a "higher is better" biomarker (like HDL) vs "range" biomarker
+        const hasUpperLimit = biomarker.ranges.green && biomarker.ranges.green.max !== Infinity;
+        
+        if (!hasUpperLimit) {
+            // For "higher is better" biomarkers (e.g., HDL): red-yellow-green
+            // Red zone: 0-15%, Yellow zone: 15-30%, Green zone: 30-100%
+            const redEndPercent = 15;
+            const yellowEndPercent = 30;
+            
+            rangeBarStyle = `
+                background: linear-gradient(to right,
+                    var(--danger) 0%,
+                    var(--danger) ${redEndPercent - transitionWidth * 0.3}%,
+                    #ffa085 ${redEndPercent}%,
+                    #ffcc7a ${redEndPercent + transitionWidth * 0.3}%,
+                    var(--warning) ${redEndPercent + transitionWidth * 0.5}%,
+                    var(--warning) ${yellowEndPercent - transitionWidth * 0.3}%,
+                    #ffcc7a ${yellowEndPercent}%,
+                    #ffe066 ${yellowEndPercent + transitionWidth * 0.3}%,
+                    var(--accent) ${yellowEndPercent + transitionWidth * 0.5}%,
+                    var(--accent) 100%);
+            `;
+        } else {
+            // For normal biomarkers (range with both low and high limits): red-yellow-green-yellow-red
+            // Red: 0-15%, Yellow: 15-30%, Green: 30-70%, Yellow: 70-85%, Red: 85-100%
+            const redEndPercent = 15;
+            const yellowLowerEndPercent = 30;
+            const greenStartPercent = 30;
+            const greenEndPercent = 70;
+            const yellowUpperEndPercent = 85;
+            
+            rangeBarStyle = `
+                background: linear-gradient(to right,
+                    var(--danger) 0%,
+                    var(--danger) ${redEndPercent - 2}%,
+                    #ff8a80 ${redEndPercent}%,
+                    var(--warning) ${redEndPercent + 2}%,
+                    var(--warning) ${yellowLowerEndPercent - 2}%,
+                    #ffe066 ${yellowLowerEndPercent}%,
+                    var(--accent) ${greenStartPercent + 2}%,
+                    var(--accent) ${greenEndPercent - 2}%,
+                    #ffe066 ${greenEndPercent}%,
+                    var(--warning) ${greenEndPercent + 2}%,
+                    var(--warning) ${yellowUpperEndPercent - 2}%,
+                    #ff8a80 ${yellowUpperEndPercent}%,
+                    var(--danger) ${yellowUpperEndPercent + 2}%,
+                    var(--danger) 100%);
+            `;
+        }
+    }
 
     element.innerHTML = `
         <h3>${biomarker.name}</h3>
@@ -1176,9 +1354,11 @@ function createBiomarkerElement(biomarker, index) {
                class="value-input" 
                value="${biomarker.value}"
                step="${index === 0 || index === 1 || index === 6 ? '1' : index === 2 ? '0.01' : '0.1'}"
-               data-index="${index}">
+               data-index="${index}"
+               data-ref-min="${refMin || ''}"
+               data-ref-max="${refMax || ''}">
         <span class="unit">${biomarker.unit}</span>
-        <div class="range-bar">
+        <div class="range-bar" style="${rangeBarStyle}">
             <div class="indicator" style="left: ${position}%; background: ${indicatorColor}"></div>
         </div>
         <div class="range-labels">
@@ -1206,7 +1386,11 @@ container.addEventListener('input', e => {
     const newValue = parseFloat(e.target.value);
     const indicator = e.target.closest('.biomarker').querySelector('.indicator');
     
-    const position = calculatePosition(newValue, biomarker.ranges, biomarker.reverse);
+    // Get reference values from data attributes
+    const refMin = e.target.dataset.refMin ? parseFloat(e.target.dataset.refMin) : null;
+    const refMax = e.target.dataset.refMax ? parseFloat(e.target.dataset.refMax) : null;
+    
+    const position = calculatePosition(newValue, biomarker.ranges, biomarker.reverse, refMin, refMax);
     const indicatorColor = getIndicatorColor(newValue, biomarker.ranges, biomarker.reverse);
     indicator.style.left = `${position}%`;
     indicator.style.background = indicatorColor;
@@ -1473,7 +1657,11 @@ container.addEventListener('input', e => {
                                 if (indicator) {
                                     // Update position and color based on numeric value
                                     if (biomarker && biomarker.ranges) {
-                                        const position = calculatePosition(numValue, biomarker.ranges, biomarker.reverse);
+                                        // Get reference values
+                                        const refMin = biomarker.ranges.green ? biomarker.ranges.green.min : null;
+                                        const refMax = biomarker.ranges.green ? biomarker.ranges.green.max : null;
+                                        
+                                        const position = calculatePosition(numValue, biomarker.ranges, biomarker.reverse, refMin, refMax);
                                         const indicatorColor = getIndicatorColor(numValue, biomarker.ranges, biomarker.reverse);
                                         indicator.style.left = `${position}%`;
                                         indicator.style.background = indicatorColor;
