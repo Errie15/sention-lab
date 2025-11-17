@@ -229,6 +229,17 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            cursor: grab;
+            user-select: none;
+        }
+        
+        .indicator:active {
+            cursor: grabbing;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .indicator:hover {
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
         }
 
         .value-input {
@@ -1333,6 +1344,90 @@ S–Zink	Numeric		µmol/L		8 – 17	8 – 17`;
                         e.target.style.height = 'auto';
                         e.target.style.height = `${e.target.scrollHeight}px`;
                     }
+                });
+                
+                // Drag functionality for indicators
+                let isDragging = false;
+                let currentIndicator = null;
+                let currentRangeBar = null;
+                let dragStartTime = 0;
+                let dragStartPos = { x: 0, y: 0 };
+                let hasMoved = false;
+
+                container.addEventListener('mousedown', e => {
+                    if (!e.target.classList.contains('indicator')) return;
+                    
+                    isDragging = true;
+                    currentIndicator = e.target;
+                    currentRangeBar = e.target.closest('.range-bar');
+                    currentIndicator.style.cursor = 'grabbing';
+                    dragStartTime = Date.now();
+                    dragStartPos = { x: e.clientX, y: e.clientY };
+                    hasMoved = false;
+                    e.preventDefault(); // Prevent text selection
+                });
+
+                document.addEventListener('mousemove', e => {
+                    if (!isDragging || !currentIndicator || !currentRangeBar) return;
+                    
+                    // Check if mouse has moved significantly
+                    const dx = Math.abs(e.clientX - dragStartPos.x);
+                    const dy = Math.abs(e.clientY - dragStartPos.y);
+                    if (dx > 3 || dy > 3) {
+                        hasMoved = true;
+                    }
+                    
+                    const rect = currentRangeBar.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                    
+                    currentIndicator.style.left = `${percentage}%`;
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (currentIndicator) {
+                        currentIndicator.style.cursor = 'grab';
+                    }
+                    isDragging = false;
+                    currentIndicator = null;
+                    currentRangeBar = null;
+                });
+
+                // Click to change color functionality
+                const colorCycle = [
+                    { name: 'red', css: '#FF6F61' },      // var(--danger)
+                    { name: 'yellow', css: '#FFC107' },   // var(--warning)
+                    { name: 'green', css: '#8BC34A' }     // var(--accent)
+                ];
+
+                container.addEventListener('click', e => {
+                    if (!e.target.classList.contains('indicator')) return;
+                    
+                    // Only change color if it was a click (not a drag)
+                    if (hasMoved) return;
+                    
+                    const indicator = e.target;
+                    const currentBg = window.getComputedStyle(indicator).backgroundColor;
+                    
+                    // Convert rgb to hex for comparison
+                    const rgbMatch = currentBg.match(/\d+/g);
+                    if (!rgbMatch) return;
+                    
+                    const r = parseInt(rgbMatch[0]);
+                    const g = parseInt(rgbMatch[1]);
+                    const b = parseInt(rgbMatch[2]);
+                    
+                    // Determine closest color
+                    let currentIndex = 0;
+                    if (r > 200 && g < 150 && b < 150) currentIndex = 0; // Red
+                    else if (r > 200 && g > 150) currentIndex = 1; // Yellow
+                    else if (g > 150 && r < 180) currentIndex = 2; // Green
+                    
+                    // Cycle to next color
+                    const nextIndex = (currentIndex + 1) % colorCycle.length;
+                    indicator.style.background = colorCycle[nextIndex].css;
+                    
+                    e.stopPropagation();
                 });
             }
         });
